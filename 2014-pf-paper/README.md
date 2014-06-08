@@ -1,5 +1,4 @@
-Example of particle filter for multibody dynamics
-===================================================
+### Example of particle filter for multibody dynamics ###
 
 This directory contains a C++ library for multibody dynamics estimation with 
 a particle filter. Only planar dynamics models have been tested.
@@ -17,7 +16,7 @@ In Ubuntu, install them with:
 
         sudo apt-get install build-essential cmake libsuitesparse-dev libmrpt-dev
 
-You may need to a newer version of MRPT [from here](http://www.mrpt.org/MRPT_in_GNU/Linux_repositories)
+You may need to install a newer version of MRPT [from here](http://www.mrpt.org/MRPT_in_GNU/Linux_repositories)
 
 To build: 
 
