@@ -3,6 +3,8 @@
 This directory contains a C++ library for multibody dynamics estimation with 
 a particle filter. Only planar dynamics models have been tested.
 
+[![ScreenShot](https://raw.github.com/jlblanco/mbde/master/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
+
 Compiling 
 ------------
 
