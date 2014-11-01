@@ -5,7 +5,7 @@ a particle filter. Only planar dynamics models have been tested.
 For the theory behinds this work, refer to : 
   * J.L. Blanco, J.L. Torres-Moreno, A. Gimenez-Fernandez, "Multibody dynamic systems as Bayesian Networks: applications to robust state estimation of mechanisms", Multibody System Dynamics, 2015. (In press)
 
-[![ScreenShot](https://raw.githubusercontent.com/jlblancoc/mbde/master/2014-pf-paper/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
+[![ScreenShot](https://raw.githubusercontent.com/jlblancoc/mbde/master/2015-pf-paper/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
 
 
 Compiling 
