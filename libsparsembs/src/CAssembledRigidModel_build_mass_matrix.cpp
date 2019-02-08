@@ -20,7 +20,7 @@ cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 	const size_t nConstr = m_Phi.size();
 	const size_t DIM = 2;  // 2D, 3D
 
-	ASSERT_(nDOFs > 0)
+	ASSERT_(nDOFs > 0);
 
 	const size_t estimated_nnz = DIM * DIM * (2 * nDOFs + 2 * 2 * nConstr);
 	const int stype = 1;  // Symmetric, stored in upper triangular only.
@@ -30,7 +30,7 @@ cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 
 	cholmod_triplet* triplet_M = cholmod_allocate_triplet(
 		nDOFs, nDOFs, estimated_nnz, stype, CHOLMOD_REAL, &c);
-	ASSERT_(triplet_M)
+	ASSERT_(triplet_M);
 
 	const std::vector<CBody>& parent_bodies = m_parent.getBodies();
 
@@ -82,7 +82,7 @@ void CAssembledRigidModel::buildMassMatrix_dense(Eigen::MatrixXd& M) const
 	timelog.enter("buildMassMatrix_dense");
 
 	const size_t nDOFs = m_q.size();
-	ASSERT_(nDOFs > 0)
+	ASSERT_(nDOFs > 0);
 
 	// Assemble all mass matrices:
 	M.setZero(nDOFs, nDOFs);
@@ -129,7 +129,7 @@ void CAssembledRigidModel::buildMassMatrix_sparse(
 	timelog.enter("buildMassMatrix_sparse");
 
 	const size_t nDOFs = m_q.size();
-	ASSERT_(nDOFs > 0)
+	ASSERT_(nDOFs > 0);
 
 	// Assemble all mass matrices:
 	tri.clear();

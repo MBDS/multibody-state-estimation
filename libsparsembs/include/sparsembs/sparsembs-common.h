@@ -14,12 +14,18 @@
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
 using mrpt::img::TColor;
+using mrpt::img::TColorf;
+using mrpt::system::CTicTac;
 using mrpt::system::CTimeLogger;
+using mrpt::system::CTimeLoggerEntry;
 #else
 #include <mrpt/utils/CTimeLogger.h>
 #include <mrpt/utils/TColor.h>
+using CTicTac;
 using mrpt::utils::CTimeLogger;
+using mrpt::utils::CTimeLoggerEntry;
 using mrpt::utils::TColor;
+using mrpt::utils::TColorf;
 #endif
 
 // Eigen's include must occur AFTER MRPT's headers:
@@ -39,7 +45,7 @@ namespace sparsembs
 using namespace Eigen;
 using namespace mrpt::math;
 
-extern mrpt::utils::CTimeLogger timelog;
+extern CTimeLogger timelog;
 
 /** Each of the points in a CModelDefinition */
 struct TMBSPoint

@@ -14,7 +14,7 @@ CBody& CModelDefinition::addBody(const std::string& name)
 {
 	ASSERTMSG_(
 		!m_already_added_fixed_len_constraints,
-		"Can't modify model after assembling!")
+	    "Can't modify model after assembling!");
 
 	// Build name if none provided:
 	const std::string nam =
@@ -41,7 +41,7 @@ MRPT_TODO("Initial position problem should refine these positions if needed.")
 void CModelDefinition::setPointCoords(
 	const size_t i, const TPoint2D& coords, const bool is_fixed)
 {
-	ASSERT_(i < m_points.size())
+	ASSERT_(i < m_points.size());
 
 	TMBSPoint& pt = m_points[i];
 	pt.coords = coords;
@@ -78,8 +78,8 @@ void CModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 		for (size_t i = 0; i < m_bodies.size(); i++)
 		{
 			const CBody& b = m_bodies[i];
-			ASSERT_(b.points[0] < m_points.size())
-			ASSERT_(b.points[1] < m_points.size())
+			ASSERT_(b.points[0] < m_points.size());
+			ASSERT_(b.points[1] < m_points.size());
 
 			const_cast<CModelDefinition*>(this)->addConstraint(
 				CConstraintConstantDistance(
@@ -93,12 +93,13 @@ void CModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 // -------------------------------------------------------------------
 //                      assembleRigidMBS
 // -------------------------------------------------------------------
-CAssembledRigidModelPtr CModelDefinition::assembleRigidMBS()
+std::shared_ptr<CAssembledRigidModel> CModelDefinition::assembleRigidMBS()
 {
 	// 1) Build "symbolic" assembly:
 	TSymbolicAssembledModel armi(*this);
 	this->assembleRigidMBS(armi);
 
 	// 2) Actual assembly:
-	return CAssembledRigidModelPtr(new CAssembledRigidModel(armi));
+	return std::shared_ptr<CAssembledRigidModel>(
+	    new CAssembledRigidModel(armi));
 }

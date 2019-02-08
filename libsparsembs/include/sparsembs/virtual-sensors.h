@@ -13,10 +13,12 @@ using namespace mrpt::math;
 class CVirtualSensor
 {
    public:
-	/** Simulates one sensor reading from the given system state, returning the
-	 * predicted value. */
+	using Ptr = std::shared_ptr<CVirtualSensor>;
+
+	/** Simulates one sensor reading from the given system state, returning
+	 * the predicted value. */
 	virtual double simulate_reading(
-		const CAssembledRigidModel& mb_state) const = 0;
+	    const CAssembledRigidModel& mb_state) const = 0;
 
 	/** Returns the log-likelihhod of the given read value for the current
 	 * mechanism state */
@@ -25,7 +27,7 @@ class CVirtualSensor
 	{
 		const double sensor_prediction = this->simulate_reading(mb_state);
 		return -0.5 *
-			   mrpt::utils::square(
+		       mrpt::square(
 				   (sensor_reading - sensor_prediction) / sensor_noise_std);
 	}
 
@@ -38,16 +40,14 @@ class CVirtualSensor
 	virtual ~CVirtualSensor() {}
 };
 
-typedef stlplus::smart_ptr<CVirtualSensor> CVirtualSensorPtr;
-
 /** A Gyroscope sensor */
 class CVirtualSensor_Gyro : public CVirtualSensor
 {
    public:
 	/** Simulates one sensor reading from the given system state, returning the
 	 * predicted value. */
-	virtual double simulate_reading(const CAssembledRigidModel& mb_state) const
-		MRPT_OVERRIDE;
+	virtual double simulate_reading(
+	    const CAssembledRigidModel& mb_state) const override;
 
 	CVirtualSensor_Gyro(const size_t body_idx) : m_body_idx(body_idx) {}
 

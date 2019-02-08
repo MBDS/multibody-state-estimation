@@ -4,7 +4,6 @@
 using namespace sparsembs;
 using namespace Eigen;
 using namespace mrpt::math;
-using namespace mrpt::utils;
 using namespace mrpt;
 using namespace std;
 
@@ -17,7 +16,7 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 	for (int i = 0; i < 3; i++) m_gravity[i] = DEFAULT_GRAVITY[i];
 
 	const size_t nDOFs = armi.DOFs.size();
-	ASSERTMSG_(nDOFs > 0, "Trying to assemble model with 0 DOFs!?")
+	ASSERTMSG_(nDOFs > 0, "Trying to assemble model with 0 DOFs!?");
 
 	m_q.resize(nDOFs);
 	m_q.setConstant(0);
@@ -46,7 +45,7 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 			//	m_q[i] = pt.coords.z;
 			//	break;
 			default:
-				THROW_EXCEPTION("Unexpected value for m_DOFs[i].point_dof")
+			    THROW_EXCEPTION("Unexpected value for m_DOFs[i].point_dof");
 		};
 	}
 
@@ -56,7 +55,7 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 
 	// Generate constraint equations & create structure of sparse Jacobians:
 	// ---------------------------------------------------------------------------------------------------
-	const std::vector<CConstraintBasePtr>& parent_constraints =
+	const std::vector<CConstraintBase::Ptr>& parent_constraints =
 		m_parent.getConstraints();
 	const size_t nConst = parent_constraints.size();
 
@@ -65,10 +64,11 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 	for (size_t i = 0; i < nConst; i++)
 	{
 		m_constraints[i] = parent_constraints[i];  // Copy smart pointer, and
-		m_constraints[i].make_unique();  // clone object.
+		// clone object:
+		m_constraints[i] = CConstraintBase::Ptr(m_constraints[i]->clone());
 
-		const CConstraintBase* c = m_constraints[i].pointer();
-		ASSERT_(c != NULL)
+		const CConstraintBase* c = m_constraints[i].get();
+		ASSERT_(c != NULL);
 		c->buildSparseStructures(*this);
 	}
 }
@@ -104,25 +104,23 @@ void CAssembledRigidModel::update_numeric_Phi_and_Jacobians()
 
 /** Returns a 3D visualization of the model */
 void CAssembledRigidModel::getAs3DRepresentation(
-	mrpt::opengl::CSetOfObjectsPtr& outObj,
+	mrpt::opengl::CSetOfObjects::Ptr& outObj,
 	const CBody::TRenderParams& rp) const
 {
-	using namespace mrpt::utils;
-
 	if (!outObj)
 		outObj = mrpt::opengl::CSetOfObjects::Create();
 	else
 		outObj->clear();
 
 	// Render constraints:
-	const std::vector<CConstraintBasePtr>& parent_constr =
+	const std::vector<CConstraintBase::Ptr>& parent_constr =
 		m_parent.getConstraints();
 
 	const size_t nConstr = parent_constr.size();
 	for (size_t i = 0; i < nConstr; i++)
 	{
-		const CConstraintBase* constr_ptr = parent_constr[i].pointer();
-		mrpt::opengl::CRenderizablePtr gl_obj;
+		const CConstraintBase* constr_ptr = parent_constr[i].get();
+		mrpt::opengl::CRenderizable::Ptr gl_obj;
 		if (constr_ptr->get3DRepresentation(gl_obj))
 		{
 			// Insert in 3D scene:
@@ -152,7 +150,7 @@ void CAssembledRigidModel::getAs3DRepresentation(
 	{
 		const CBody& b = parent_bodies[i];
 
-		mrpt::opengl::CRenderizablePtr gl_obj = b.get3DRepresentation();
+		mrpt::opengl::CRenderizable::Ptr gl_obj = b.get3DRepresentation();
 
 		// Insert in 3D scene:
 		outObj->insert(gl_obj);
@@ -175,12 +173,12 @@ void CAssembledRigidModel::update3DRepresentation(
 	const std::vector<CBody>& parent_bodies = m_parent.getBodies();
 
 	const size_t nBodies = parent_bodies.size();
-	ASSERT_(m_gl_objects.size() == nBodies)
+	ASSERT_(m_gl_objects.size() == nBodies);
 
 	for (size_t i = 0; i < nBodies; i++)
 	{
-		mrpt::opengl::CRenderizablePtr& obj = m_gl_objects[i];
-		ASSERT_(obj.present())
+		mrpt::opengl::CRenderizable::Ptr& obj = m_gl_objects[i];
+		ASSERT_(obj);
 
 		// Recover the 2D pose from 2 points:
 		const CBody& b = parent_bodies[i];
@@ -211,9 +209,9 @@ void CAssembledRigidModel::update3DRepresentation(
 		// Update transparency:
 		if (rp.render_style == CBody::reLine)
 		{
-			mrpt::opengl::CSimpleLinePtr gl_line =
-				mrpt::opengl::CSetOfObjectsPtr(obj)
-					->getByClass<mrpt::opengl::CSimpleLine>();
+			auto gl_line =
+			    mrpt::ptr_cast<mrpt::opengl::CSetOfObjects>::from(obj)
+			        ->getByClass<mrpt::opengl::CSimpleLine>();
 			if (gl_line) gl_line->setColorA_u8(rp.line_alpha);
 		}
 	}
@@ -342,17 +340,18 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 }
 
 /* Render a ground point */
-mrpt::opengl::CSetOfObjectsPtr
+mrpt::opengl::CSetOfObjects::Ptr
 	CAssembledRigidModel::internal_render_ground_point(
 		const TMBSPoint& pt, const CBody::TRenderParams& rp) const
 {
-	mrpt::opengl::CSetOfObjectsPtr obj = mrpt::opengl::CSetOfObjects::Create();
+	mrpt::opengl::CSetOfObjects::Ptr obj =
+	    mrpt::opengl::CSetOfObjects::Create();
 	obj->setLocation(pt.coords.x, pt.coords.y, 0);
 
 	const double support_LXZ = 0.03;
 	const double support_LY = 0.05;
 
-	mrpt::opengl::CBoxPtr gl_box = mrpt::opengl::CBox::Create(
+	auto gl_box = mrpt::opengl::CBox::Create(
 		mrpt::math::TPoint3D(
 			-0.5 * support_LXZ, -support_LY, -0.5 * support_LXZ),
 		mrpt::math::TPoint3D(0.5 * support_LXZ, 0, 0.5 * support_LXZ), false);

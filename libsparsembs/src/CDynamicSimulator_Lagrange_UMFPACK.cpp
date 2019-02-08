@@ -10,7 +10,7 @@ using namespace std;
 //  Solver: (Sparse) UMFPACK
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_Lagrange_UMFPACK::CDynamicSimulator_Lagrange_UMFPACK(
-	const CAssembledRigidModelPtr arm_ptr)
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering(orderAMD),
 	  m_numeric(NULL),
@@ -95,7 +95,7 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_prepare()
 			m_umf_control[UMFPACK_ORDERING] = UMFPACK_ORDERING_BEST;
 			break;
 		default:
-			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.")
+		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	int errorCode = umfpack_symbolic(
@@ -104,7 +104,7 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_prepare()
 
 	if (errorCode < 0)
 		THROW_EXCEPTION(
-			"Error: UMFPACK couldn't factorize the augmented matrix.")
+		    "Error: UMFPACK couldn't factorize the augmented matrix.");
 
 	timelog.leave("solver_prepare");
 }
@@ -180,7 +180,7 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 
 	if (errorCode < 0)
 		THROW_EXCEPTION(
-			"Error: UMFPACK couldn't numeric-factorize the augmented matrix.")
+		    "Error: UMFPACK couldn't numeric-factorize the augmented matrix.");
 
 	timelog.leave("solver_ddotq.numeric_factor");
 
@@ -206,7 +206,7 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 		mrpt::math::saveEigenSparseTripletsToFile(
 			"DUMP_UMFPACK_ERROR_A.txt", m_A_tri);
 		RHS.saveToTextFile("DUMP_UMFPACK_ERROR_RHS.txt");
-		THROW_EXCEPTION("Error: UMFPACK couldn't solve the linear system.")
+		THROW_EXCEPTION("Error: UMFPACK couldn't solve the linear system.");
 	}
 
 	timelog.leave("solver_ddotq.solve");

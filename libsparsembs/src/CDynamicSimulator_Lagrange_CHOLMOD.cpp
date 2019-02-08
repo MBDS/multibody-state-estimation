@@ -11,7 +11,7 @@ using namespace std;
 //  Solver: (Sparse) CHOLMOD
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_Lagrange_CHOLMOD::CDynamicSimulator_Lagrange_CHOLMOD(
-	const CAssembledRigidModelPtr arm_ptr)
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering_M(orderAMD),
 	  ordering_EEt(orderAMD),
@@ -41,14 +41,14 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// Build mass matrix now and don't touch it anymore, since it's constant
 	// with this formulation:
 	m_mass_tri = m_arm->buildMassMatrix_sparse_CHOLMOD(m_cholmod_common);
-	ASSERT_(m_mass_tri != NULL)
+	ASSERT_(m_mass_tri != NULL);
 
 	// 1) M = Lm * Lm^t
 	//  Analize Mass matrix and build symbolic decomposition:
 	// ---------------------------------------
 	cholmod_sparse* m_mass = cholmod_triplet_to_sparse(
 		m_mass_tri, m_mass_tri->nnz, &m_cholmod_common);
-	ASSERT_(m_mass != NULL)
+	ASSERT_(m_mass != NULL);
 
 	m_cholmod_common.nmethods = 1;
 	switch (this->ordering_M)
@@ -69,17 +69,17 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 			m_cholmod_common.method[0].ordering = CHOLMOD_COLAMD;
 			break;
 		default:
-			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.")
+		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 	// m_cholmod_common.postorder = TRUE;
 
 	// save_matrix( m_mass, "M.txt",  &m_cholmod_common);
 
 	m_Lm = cholmod_analyze(m_mass, &m_cholmod_common);
-	ASSERT_(m_Lm != NULL)
+	ASSERT_(m_Lm != NULL);
 
 	if (m_cholmod_common.status != CHOLMOD_OK)
-		THROW_EXCEPTION("CHOLMOD couldn't symbolic factorize M")
+		THROW_EXCEPTION("CHOLMOD couldn't symbolic factorize M");
 
 	// Numeric factorization:
 	cholmod_factorize(m_mass, m_Lm, &m_cholmod_common);
@@ -114,10 +114,10 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// Allocate RHS vectors:
 	m_Q = cholmod_allocate_dense(
 		nDOFs, 1, nDOFs, CHOLMOD_REAL, &m_cholmod_common);
-	ASSERT_(m_Q != NULL)
+	ASSERT_(m_Q != NULL);
 	m_c = cholmod_allocate_dense(
 		nConstraints, 1, nConstraints, CHOLMOD_REAL, &m_cholmod_common);
-	ASSERT_(m_c != NULL)
+	ASSERT_(m_c != NULL);
 
 	// Build the structure of E once so we can build its symbolic decomposition
 	// just once now:
@@ -161,14 +161,14 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 			m_cholmod_common.method[0].ordering = CHOLMOD_COLAMD;
 			break;
 		default:
-			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.")
+		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	m_Lt = cholmod_analyze(E, &m_cholmod_common);
-	ASSERT_(m_Lt != NULL)
+	ASSERT_(m_Lt != NULL);
 
 	if (m_cholmod_common.status != CHOLMOD_OK)
-		THROW_EXCEPTION("CHOLMOD couldn't symbolic factorize EE'")
+		THROW_EXCEPTION("CHOLMOD couldn't symbolic factorize EE'");
 
 	cholmod_free_sparse(&E_t, &m_cholmod_common);
 	cholmod_free_sparse(&E, &m_cholmod_common);

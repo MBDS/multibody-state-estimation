@@ -4,7 +4,7 @@
 
 using namespace sparsembs;
 using namespace Eigen;
-using mrpt::utils::square;
+using mrpt::square;
 
 /** Virtual destructor (required in any virtual base) */
 CConstraintBase::~CConstraintBase() {}
@@ -20,7 +20,7 @@ void CConstraintConstantDistance::buildSparseStructures(
 
 	ASSERTMSG_(
 		!(m_points[0]->fixed && m_points[1]->fixed),
-		"Useless constraint added between two fixed points!")
+	    "Useless constraint added between two fixed points!");
 
 	m_pointDOFs[0] = arm.getPoints2DOFs()[this->point_index0];
 	m_pointDOFs[1] = arm.getPoints2DOFs()[this->point_index1];
@@ -134,11 +134,12 @@ void CConstraintFixedSlider::buildSparseStructures(
 	m_Delta = line_pt[1] - line_pt[0];
 	ASSERTMSG_(
 		m_Delta.norm() > 0,
-		"Error: the two constraint points must define a line but they coincide")
+	    "Error: the two constraint points must define a line but they "
+	    "coincide");
 
 	m_point = &arm.m_parent.getPointInfo(this->point_index);
 
-	ASSERTMSG_(!m_point->fixed, "Useless constraint added to a fixed point!")
+	ASSERTMSG_(!m_point->fixed, "Useless constraint added to a fixed point!");
 
 	m_pointDOF = arm.getPoints2DOFs()[this->point_index];
 
@@ -191,7 +192,7 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
  * of a fixed slider) \return false if the constraint has no 3D representation
  */
 bool CConstraintFixedSlider::get3DRepresentation(
-	mrpt::opengl::CRenderizablePtr& inout_obj) const
+	mrpt::opengl::CRenderizable::Ptr& inout_obj) const
 {
 	inout_obj = mrpt::opengl::CSimpleLine::Create(
 		line_pt[0].x, line_pt[0].y, 0, line_pt[1].x, line_pt[1].y, 0,
@@ -211,7 +212,7 @@ void CConstraintMobileSlider::buildSparseStructures(
 	m_points[2] = &arm.m_parent.getPointInfo(this->ref_pts[1]);
 
 	ASSERTMSG_(
-		!m_points[0]->fixed, "Useless constraint added to a fixed point!")
+	    !m_points[0]->fixed, "Useless constraint added to a fixed point!");
 
 	m_pointDOF[0] = arm.getPoints2DOFs()[this->point_index];
 	m_pointDOF[1] = arm.getPoints2DOFs()[this->ref_pts[0]];

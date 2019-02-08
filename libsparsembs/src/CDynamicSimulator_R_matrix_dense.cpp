@@ -11,7 +11,7 @@ using namespace std;
 //  Solver: Dense LU
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_R_matrix_dense::CDynamicSimulator_R_matrix_dense(
-	const CAssembledRigidModelPtr arm_ptr)
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr)
 {
 }
@@ -34,7 +34,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 {
 	if (lagrangre != NULL)
 	{
-		THROW_EXCEPTION("This class can't compute lagrange multipliers")
+		THROW_EXCEPTION("This class can't compute lagrange multipliers");
 	}
 
 	timelog.enter("solver_ddotq");
@@ -73,7 +73,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 
 	timelog.leave("solver_ddotq.Phiq_kernel");
 
-	ASSERT_EQUAL_(nDepCoords, nConstraints + nDOFs)
+	ASSERT_EQUAL_(nDepCoords, nConstraints + nDOFs);
 
 	// Build the dense augmented matrix:
 	Eigen::MatrixXd A(nDepCoords, nDepCoords);

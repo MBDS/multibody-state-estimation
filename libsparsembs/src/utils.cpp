@@ -5,7 +5,7 @@
 using namespace sparsembs;
 using namespace Eigen;
 
-mrpt::utils::CTimeLogger sparsembs::timelog;
+CTimeLogger sparsembs::timelog;
 
 bool sparsembs::save_matrix(
 	cholmod_sparse* tri, const char* filename, cholmod_common* c)

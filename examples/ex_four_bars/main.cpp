@@ -6,7 +6,7 @@
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
 #include <mrpt/math/ops_vectors.h>
-#include <mrpt/system/threads.h>  // for sleep()
+#include <thread>  // for sleep()
 #include <mrpt/random.h>
 
 using namespace std;
@@ -14,7 +14,6 @@ using namespace sparsembs;
 using namespace mrpt;
 using namespace mrpt::poses;
 using namespace mrpt::math;
-using namespace mrpt::utils;
 using namespace mrpt::random;
 
 #define SIMUL_REALTIME 1  // 1: real time, 0: fixed simulation step
@@ -31,7 +30,9 @@ void buildParameterizedMBS(
 	const size_t nx, const size_t ny, CModelDefinition& model,
 	const double NOISE_LEN = 0)
 {
-	ASSERT_(nx >= 1 && ny >= 1)
+	ASSERT_(nx >= 1 && ny >= 1);
+
+	auto randomGenerator = mrpt::random::getRandomGenerator();
 
 	// Definition of constants
 	const size_t npoints = (nx + 1) * (ny + 1);  // number of points
@@ -77,7 +78,7 @@ void buildParameterizedMBS(
 						  model.getPointInfo(b.points[1]).coords)
 							 .norm();
 			b.mass() = 1 * b.length();
-			b.I0() = b.mass() * mrpt::utils::square(b.length()) / 3.0;
+			b.I0() = b.mass() * mrpt::square(b.length()) / 3.0;
 			b.cog() = TPoint2D(b.length() * 0.5, 0);
 		}
 	}
@@ -95,7 +96,7 @@ void buildParameterizedMBS(
 						  model.getPointInfo(b.points[1]).coords)
 							 .norm();
 			b.mass() = 1 * b.length();
-			b.I0() = b.mass() * mrpt::utils::square(b.length()) / 3.0;
+			b.I0() = b.mass() * mrpt::square(b.length()) / 3.0;
 			b.cog() = TPoint2D(b.length() * 0.5, 0);
 
 			b.render_params.z_layer = 0.1;
@@ -107,7 +108,7 @@ void buildParameterizedMBS(
 
 void buildLongStringMBS(const size_t N, CModelDefinition& model)
 {
-	ASSERT_(N >= 1)
+	ASSERT_(N >= 1);
 
 	// Definition of constants
 	const double L = 0.5;  // Rod lengths
@@ -126,7 +127,7 @@ void buildLongStringMBS(const size_t N, CModelDefinition& model)
 		b.points[1] = j + 1;
 		b.length() = L;
 		b.mass() = L * 0.1;
-		b.I0() = b.mass() * mrpt::utils::square(b.length()) / 3.0;
+		b.I0() = b.mass() * mrpt::square(b.length()) / 3.0;
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 }
@@ -351,7 +352,7 @@ int main(int argc, char** argv)
 
 		// "Compile" the problem:
 		// ------------------------------------------------
-		CAssembledRigidModelPtr aMBS = model.assembleRigidMBS();
+		std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
 
 		// Set initial velocities (Only for the buildParameterizedMBS model)
 		// for (size_t i=0;i<=Nx;i++)
@@ -383,7 +384,7 @@ int main(int argc, char** argv)
 
 		// Prepare 3D scene:
 		// -----------------------------------------------
-		mrpt::opengl::CSetOfObjectsPtr gl_MBS =
+		mrpt::opengl::CSetOfObjects::Ptr gl_MBS =
 			mrpt::opengl::CSetOfObjects::Create();
 		aMBS->getAs3DRepresentation(gl_MBS, dynamic_rp);
 
@@ -395,7 +396,7 @@ int main(int argc, char** argv)
 		// win3D.setCameraPointingToPoint(Nx*2*0.5,0, Ny*2.5*0.5);
 
 		{
-			mrpt::opengl::COpenGLScenePtr& scene = win3D.get3DSceneAndLock();
+			auto& scene = win3D.get3DSceneAndLock();
 			// scene->getViewport()->setCustomBackgroundColor(
 			// mrpt::utils::TColorf(0.1f,0.1f,0.1f));
 
@@ -410,7 +411,7 @@ int main(int argc, char** argv)
 		win3D.repaint();
 
 		const double GUI_DESIRED_PERIOD = 1.0 / GUI_DESIRED_FPS;
-		mrpt::utils::CTicTac tictac_gui_refresh;
+		CTicTac tictac_gui_refresh;
 
 		// Test initial position problem:
 		// ---------------------------------
@@ -475,7 +476,7 @@ int main(int argc, char** argv)
 		dynSimul.prepare();
 
 		// Run dynamic simulation:
-		mrpt::utils::CTicTac tictac;
+		CTicTac tictac;
 		double t_old = tictac.Tac();
 		double t_old_simul = t_old;
 
@@ -569,7 +570,7 @@ int main(int argc, char** argv)
 
 			}  // end update GUI
 
-			mrpt::system::sleep(0);
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 
 		// Save sensed data:

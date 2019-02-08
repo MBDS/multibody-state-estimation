@@ -10,7 +10,7 @@ using namespace std;
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_AugmentedLagrangian_KLU::
 	CDynamicSimulator_AugmentedLagrangian_KLU(
-		const CAssembledRigidModelPtr arm_ptr)
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBasePenalty(arm_ptr),
 	  ordering(orderAMD),
 	  m_numeric(NULL),
@@ -132,19 +132,19 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 			m_common.ordering = 1;
 			break;
 		default:
-			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.")
+		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	m_symbolic = klu_analyze(
 		m_A.rows(), m_A.outerIndexPtr(), m_A.innerIndexPtr(), &m_common);
 	if (!m_symbolic)
-		THROW_EXCEPTION("Error: KLU couldn't factorize the augmented matrix.")
+		THROW_EXCEPTION("Error: KLU couldn't factorize the augmented matrix.");
 
 	// Mass matrix: factorize numerically since it's constant:
 	m_symbolic_M = klu_analyze(
 		m_M.rows(), m_M.outerIndexPtr(), m_M.innerIndexPtr(), &m_common);
 	if (!m_symbolic_M)
-		THROW_EXCEPTION("Error: KLU couldn't factorize the mass matrix.")
+		THROW_EXCEPTION("Error: KLU couldn't factorize the mass matrix.");
 	m_numeric_M = klu_factor(
 		m_M.outerIndexPtr(), m_M.innerIndexPtr(), m_M.valuePtr(), m_symbolic_M,
 		&m_common);
@@ -234,7 +234,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 
 	if (!m_numeric)
 		THROW_EXCEPTION(
-			"Error: KLU couldn't numeric-factorize the augmented matrix.")
+		    "Error: KLU couldn't numeric-factorize the augmented matrix.");
 	timelog.leave("solver_ddotq.numeric_factor");
 
 	// Build the RHS vector:
@@ -312,7 +312,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 			m_symbolic, m_numeric, m_A.cols(), 1, &ddotq_next[0], &m_common);
 
 		if (m_common.status != KLU_OK)
-			THROW_EXCEPTION("Error: KLU couldn't solve the linear system.")
+			THROW_EXCEPTION("Error: KLU couldn't solve the linear system.");
 
 		ddot_incr_norm = (ddotq_next - ddotq_prev).norm();
 		// cout << "iter: " << iter<< endl << "prev: " << ddotq_prev.transpose()

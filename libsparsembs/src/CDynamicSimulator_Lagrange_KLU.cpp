@@ -9,7 +9,7 @@ using namespace std;
 //  Solver: (Sparse) KLU
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_Lagrange_KLU::CDynamicSimulator_Lagrange_KLU(
-	const CAssembledRigidModelPtr arm_ptr)
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering(orderCOLAMD),  // COLAMD is more efficient than AMD
 	  m_numeric(NULL),
@@ -89,13 +89,13 @@ void CDynamicSimulator_Lagrange_KLU::internal_prepare()
 			m_common.ordering = 1;
 			break;
 		default:
-			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.")
+		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	m_symbolic = klu_analyze(
 		m_A.rows(), m_A.outerIndexPtr(), m_A.innerIndexPtr(), &m_common);
 	if (!m_symbolic)
-		THROW_EXCEPTION("Error: KLU couldn't factorize the augmented matrix.")
+		THROW_EXCEPTION("Error: KLU couldn't factorize the augmented matrix.");
 
 	// m_A.toDense().saveToTextFile("A.txt");
 
@@ -164,7 +164,7 @@ void CDynamicSimulator_Lagrange_KLU::internal_solve_ddotq(
 
 	if (!m_numeric)
 		THROW_EXCEPTION(
-			"Error: KLU couldn't numeric-factorize the augmented matrix.")
+		    "Error: KLU couldn't numeric-factorize the augmented matrix.");
 	timelog.leave("solver_ddotq.numeric_factor");
 
 	// Build the RHS vector:
@@ -184,7 +184,7 @@ void CDynamicSimulator_Lagrange_KLU::internal_solve_ddotq(
 	klu_solve(m_symbolic, m_numeric, m_A.cols(), 1, &RHS[0], &m_common);
 
 	if (m_common.status != KLU_OK)
-		THROW_EXCEPTION("Error: KLU couldn't solve the linear system.")
+		THROW_EXCEPTION("Error: KLU couldn't solve the linear system.");
 
 	timelog.leave("solver_ddotq.solve");
 

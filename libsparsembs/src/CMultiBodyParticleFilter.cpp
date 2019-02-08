@@ -24,7 +24,7 @@ CMultiBodyParticleFilter::CMultiBodyParticleFilter(
 		 it != m_particles.end(); ++it)
 	{
 		it->log_w = 0;
-		it->d = new particle_t(sym_model);
+		it->d.reset(new particle_t(sym_model));
 	}
 
 	// Randomize?
@@ -36,18 +36,18 @@ CMultiBodyParticleFilter::~CMultiBodyParticleFilter() {}
 
 void CMultiBodyParticleFilter::run_PF_step(
 	const double t_ini, const double t_end, const double max_t_step,
-	const std::vector<CVirtualSensorPtr>& sensor_descriptions,
+    const std::vector<CVirtualSensor::Ptr>& sensor_descriptions,
 	const std::vector<double>& sensor_readings, TOutputInfo& out_info)
 {
-	mrpt::utils::CTimeLoggerEntry tle(timelog, "run_PF_step");
+	CTimeLoggerEntry tle(timelog, "run_PF_step");
 
-	ASSERT_(sensor_descriptions.size() == sensor_readings.size())
+	ASSERT_(sensor_descriptions.size() == sensor_readings.size());
 
 	// 1) Executes probabilistic transition model:
 	// -----------------------------------------------------
 	timelog.enter("PF.1.forward_model");
 
-	ASSERT_ABOVE_(t_end, t_ini)
+	ASSERT_ABOVE_(t_end, t_ini);
 	const double t_increment = t_end - t_ini;
 	const size_t nTimeSteps = ceil(t_increment / max_t_step);
 
@@ -74,7 +74,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 #endif
 		for (i = 0; i < nParts; i++)
 		{
-			particle_t* part = m_particles[i].d;
+			auto part = m_particles[i].d;
 
 			// ODE_RK4:
 			// --------------------------------
@@ -168,7 +168,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 	for (CParticleList::iterator it = m_particles.begin();
 		 it != m_particles.end(); ++it)
 	{
-		particle_t* part = it->d;
+		auto part = it->d;
 
 		double cum_log_lik = 0;
 		for (size_t k = 0; k < nSensors; k++)
@@ -185,7 +185,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 	}
 
 	//	double sensor_avrg_lik = mrpt::math::chi2
-	//CDF(nSensors,-mrpt::math::averageLogLikelihood(sensors_logw,sensors_loglik)
+	// CDF(nSensors,-mrpt::math::averageLogLikelihood(sensors_logw,sensors_loglik)
 	//);
 	timelog.leave("PF.2.sensor_likelihood");
 
@@ -207,8 +207,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 
 	if (curESS < PF_options.BETA)
 	{
-		if (PF_options.verbose)
-			printf("[PF] Resampling particles (ESS was %.02f)\n", curESS);
+		// printf("[PF] Resampling particles (ESS was %.02f)\n", curESS);
 
 		size_t nNewParts = nParts;  // std::max(40.0, nParts*0.95 );
 
@@ -225,18 +224,18 @@ CMultiBodyParticleFilter::TTransitionModelOptions::TTransitionModelOptions()
 }
 
 void CMultiBodyParticleFilter::getAs3DRepresentation(
-	mrpt::opengl::CSetOfObjectsPtr& outObj,
+	mrpt::opengl::CSetOfObjects::Ptr& outObj,
 	const CBody::TRenderParams& rp) const
 {
-	ASSERT_(outObj.present())
+	ASSERT_(outObj);
 
 	outObj->clear();
 	for (CParticleList::const_iterator it = m_particles.begin();
 		 it != m_particles.end(); ++it)
 	{
-		const particle_t* part = it->d;
+		const auto part = it->d;
 
-		mrpt::opengl::CSetOfObjectsPtr gl_part =
+		mrpt::opengl::CSetOfObjects::Ptr gl_part =
 			mrpt::opengl::CSetOfObjects::Create();
 		part->num_model.getAs3DRepresentation(gl_part, rp);
 		outObj->insert(gl_part);
@@ -252,7 +251,7 @@ void CMultiBodyParticleFilter::update3DRepresentation(
 	for (CParticleList::const_iterator it = m_particles.begin();
 		 it != m_particles.end(); ++it)
 	{
-		const particle_t* part = it->d;
+		const auto part = it->d;
 
 		const uint8_t new_alpha =
 			uint8_t(std::max(0.2, std::exp(it->log_w)) * 255);

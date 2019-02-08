@@ -86,7 +86,7 @@ struct CBody
 
    public:
 	/**  Creates a 3D representation of the body */
-	mrpt::opengl::CRenderizablePtr get3DRepresentation() const;
+	mrpt::opengl::CRenderizable::Ptr get3DRepresentation() const;
 
 	/** Type of 3D object in which the body will be converted */
 	enum render_style_t

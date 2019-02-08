@@ -26,7 +26,7 @@ struct TMBState_Particle
 	TMBState_Particle(const TSymbolicAssembledModel& sym_model)
 		: sym_assembly_model(sym_model),
 		  num_model_ptr(new CAssembledRigidModel(sym_assembly_model)),
-		  num_model(*num_model_ptr.pointer()),
+		  num_model(*num_model_ptr.get()),
 		  dyn_simul(new DYN_SIMUL(num_model_ptr))
 	{
 		dyn_simul->prepare();
@@ -34,15 +34,15 @@ struct TMBState_Particle
 
 	TSymbolicAssembledModel
 		sym_assembly_model;  //!< Symbolic assembly instructions
-	CAssembledRigidModelPtr num_model_ptr;
+	std::shared_ptr<CAssembledRigidModel> num_model_ptr;
 	CAssembledRigidModel& num_model;
-	CDynamicSimulatorIndepBasePtr dyn_simul;
+	CDynamicSimulatorIndepBase::Ptr dyn_simul;
 
 	/** copy ctor */
 	TMBState_Particle(const TMBState_Particle& o)
 		: sym_assembly_model(o.sym_assembly_model),
 		  num_model_ptr(new CAssembledRigidModel(sym_assembly_model)),
-		  num_model(*num_model_ptr.pointer()),
+		  num_model(*num_model_ptr.get()),
 		  dyn_simul(new DYN_SIMUL(num_model_ptr))
 	{
 		num_model.copyStateFrom(o.num_model);
@@ -94,11 +94,11 @@ class CMultiBodyParticleFilter
 	 */
 	void run_PF_step(
 		const double t_ini, const double t_end, const double max_t_step,
-		const std::vector<CVirtualSensorPtr>& sensor_descriptions,
+	    const std::vector<CVirtualSensor::Ptr>& sensor_descriptions,
 		const std::vector<double>& sensor_readings, TOutputInfo& out_info);
 
 	void getAs3DRepresentation(
-		mrpt::opengl::CSetOfObjectsPtr& outObj,
+		mrpt::opengl::CSetOfObjects::Ptr& outObj,
 		const CBody::TRenderParams& rp) const;
 	void update3DRepresentation(const CBody::TRenderParams& rp) const;
 

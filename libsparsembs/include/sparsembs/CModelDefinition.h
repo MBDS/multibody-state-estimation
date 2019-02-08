@@ -17,8 +17,6 @@ struct TSymbolicAssembledModel;  // Frwd. decl.
 
 class CAssembledRigidModel;  //!< A MBS preprocessed and ready for
 							 //!< kinematic/dynamic simulations.
-typedef stlplus::smart_ptr_clone<CAssembledRigidModel>
-	CAssembledRigidModelPtr;  //!< A smart-pointer for CAssembledRigidModel
 
 /** The class for user-defined MBS problems.
  *  After construction, the user must assure that all fields are correctly
@@ -70,7 +68,7 @@ class CModelDefinition
 	template <class CONSTRAINT_CLASS>
 	void addConstraint(const CONSTRAINT_CLASS& c)
 	{
-		m_constraints.push_back(CConstraintBasePtr(new CONSTRAINT_CLASS(
+		m_constraints.push_back(CConstraintBase::Ptr(new CONSTRAINT_CLASS(
 			c)));  // Make a copy as dynamic memory and save as a smart pointer
 				   // of the base class.
 	}
@@ -87,15 +85,18 @@ class CModelDefinition
 	 * structures to enable kinematic/dynamic simulations of the MBS. Invoke
 	 * methods of the returned object.
 	 */
-	CAssembledRigidModelPtr assembleRigidMBS();
+	std::shared_ptr<CAssembledRigidModel> assembleRigidMBS();
 
-	const std::vector<CConstraintBasePtr>& getConstraints() const
+	const std::vector<CConstraintBase::Ptr>& getConstraints() const
 	{
 		return m_constraints;
 	}
 	const std::vector<CBody>& getBodies() const { return m_bodies; }
 
-	std::vector<CConstraintBasePtr>& getConstraints() { return m_constraints; }
+	std::vector<CConstraintBase::Ptr>& getConstraints()
+	{
+		return m_constraints;
+	}
 	std::vector<CBody>& getBodies() { return m_bodies; }
 
    protected:
@@ -108,7 +109,7 @@ class CModelDefinition
 	 * \note Constant-distance constraints for rigid bodies are NOT included in
 	 * this list, but are automatically added to constraints list in ARM.
 	 */
-	std::vector<CConstraintBasePtr> m_constraints;
+	std::vector<CConstraintBase::Ptr> m_constraints;
 
 	/** @} */  // end data --------------
 

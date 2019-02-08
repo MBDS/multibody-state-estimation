@@ -3,18 +3,17 @@
 // ------------------------------------------------------------
 #include <sparsembs/sparsembs.h>
 
-#include <mrpt/utils.h>
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
-#include <mrpt/system/threads.h>  // for sleep()
+#include <mrpt/poses/CPosePDFParticles.h>
 #include <mrpt/system/vector_loadsave.h>
+#include <thread>  // for sleep()
 
 using namespace std;
 using namespace sparsembs;
 using namespace mrpt;
 using namespace mrpt::poses;
 using namespace mrpt::math;
-using namespace mrpt::utils;
 
 // ===================================================================
 //						EXPERIMENT CONFIGURATION
@@ -180,7 +179,8 @@ int main(int argc, char** argv)
 		// "Compile" the problem, and use as "Ground Truth" (GT) for the
 		// estimation problem
 		// -------------------------------------------------------------------------------------
-		CAssembledRigidModelPtr aMBS_GT = model.assembleRigidMBS();
+		std::shared_ptr<CAssembledRigidModel> aMBS_GT =
+		    model.assembleRigidMBS();
 
 		// Prepare ground truth dynamic simulation:
 		// -----------------------------------------------
@@ -239,11 +239,11 @@ int main(int argc, char** argv)
 		CBody::TRenderParams rp_particles;
 		rp_particles.render_style = CBody::reLine;
 
-		mrpt::opengl::CSetOfObjectsPtr gl_MBS =
+		mrpt::opengl::CSetOfObjects::Ptr gl_MBS =
 			mrpt::opengl::CSetOfObjects::Create();
 		aMBS_GT->getAs3DRepresentation(gl_MBS, rp);
 
-		mrpt::opengl::CSetOfObjectsPtr gl_MBPF =
+		mrpt::opengl::CSetOfObjects::Ptr gl_MBPF =
 			mrpt::opengl::CSetOfObjects::Create();
 		pf.getAs3DRepresentation(gl_MBPF, rp_particles);
 
@@ -252,12 +252,11 @@ int main(int argc, char** argv)
 		win3D.setCameraAzimuthDeg(-90);
 		win3D.setCameraElevationDeg(90);
 		win3D.setCameraZoom(1);
-		mrpt::opengl::COpenGLViewportPtr gl_estimate;
+		mrpt::opengl::COpenGLViewport::Ptr gl_estimate;
 		{
-			mrpt::opengl::COpenGLScenePtr& scene = win3D.get3DSceneAndLock();
+			auto& scene = win3D.get3DSceneAndLock();
 
-			mrpt::opengl::COpenGLViewportPtr gl_main =
-				scene->getViewport("main");
+			auto gl_main = scene->getViewport("main");
 			gl_estimate = scene->createViewport("estimation");
 
 			// Main view:
@@ -304,23 +303,23 @@ int main(int argc, char** argv)
 		vector<double> STATS_t, GT_ang0, EST_ang0_mean, EST_ang0_std;
 		mrpt::poses::CPosePDFParticles orientation_averager;
 		orientation_averager.resetDeterministic(
-			CPose2D(), pf.m_particles.size());
+		    mrpt::math::TPose2D(), pf.m_particles.size());
 #endif
 
 		// Prepare sensor descriptions:
 		// ---------------------------------------
-		std::vector<CVirtualSensorPtr> sensor_descriptions;
+		std::vector<CVirtualSensor::Ptr> sensor_descriptions;
 		std::vector<double> sensor_readings;
 
 		// Gyroscope on body #2:
-		//		sensor_descriptions.push_back( CVirtualSensorPtr(new
+		//		sensor_descriptions.push_back( CVirtualSensor::Ptr(new
 		// CVirtualSensor_Gyro(2 /* body index */)) );
 		//		sensor_descriptions.back()->sensor_noise_std =
 		// PF_SENSOR_NOISE_STD;
 
 		// Gyroscope on body #1:
 		sensor_descriptions.push_back(
-			CVirtualSensorPtr(new CVirtualSensor_Gyro(1 /* body index */)));
+		    CVirtualSensor::Ptr(new CVirtualSensor_Gyro(1 /* body index */)));
 		sensor_descriptions.back()->sensor_noise_std = PF_SENSOR_NOISE_STD;
 
 		// -----------------------------------------------
@@ -349,7 +348,7 @@ int main(int argc, char** argv)
 			for (size_t j = 0; j < nSensors; j++)
 				sensor_readings[j] =
 					sensor_descriptions[j]->simulate_reading(*aMBS_GT) +
-					mrpt::random::randomGenerator.drawGaussian1D(
+				    mrpt::random::getRandomGenerator().drawGaussian1D(
 						0, REAL_SENSOR_STD);
 
 			// Run the PF models:
@@ -371,13 +370,12 @@ int main(int argc, char** argv)
 			// Estimated values:
 			for (size_t i = 0; i < pf.m_particles.size(); i++)
 			{
-				CMultiBodyParticleFilter::particle_t* part =
-					pf.m_particles[i].d;
+				auto part = pf.m_particles[i].d;
 
-				orientation_averager.m_particles[i].d->phi(atan2(
+				orientation_averager.m_particles[i].d.phi = atan2(
 					part->num_model.m_q[part->num_model.m_points2DOFs[1].dof_y],
 					part->num_model
-						.m_q[part->num_model.m_points2DOFs[1].dof_x]));
+				        .m_q[part->num_model.m_points2DOFs[1].dof_x]);
 				orientation_averager.m_particles[i].log_w =
 					pf.m_particles[i].log_w;
 			}
@@ -470,7 +468,8 @@ int main(int argc, char** argv)
 					0 /* txt ID */, 1.5 /*spacing*/, 0.1 /*kerning*/,
 					true /*draw shadow */);
 
-				mrpt::system::sleep(DRAW_DELAY_MS);
+				std::this_thread::sleep_for(
+				    std::chrono::milliseconds(DRAW_DELAY_MS));
 			}
 #endif  // SHOW_GUI
 		}
@@ -512,9 +511,8 @@ void pf_initialize_uniform_distribution(
 {
 	for (size_t i = 0; i < pf.m_particles.size(); i++)
 	{
-		CMultiBodyParticleFilter::particle_t* part = pf.m_particles[i].d;
-		const std::vector<TPoint2DOF>& p2dofs =
-			part->num_model.getPoints2DOFs();
+		auto part = pf.m_particles[i].d;
+		const auto& p2dofs = part->num_model.getPoints2DOFs();
 
 		// We draw a random value for the free DOF(s) of the mechanism:
 		// and uniform values for the rest:
@@ -523,11 +521,11 @@ void pf_initialize_uniform_distribution(
 		{
 			const double R = model.getBodies()[0].length();
 			const double ang =
-				mrpt::random::randomGenerator.drawUniform(-M_PI, M_PI);
+			    mrpt::random::getRandomGenerator().drawUniform(-M_PI, M_PI);
 			const size_t nTotalDOFs = part->num_model.m_q.size();
 			for (size_t k = 0; k < nTotalDOFs; k++)
 				part->num_model.m_q[k] =
-					mrpt::random::randomGenerator.drawUniform(-20, 20);
+				    mrpt::random::getRandomGenerator().drawUniform(-20, 20);
 
 			const size_t PT_IDX = 1;  // This point is the one we force to be at
 									  // a predefined position:

@@ -11,7 +11,7 @@ using namespace std;
 //  Solver: Dense LU
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_Indep_dense::CDynamicSimulator_Indep_dense(
-	const CAssembledRigidModelPtr arm_ptr)
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorIndepBase(arm_ptr)
 {
 }
@@ -126,7 +126,7 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 		A(nConstraints + i, m_indep_idxs[i]) = 1.0;
 
 	lu_A.compute(A);
-	ASSERT_EQUAL_(lu_A.rank(), A.rows())
+	ASSERT_EQUAL_(lu_A.rank(), A.rows());
 
 	const Eigen::MatrixXd A_inv = lu_A.inverse();
 	const Eigen::MatrixXd S = A_inv.block(0, 0, nDepCoords, nConstraints);

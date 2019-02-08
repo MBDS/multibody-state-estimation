@@ -10,7 +10,7 @@ using namespace std;
 //  with projection of velocities and acelerations
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_ALi3_Dense::CDynamicSimulator_ALi3_Dense(
-	const CAssembledRigidModelPtr arm_ptr)
+    const CAssembledRigidModel::Ptr arm_ptr)
 	: CDynamicSimulatorBasePenalty(arm_ptr)
 {
 }
@@ -104,9 +104,9 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 
 	// cout << "iter: " << iter << endl;
 
-	// Proyecciones en velocidad y aceleración (faltan los términos dependientes
+	// Proyecciones en velocidad y aceleraciÃ³n (faltan los tÃ©rminos dependientes
 	// del timepo, porque en este problema no hay restricciones que dependan
-	// explícitamente del tiempo).
+	// explÃ­citamente del tiempo).
 	// qp_out = f_q\((M + 0.5*dt*C + 0.25*dt^2*K)*qp);
 	m_arm->m_dotq = m_A_lu.solve(m_M * m_arm->m_dotq);
 

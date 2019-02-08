@@ -10,7 +10,7 @@ using namespace std;
 
 // Ctor
 CDynamicSimulatorIndepBase::CDynamicSimulatorIndepBase(
-	CAssembledRigidModelPtr arm_ptr)
+	std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr)
 {
 }
@@ -23,15 +23,15 @@ CDynamicSimulatorIndepBase::~CDynamicSimulatorIndepBase() {}
 void CDynamicSimulatorIndepBase::solve_ddotz(
 	double t, VectorXd& ddot_z, bool can_choose_indep_coords)
 {
-	ASSERT_(m_init)
+	ASSERT_(m_init);
 	this->internal_solve_ddotz(t, ddot_z, can_choose_indep_coords);
 }
 
 // Run simulation:
 double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 {
-	ASSERT_(t_end >= t_ini)
-	ASSERT_(m_init)
+	ASSERT_(t_end >= t_ini);
+	ASSERT_(m_init);
 
 	if (t_ini == t_end) return t_end;  // Nothing to do.
 
@@ -196,7 +196,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 #endif
 
 			default:
-				THROW_EXCEPTION("Unknown value for params.ode_solver")
+			    THROW_EXCEPTION("Unknown value for params.ode_solver");
 		};
 
 		timelog.leave("mbs.run_complete_timestep");
@@ -217,7 +217,7 @@ void CDynamicSimulatorIndepBase::internal_solve_ddotq(
 	ASSERTMSG_(
 		lagrangre == NULL,
 		"This solver uses independent coordinates, so it can't determine the "
-		"lagrange multipliers as requested!")
+	    "lagrange multipliers as requested!");
 
-	THROW_EXCEPTION("TO DO! Better use internal_solve_ddotz() instead.")
+	THROW_EXCEPTION("TO DO! Better use internal_solve_ddotz() instead.");
 }

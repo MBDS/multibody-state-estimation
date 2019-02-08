@@ -266,7 +266,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 	// Update \ddot{q}
 	// ------------------------------------------
 	ASSERT_(
-		(ptr_ddotz && out_results.ddotq) || (!ptr_ddotz && !out_results.ddotq))
+	    (ptr_ddotz && out_results.ddotq) || (!ptr_ddotz && !out_results.ddotq));
 	if (ptr_ddotz)
 	{
 		timelog.enter("computeDependentPosVelAcc.ddotq");
@@ -283,7 +283,8 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		//                     ----------------------v-------------------
 		//                                 = vector "p"
 		Eigen::VectorXd p(nConstraints);
-		ASSERT_(ddotz.size() == z_indices.size())
+		ASSERT_(ddotz.size() == z_indices.size());
+
 		for (size_t i = 0; i < nConstraints; i++)
 		{
 			double r = 0;

@@ -10,7 +10,7 @@ using namespace std;
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_AugmentedLagrangian_Dense::
 	CDynamicSimulator_AugmentedLagrangian_Dense(
-		const CAssembledRigidModelPtr arm_ptr)
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBasePenalty(arm_ptr)
 {
 }

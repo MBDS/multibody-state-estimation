@@ -11,7 +11,7 @@ using namespace std;
 //  Solver: Dense LU
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulator_Lagrange_LU_dense::CDynamicSimulator_Lagrange_LU_dense(
-	const CAssembledRigidModelPtr arm_ptr)
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr)
 {
 }

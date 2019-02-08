@@ -24,6 +24,8 @@ class CAssembledRigidModel
 									// this class.
 
    public:
+	using Ptr = std::shared_ptr<CAssembledRigidModel>;
+
 	/** Constructor, from a symbolic assembled model.
 	 * The object "armi" can be destroyed safely after this call. The parent
 	 * model in armi.model cannot.
@@ -125,7 +127,7 @@ class CAssembledRigidModel
 	/** Created upon call to getAs3DRepresentation(), this holds a list of the
 	 * 3D object associated to each body in the MBS, in the same order than in
 	 * m_parent.m_bodies[] */
-	mutable std::vector<mrpt::opengl::CRenderizablePtr> m_gl_objects;
+	mutable std::vector<mrpt::opengl::CRenderizable::Ptr> m_gl_objects;
 
 	Eigen::Vector3d m_gravity;  //!< The gravity vector (default: [0 -9.81 0])
 
@@ -161,7 +163,7 @@ class CAssembledRigidModel
 	 * \note This list DOES include constant-distance constraints (not like in
 	 * the original list in the parent CModelDefinition)
 	 */
-	std::vector<CConstraintBasePtr> m_constraints;
+	std::vector<CConstraintBase::Ptr> m_constraints;
 
 	/** @} */
 
@@ -172,7 +174,7 @@ class CAssembledRigidModel
 	 * of 3D objects in m_gl_objects
 	 */
 	void getAs3DRepresentation(
-		mrpt::opengl::CSetOfObjectsPtr& outObj,
+	    mrpt::opengl::CSetOfObjects::Ptr& outObj,
 		const CBody::TRenderParams& rp) const;
 
 	/** Animates a 3D representation of the MBS, previously built in
@@ -214,7 +216,7 @@ class CAssembledRigidModel
 	/** @} */
 
    private:
-	mrpt::opengl::CSetOfObjectsPtr internal_render_ground_point(
+	mrpt::opengl::CSetOfObjects::Ptr internal_render_ground_point(
 		const TMBSPoint& pt, const CBody::TRenderParams& rp) const;
 
    public:

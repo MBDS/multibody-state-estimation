@@ -4,7 +4,6 @@
 using namespace sparsembs;
 using namespace Eigen;
 using namespace mrpt::math;
-using namespace mrpt::utils;
 
 MRPT_TODO("Allow bodies with more than 2 points")
 
@@ -83,18 +82,21 @@ const Matrix2d& CBody::getM01() const
 }
 
 /**  Creates a 3D representation of the body */
-mrpt::opengl::CRenderizablePtr CBody::get3DRepresentation() const
+mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 {
-	mrpt::opengl::CSetOfObjectsPtr objs = mrpt::opengl::CSetOfObjects::Create();
+	using namespace mrpt;
+
+	mrpt::opengl::CSetOfObjects::Ptr objs =
+	    mrpt::opengl::CSetOfObjects::Create();
 
 	switch (render_params.render_style)
 	{
 		case reCylinder:
 		{
-			mrpt::opengl::CCylinderPtr obj = mrpt::opengl::CCylinder::Create();
+		    auto obj = mrpt::opengl::CCylinder::Create();
 
 			obj->setRadius(render_params.cyl_diameter);
-			obj->setColor_u8(mrpt::utils::TColor(0xFF, 0x00, 0x00));
+			obj->setColor_u8(TColor(0xFF, 0x00, 0x00));
 
 			obj->setHeight(this->m_length);
 
@@ -109,13 +111,12 @@ mrpt::opengl::CRenderizablePtr CBody::get3DRepresentation() const
 
 		case reLine:
 		{
-			mrpt::opengl::CSimpleLinePtr obj =
-				mrpt::opengl::CSimpleLine::Create();
+		    auto obj = mrpt::opengl::CSimpleLine::Create();
 
 			obj->setLineWidth(render_params.line_width);
 			obj->enableAntiAliasing(true);
-			obj->setColor_u8(mrpt::utils::TColor(
-				0xFF, 0xFF, 0xFF, render_params.line_alpha));
+			obj->setColor_u8(
+			    TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
 
 			obj->setLineCoords(
 				0, 0, render_params.z_layer, this->m_length, 0,
@@ -126,7 +127,7 @@ mrpt::opengl::CRenderizablePtr CBody::get3DRepresentation() const
 		break;
 
 		default:
-			THROW_EXCEPTION("Unhandled render style!?")
+		    THROW_EXCEPTION("Unhandled render style!?");
 	}
 
 	return objs;

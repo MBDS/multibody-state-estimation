@@ -13,6 +13,9 @@ using namespace mrpt::math;
 class CConstraintBase
 {
    public:
+	/** A smart pointer type for constraints */
+	using Ptr = std::shared_ptr<CConstraintBase>;
+
 	/** Alloc space for the needed rows, columns, etc. in the constraint vector
 	 * and its Jacobians Each class should save a reference/pointer to the newly
 	 * created elements, so they can be quickly updated in the \a update()
@@ -37,14 +40,11 @@ class CConstraintBase
 	 * representation
 	 */
 	virtual bool get3DRepresentation(
-		mrpt::opengl::CRenderizablePtr& inout_obj) const
+		mrpt::opengl::CRenderizable::Ptr& inout_obj) const
 	{
 		return false;
 	}
 };
-
-/** A smart pointer type for constraints */
-typedef stlplus::smart_ptr_clone<CConstraintBase> CConstraintBasePtr;
 
 /** Constraint: constant distance between two points */
 class CConstraintConstantDistance : public CConstraintBase
@@ -128,7 +128,7 @@ class CConstraintFixedSlider : public CConstraintBase
 	 * representation
 	 */
 	virtual bool get3DRepresentation(
-		mrpt::opengl::CRenderizablePtr& inout_obj) const;
+		mrpt::opengl::CRenderizable::Ptr& inout_obj) const;
 
    protected:
 	mutable const TMBSPoint* m_point;

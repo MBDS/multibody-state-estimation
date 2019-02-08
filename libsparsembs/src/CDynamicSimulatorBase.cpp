@@ -24,21 +24,18 @@ CDynamicSimulatorBase::~CDynamicSimulatorBase() {}
  * name: "CDynamicSimulator_Lagrange_LU_dense",
  * "CDynamicSimulator_Lagrange_UMFPACK", ...
  */
-CDynamicSimulatorBasePtr CDynamicSimulatorBase::Create(
-	const std::string& name, const CAssembledRigidModelPtr arm_ptr)
+CDynamicSimulatorBase::Ptr CDynamicSimulatorBase::Create(
+    const std::string& name,
+    const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 {
 	if (name == "CDynamicSimulator_Lagrange_LU_dense")
-		return CDynamicSimulatorBasePtr(
-			new CDynamicSimulator_Lagrange_LU_dense(arm_ptr));
+		return Ptr(new CDynamicSimulator_Lagrange_LU_dense(arm_ptr));
 	else if (name == "CDynamicSimulator_Lagrange_CHOLMOD")
-		return CDynamicSimulatorBasePtr(
-			new CDynamicSimulator_Lagrange_CHOLMOD(arm_ptr));
+		return Ptr(new CDynamicSimulator_Lagrange_CHOLMOD(arm_ptr));
 	else if (name == "CDynamicSimulator_Lagrange_UMFPACK")
-		return CDynamicSimulatorBasePtr(
-			new CDynamicSimulator_Lagrange_UMFPACK(arm_ptr));
+		return Ptr(new CDynamicSimulator_Lagrange_UMFPACK(arm_ptr));
 	else if (name == "CDynamicSimulator_Lagrange_KLU")
-		return CDynamicSimulatorBasePtr(
-			new CDynamicSimulator_Lagrange_KLU(arm_ptr));
+		return Ptr(new CDynamicSimulator_Lagrange_KLU(arm_ptr));
 	else
 		THROW_EXCEPTION("Unknown dynamic simulator class name: " + name);
 }
@@ -46,17 +43,18 @@ CDynamicSimulatorBasePtr CDynamicSimulatorBase::Create(
 // ---------------------------------------------------------------------------------------------
 //  Solver: Virtual base class
 // ---------------------------------------------------------------------------------------------
-CDynamicSimulatorBase::CDynamicSimulatorBase(CAssembledRigidModelPtr arm_ptr)
-	: m_arm_ptr(arm_ptr), m_arm(arm_ptr.pointer()), m_init(false)
+CDynamicSimulatorBase::CDynamicSimulatorBase(
+    std::shared_ptr<CAssembledRigidModel> arm_ptr)
+    : m_arm_ptr(arm_ptr), m_arm(arm_ptr.get()), m_init(false)
 {
-	ASSERT_(arm_ptr.present())
+	ASSERT_(arm_ptr);
 }
 
 /** Solve for the current accelerations */
 void CDynamicSimulatorBase::solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	ASSERT_(m_init)
+	ASSERT_(m_init);
 	this->internal_solve_ddotq(t, ddot_q, lagrangre);
 }
 
@@ -80,8 +78,8 @@ CDynamicSimulatorBase::TParameters::TParameters()
 /** Runs a dynamic simulation for a given time span */
 double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 {
-	ASSERT_(t_end >= t_ini)
-	ASSERT_(m_init)
+	ASSERT_(t_end >= t_ini);
+	ASSERT_(m_init);
 
 	if (t_ini == t_end) return t_end;  // Nothing to do.
 
@@ -231,14 +229,14 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					}
 
 					ASSERTMSG_(
-						iter < MAX_ITERS, "Trapezoidal convergence failed!")
+					    iter < MAX_ITERS, "Trapezoidal convergence failed!");
 
 					timelog.registerUserMeasure("trapezoidal.iters", iter);
 				}
 				break;
 
 				default:
-					THROW_EXCEPTION("Unknown value for params.ode_solver")
+				    THROW_EXCEPTION("Unknown value for params.ode_solver");
 			};
 		}
 
@@ -302,7 +300,7 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
  */
 void CDynamicSimulatorBase::addPointSensor(const size_t pnt_index)
 {
-	ASSERT_(pnt_index < m_arm->m_parent.getPointCount())
+	ASSERT_(pnt_index < m_arm->m_parent.getPointCount());
 
 	// Create entry
 	m_sensors.push_back(TSensorData());
