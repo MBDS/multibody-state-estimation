@@ -1,43 +1,29 @@
-project(MBSKIT)
+project(MBSE)
 
-cmake_minimum_required(VERSION 2.4)
-if(COMMAND cmake_policy)
-      cmake_policy(SET CMP0003 NEW)  # Required by CMake 2.7+
-endif(COMMAND cmake_policy)
+cmake_minimum_required(VERSION 3.0)
 
 set(LIBRARY_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR}/lib CACHE PATH "Output directory for libraries" )
 set(EXECUTABLE_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR}/bin CACHE PATH "Output directory for applications" )
 
 # Group projects in "folders"
 # ===================================================
-if (CMAKE_VERSION VERSION_GREATER "2.8.0")
-	set(ENABLE_SOLUTION_FOLDERS ON CACHE BOOL "Group projects under virtual folders of the compiler IDE (e.g. VisualStudio)")
-endif (CMAKE_VERSION VERSION_GREATER "2.8.0")
+set(ENABLE_SOLUTION_FOLDERS ON CACHE BOOL "Group projects under virtual folders of the compiler IDE (e.g. VisualStudio)")
 
 if (ENABLE_SOLUTION_FOLDERS)
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
   set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
 endif (ENABLE_SOLUTION_FOLDERS)
 
-
-# --------------------------------------------------------------------------
-#   The list of "libs" which can be included can be found in:
-#     http://www.mrpt.org/Libraries
-#
-#   The dependencies of a library are automatically added, so you only
-#    need to specify the top-most libraries your code depend on.
-# --------------------------------------------------------------------------
-find_package( MRPT REQUIRED gui opengl base)
+find_package(MRPT REQUIRED gui opengl)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+endif()
 
 # Set optimized building:
 if(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-endif(CMAKE_COMPILER_IS_GNUCXX AND NOT CMAKE_BUILD_TYPE MATCHES "Debug")
-
+endif()
 
 # ------------------------------------------------------------------
 # Detect SuiteSparse libraries:

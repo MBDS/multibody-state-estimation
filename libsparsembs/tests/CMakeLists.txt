@@ -19,8 +19,8 @@ set(EXECUTABLE_OUTPUT_PATH "${${PROJECT_NAME}_BINARY_DIR}")
 # -----------------------------
 # Add the "make test" target:
 # -----------------------------
-add_custom_target(test)
-set_target_properties(test PROPERTIES FOLDER "Unit tests")
+add_custom_target(check)
+set_target_properties(check PROPERTIES FOLDER "Unit tests")
 
 
 # Tests based on Google gtest:
@@ -45,8 +45,9 @@ target_link_libraries(unit_tests gtest)
 set_target_properties(unit_tests PROPERTIES FOLDER "Unit tests")
 
 # Run it:
-get_target_property(GENERATED_EXE unit_tests LOCATION)
+
+set(GENERATED_EXE $<TARGET_FILE:unit_tests>)
 add_custom_target(run_tests COMMAND "${GENERATED_EXE}" "${${PROJECT_NAME}__SOURCE_DIR}")
 set_target_properties(run_tests PROPERTIES FOLDER "Unit tests")
 add_dependencies(run_tests unit_tests)
-add_dependencies(test run_tests)
+add_dependencies(check run_tests)

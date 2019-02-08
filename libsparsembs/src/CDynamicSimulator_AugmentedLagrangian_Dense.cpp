@@ -1,7 +1,6 @@
 #include <sparsembs/CAssembledModelRigid.h>
 #include <sparsembs/dynamic-simulators.h>
 
-
 using namespace sparsembs;
 using namespace Eigen;
 using namespace std;
@@ -9,13 +8,15 @@ using namespace std;
 // ---------------------------------------------------------------------------------------------
 //  Solver: Dense solver with the Augmented Lagrange formulation (ALF)
 // ---------------------------------------------------------------------------------------------
-CDynamicSimulator_AugmentedLagrangian_Dense::CDynamicSimulator_AugmentedLagrangian_Dense(const CAssembledRigidModelPtr arm_ptr)
-	:
-	CDynamicSimulatorBasePenalty(arm_ptr)
+CDynamicSimulator_AugmentedLagrangian_Dense::
+	CDynamicSimulator_AugmentedLagrangian_Dense(
+		const CAssembledRigidModelPtr arm_ptr)
+	: CDynamicSimulatorBasePenalty(arm_ptr)
 {
 }
 
-/** Prepare the linear systems and anything else required to really call solve_ddotq() */
+/** Prepare the linear systems and anything else required to really call
+ * solve_ddotq() */
 void CDynamicSimulator_AugmentedLagrangian_Dense::internal_prepare()
 {
 	timelog.enter("solver_prepare");
@@ -26,15 +27,19 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_prepare()
 	timelog.leave("solver_prepare");
 }
 
-CDynamicSimulator_AugmentedLagrangian_Dense::~CDynamicSimulator_AugmentedLagrangian_Dense()
+CDynamicSimulator_AugmentedLagrangian_Dense::
+	~CDynamicSimulator_AugmentedLagrangian_Dense()
 {
 }
 
-void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(double t, VectorXd & ddot_q, VectorXd * lagrangre )
+void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
+	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
 	const size_t nDepCoords = m_arm->m_q.size();
 
-	if (lagrangre) throw std::runtime_error("This class can't solve for lagrange multipliers!");
+	if (lagrangre)
+		throw std::runtime_error(
+			"This class can't solve for lagrange multipliers!");
 
 	timelog.enter("solver_ddotq");
 
@@ -50,7 +55,6 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(double t,
 
 	ddotq_prev = m_M_ldlt.solve(ddotq_prev);
 
-
 	// 2) Iterate:
 	// ---------------------------
 	//
@@ -59,31 +63,33 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(double t,
 	// \--------------v-------------/
 	//                =A
 	//
-	// RHS = M*\ddot{q}_i - alpha * Phi_q^t* [ \dot{Phi}_q * \dot{q} + 2 * xi * omega * \dot{q} + omega^2 * Phi  ]
+	// RHS = M*\ddot{q}_i - alpha * Phi_q^t* [ \dot{Phi}_q * \dot{q} + 2 * xi *
+	// omega * \dot{q} + omega^2 * Phi  ]
 	//
 
 	// Update numeric values of the constraint Jacobians:
 	m_arm->update_numeric_Phi_and_Jacobians();
 
 	m_arm->getPhi_q_dense(m_Phi_q);
-	m_A = m_M + params_penalty.alpha * m_Phi_q.transpose()*m_Phi_q;
+	m_A = m_M + params_penalty.alpha * m_Phi_q.transpose() * m_Phi_q;
 
 	m_A_lu.compute(m_A);
 
 	// Build the RHS vector:
-	// RHS = M*\ddot{q}_i -  Phi_q^t* alpha * [ \dot{Phi}_q * \dot{q} + 2 * xi * omega * \dot{Phi} + omega^2 * Phi  ]
-	//                               \ ------------------------------------v --------------------------------------/
+	// RHS = M*\ddot{q}_i -  Phi_q^t* alpha * [ \dot{Phi}_q * \dot{q} + 2 * xi *
+	// omega * \dot{Phi} + omega^2 * Phi  ]
+	//                               \ ------------------------------------v
+	//                               --------------------------------------/
 	//                                                                    = b
 	timelog.enter("solver_ddotq.build_rhs");
 
 	m_arm->m_dotPhi_q.getAsDense(m_dotPhi_q);
 
-	const Eigen::MatrixXd RHS2 = params_penalty.alpha * m_Phi_q.transpose()*
-		(
-		m_dotPhi_q *  m_arm->m_dotq
-		+ 2*params_penalty.xi*params_penalty.w * m_arm->m_dotPhi
-		+ params_penalty.w*params_penalty.w * m_arm->m_Phi
-		);
+	const Eigen::MatrixXd RHS2 =
+		params_penalty.alpha * m_Phi_q.transpose() *
+		(m_dotPhi_q * m_arm->m_dotq +
+		 2 * params_penalty.xi * params_penalty.w * m_arm->m_dotPhi +
+		 params_penalty.w * params_penalty.w * m_arm->m_Phi);
 
 	timelog.leave("solver_ddotq.build_rhs");
 
@@ -93,33 +99,34 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(double t,
 
 	Eigen::VectorXd RHS(nDepCoords);
 
-	const double MAX_DDOT_INCR_NORM = 1e-4*nDepCoords;
+	const double MAX_DDOT_INCR_NORM = 1e-4 * nDepCoords;
 	const size_t MAX_ITERS = 10;
 
 	double ddot_incr_norm;
-	size_t iter =0;
+	size_t iter = 0;
 	do
 	{
 		// RHS = M*\ddot{q}_i - RHS2
 		RHS = (m_M * ddotq_prev) - RHS2;
 		ddotq_next = m_A_lu.solve(RHS);
 
-		ddot_incr_norm = (ddotq_next-ddotq_prev).norm();
-		//cout << "iter: " << iter<< endl << "prev: " << ddotq_prev.transpose() << "\nnext: " << ddotq_next.transpose() << "\n  norm: " << ddot_incr_norm << endl << endl;
+		ddot_incr_norm = (ddotq_next - ddotq_prev).norm();
+		// cout << "iter: " << iter<< endl << "prev: " << ddotq_prev.transpose()
+		// << "\nnext: " << ddotq_next.transpose() << "\n  norm: " <<
+		// ddot_incr_norm << endl << endl;
 
 		ddotq_prev = ddotq_next;
-	}
-	while (ddot_incr_norm>MAX_DDOT_INCR_NORM && ++iter<MAX_ITERS);
+	} while (ddot_incr_norm > MAX_DDOT_INCR_NORM && ++iter < MAX_ITERS);
 
 	ddot_q.swap(ddotq_next);
 
 	timelog.leave("solver_ddotq.solve");
 
-	ASSERTDEBMSG_( ((RHS.array()==RHS.array()).all()),"NaN found in result ddotq" )
+	ASSERTDEBMSG_(
+		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq")
 
 	timelog.leave("solver_ddotq");
 }
-
 
 /** Integrators will call this after each time step */
 void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
@@ -167,6 +174,5 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 //	m_arm->m_dotq = (V*V.transpose()) * m_arm->m_dotq;
 
 	timelog.leave("solver.post_iteration");
-#endif // 0	timelog.enter("solver.post_iteration");
+#endif  // 0	timelog.enter("solver.post_iteration");
 }
-

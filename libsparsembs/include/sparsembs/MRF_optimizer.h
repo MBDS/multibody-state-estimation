@@ -9,28 +9,23 @@
 
 namespace sparsembs
 {
-	using namespace Eigen;
-	using namespace mrpt::math;
+using namespace Eigen;
+using namespace mrpt::math;
 
-	struct MRF_Optimize_Inputs
-	{
-		MRF_Optimize_Inputs(CDynamicSimulatorBase & d)
-			: dysim(d)
-		{}
+struct MRF_Optimize_Inputs
+{
+	MRF_Optimize_Inputs(CDynamicSimulatorBase& d) : dysim(d) {}
 
+	CDynamicSimulatorBase& dysim;
+};
 
-		CDynamicSimulatorBase & dysim;
-	};
+struct MRF_Optimize_Results
+{
+};
 
-	struct MRF_Optimize_Results
-	{
+/** Runs a batch optimization process
+ */
+void MRF_optimizer(
+	const MRF_Optimize_Inputs& in, MRF_Optimize_Results& results);
 
-	};
-
-	/** Runs a batch optimization process
-	*/
-	void MRF_optimizer(const MRF_Optimize_Inputs &in, MRF_Optimize_Results &results);
-		
-
-}
-
+}  // namespace sparsembs

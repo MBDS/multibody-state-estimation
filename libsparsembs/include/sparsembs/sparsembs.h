@@ -8,5 +8,3 @@
 #include "CAssembledModelRigid.h"
 #include "dynamic-simulators.h"
 #include "CMultiBodyParticleFilter.h"
-
-

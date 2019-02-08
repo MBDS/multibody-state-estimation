@@ -10,25 +10,32 @@ using namespace std;
 // ---------------------------------------------------------------------------------------------
 //  Solver: Dense LU
 // ---------------------------------------------------------------------------------------------
-CDynamicSimulator_R_matrix_dense::CDynamicSimulator_R_matrix_dense(const CAssembledRigidModelPtr arm_ptr)
+CDynamicSimulator_R_matrix_dense::CDynamicSimulator_R_matrix_dense(
+	const CAssembledRigidModelPtr arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr)
 {
 }
 
-/** Prepare the linear systems and anything else required to really call solve_ddotq() */
+/** Prepare the linear systems and anything else required to really call
+ * solve_ddotq() */
 void CDynamicSimulator_R_matrix_dense::internal_prepare()
 {
 	timelog.enter("solver_prepare");
 
-	// Build mass matrix now and don't touch it anymore, since it's constant with this formulation:
+	// Build mass matrix now and don't touch it anymore, since it's constant
+	// with this formulation:
 	m_arm->buildMassMatrix_dense(m_mass);
 
 	timelog.leave("solver_prepare");
 }
 
-void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(double t, VectorXd & ddot_q, VectorXd * lagrangre )
+void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
+	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	if (lagrangre!=NULL) { THROW_EXCEPTION("This class can't compute lagrange multipliers") }
+	if (lagrangre != NULL)
+	{
+		THROW_EXCEPTION("This class can't compute lagrange multipliers")
+	}
 
 	timelog.enter("solver_ddotq");
 
@@ -38,7 +45,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(double t, VectorXd &
 	// c = - \dot{Phi_t} - \dot{Phi_q} * \dot{q}
 	//  normally =>  c = - \dot{Phi_q} * \dot{q}
 	//
-	const size_t nDepCoords   = m_arm->m_q.size();
+	const size_t nDepCoords = m_arm->m_q.size();
 	const size_t nConstraints = m_arm->m_Phi.size();
 
 	// Update numeric values of the constraint Jacobians:
@@ -51,7 +58,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(double t, VectorXd &
 	// Get Jacobian dPhi_dq
 	timelog.enter("solver_ddotq.get_dense_jacob");
 
-	Eigen::MatrixXd Phiq(nConstraints,nDepCoords);
+	Eigen::MatrixXd Phiq(nConstraints, nDepCoords);
 	m_arm->getPhi_q_dense(Phiq);
 
 	timelog.leave("solver_ddotq.get_dense_jacob");
@@ -66,12 +73,12 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(double t, VectorXd &
 
 	timelog.leave("solver_ddotq.Phiq_kernel");
 
-	ASSERT_EQUAL_(nDepCoords, nConstraints+nDOFs)
+	ASSERT_EQUAL_(nDepCoords, nConstraints + nDOFs)
 
 	// Build the dense augmented matrix:
-	Eigen::MatrixXd A(nDepCoords,nDepCoords);
-	A.block(0,0, nConstraints,nDepCoords) = Phiq;
-	A.block(nConstraints,0, nDOFs, nDepCoords) = R;
+	Eigen::MatrixXd A(nDepCoords, nDepCoords);
+	A.block(0, 0, nConstraints, nDepCoords) = Phiq;
+	A.block(nConstraints, 0, nDOFs, nDepCoords) = R;
 
 	// Build the RHS vector:
 	// --------------------------
@@ -79,8 +86,8 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(double t, VectorXd &
 	Eigen::VectorXd RHS(nDepCoords);
 	Eigen::VectorXd Q(nDepCoords);
 
-	this->build_RHS(&Q[0], &RHS[0] /* c => [0:nConstraints-1] */ );
-	RHS.tail(nDOFs) = R*Q;
+	this->build_RHS(&Q[0], &RHS[0] /* c => [0:nConstraints-1] */);
+	RHS.tail(nDOFs) = R * Q;
 
 	timelog.leave("solver_ddotq.build_rhs");
 
@@ -104,7 +111,5 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(double t, VectorXd &
 	mrpt::system::pause();
 #endif
 
-
 	timelog.leave("solver_ddotq");
 }
-
