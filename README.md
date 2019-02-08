@@ -1,5 +1,5 @@
-# Particle filter estimator for multibody dynamics
-This directory contains a C++ library for multibody dynamics estimation.
+# State estimation algorithms for multibody dynamics
+This repository contains a C++ library for multibody dynamics estimation and some demo applications.
 
 ## Implementation #1: Particle filter estimator
 A Bayesian filter has been implemented as a particle filter.
