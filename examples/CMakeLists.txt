@@ -1,4 +1,4 @@
-PROJECT(ALL_EXAMPLES)
+project(ALL_EXAMPLES)
 
 # Examples:
 add_subdirectory(pf_test1)

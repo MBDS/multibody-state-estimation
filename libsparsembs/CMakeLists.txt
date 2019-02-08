@@ -1,4 +1,4 @@
-PROJECT(libsparsembs)
+project(libsparsembs)
 
 ## get POSTFIX for lib install dir
 if(CMAKE_SIZEOF_VOID_P MATCHES "8")
@@ -9,50 +9,50 @@ endif()
 mark_as_advanced(LIB_POSTFIX)
 
 include_directories("include")
-SET(SPARSEMBS_INCLUDE_DIRS
+set(SPARSEMBS_INCLUDE_DIRS
 	"${libsparsembs_SOURCE_DIR}/include"
 	${SuiteSparse_INCLUDE_DIRS}
 	CACHE INTERNAL "")
 
-SET(SPARSEMBS_LIB_DIRS
+set(SPARSEMBS_LIB_DIRS
 	"${SuiteSparse_LIBS_DIR}"
 	CACHE INTERNAL "")
 
 # Tests
-SET( BUILD_TESTING ON CACHE BOOL "Build unit tests")
+set( BUILD_TESTING ON CACHE BOOL "Build unit tests")
 
 # add before "D__MINGW32__"!!
-IF( BUILD_TESTING)
+if( BUILD_TESTING)
 	add_subdirectory(tests)
-ENDIF( BUILD_TESTING)
+endif( BUILD_TESTING)
 
 
 # Used even for MSVC, so blas function names have the final "_"
 #if (MSVC)
-#	ADD_DEFINITIONS(-D__MINGW32__)
+#	add_definitions(-D__MINGW32__)
 #endif(MSVC)
 
 
-FILE(GLOB LIBHDRS "src/*.h")
-FILE(GLOB LIBSRCS "src/*.cpp")
-FILE(GLOB LIBHDRSPUB "include/sparsembs/*.h")
-ADD_LIBRARY(sparsembs ${LIBHDRS} ${LIBSRCS} ${LIBHDRSPUB})
+file(GLOB LIBHDRS "src/*.h")
+file(GLOB LIBSRCS "src/*.cpp")
+file(GLOB LIBHDRSPUB "include/sparsembs/*.h")
+add_library(sparsembs ${LIBHDRS} ${LIBSRCS} ${LIBHDRSPUB})
 
 set_target_properties(sparsembs PROPERTIES FOLDER "Libraries")
 
 
-SET(DEPENCENCIES_SPARSEMBS
+set(DEPENCENCIES_SPARSEMBS
 	sparsembs
 	CACHE INTERNAL "")
 
-ADD_DEPENDENCIES(sparsembs ${DEPENCENCIES_SPARSEMBS})
+add_dependencies(sparsembs ${DEPENCENCIES_SPARSEMBS})
 
 # List of linking libs:
-SET(SPARSEMBS_LIBS
+set(SPARSEMBS_LIBS
 	""
 	CACHE INTERNAL "")
 
-SET(SPARSEMBS_LIBS
+set(SPARSEMBS_LIBS
 	${SPARSEMBS_LIBS}
 	${SuiteSparse_LIBRARIES}
 	CACHE INTERNAL "")
@@ -61,17 +61,17 @@ if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" GREATE
 	cmake_policy(SET CMP0023 NEW) ## just for respecting the new target_link_libraries(...) signature procedure
 endif()
 
-IF(BUILD_SHARED)
-	TARGET_LINK_LIBRARIES(sparsembs 
+if(BUILD_SHARED)
+	target_link_libraries(sparsembs 
 		LINK_PRIVATE ${MRPT_LIBS} ${SPARSEMBS_LIBS}
 		)
-ELSE()
-	TARGET_LINK_LIBRARIES(sparsembs 
+else()
+	target_link_libraries(sparsembs 
 		LINK_PUBLIC ${MRPT_LIBS} ${SPARSEMBS_LIBS}
 		)
-ENDIF()
+endif()
 
-SET(SPARSEMBS_LIBS
+set(SPARSEMBS_LIBS
 	sparsembs
 	${SPARSEMBS_LIBS}
 	CACHE INTERNAL "")
