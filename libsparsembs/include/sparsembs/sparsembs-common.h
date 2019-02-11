@@ -21,11 +21,17 @@ using mrpt::system::CTimeLoggerEntry;
 #else
 #include <mrpt/utils/CTimeLogger.h>
 #include <mrpt/utils/TColor.h>
-using CTicTac;
+using mrpt::utils::CTicTac;
 using mrpt::utils::CTimeLogger;
 using mrpt::utils::CTimeLoggerEntry;
 using mrpt::utils::TColor;
 using mrpt::utils::TColorf;
+namespace mrpt
+{
+using mrpt::math::square;
+using mrpt::utils::DEG2RAD;
+using mrpt::utils::RAD2DEG;
+}  // namespace mrpt
 #endif
 
 // Eigen's include must occur AFTER MRPT's headers:
