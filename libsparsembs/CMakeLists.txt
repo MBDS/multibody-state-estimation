@@ -8,6 +8,8 @@ else()
 endif()
 mark_as_advanced(LIB_POSTFIX)
 
+find_package(GTSAM REQUIRED)
+
 include_directories("include")
 set(SPARSEMBS_INCLUDE_DIRS
 	"${libsparsembs_SOURCE_DIR}/include"
@@ -57,16 +59,14 @@ set(SPARSEMBS_LIBS
 	${SuiteSparse_LIBRARIES}
 	CACHE INTERNAL "")
 
-if("${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}" GREATER 2.8.12)
-	cmake_policy(SET CMP0023 NEW) ## just for respecting the new target_link_libraries(...) signature procedure
-endif()
+target_link_libraries(sparsembs PUBLIC gtsam)
 
 if(BUILD_SHARED)
-	target_link_libraries(sparsembs 
+	target_link_libraries(sparsembs
 		LINK_PRIVATE ${MRPT_LIBS} ${SPARSEMBS_LIBS}
 		)
 else()
-	target_link_libraries(sparsembs 
+	target_link_libraries(sparsembs
 		LINK_PUBLIC ${MRPT_LIBS} ${SPARSEMBS_LIBS}
 		)
 endif()
@@ -76,7 +76,7 @@ set(SPARSEMBS_LIBS
 	${SPARSEMBS_LIBS}
 	CACHE INTERNAL "")
 
-	
+
 # Install target:
 set_target_properties(sparsembs PROPERTIES PUBLIC_HEADER "${LIBHDRSPUB}")
 install(TARGETS	sparsembs
@@ -91,7 +91,7 @@ install(TARGETS	sparsembs
 install(
 	FILES 		SparseMBSConfigForInstall.cmake
 	DESTINATION	.
-	RENAME 		SparseMBSConfig.cmake 
+	RENAME 		SparseMBSConfig.cmake
 	)
 configure_file(UseSparseMBSForInstall.cmake.in UseSparseMBSForInstall.cmake @ONLY)
 install(FILES 		"${libsparsembs_BINARY_DIR}/UseSparseMBSForInstall.cmake"
