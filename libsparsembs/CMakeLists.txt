@@ -8,7 +8,7 @@ else()
 endif()
 mark_as_advanced(LIB_POSTFIX)
 
-find_package(GTSAM REQUIRED)
+find_package(GTSAM QUIET)
 
 include_directories("include")
 set(SPARSEMBS_INCLUDE_DIRS
@@ -59,7 +59,10 @@ set(SPARSEMBS_LIBS
 	${SuiteSparse_LIBRARIES}
 	CACHE INTERNAL "")
 
-target_link_libraries(sparsembs PUBLIC gtsam)
+if (GTSAM_FOUND)
+  target_link_libraries(sparsembs PUBLIC gtsam)
+  target_compile_definitions(sparsembs PUBLIC SPARSEMBS_HAVE_GTSAM)
+endif()
 
 if(BUILD_SHARED)
 	target_link_libraries(sparsembs
