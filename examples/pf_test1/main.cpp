@@ -180,7 +180,7 @@ int main(int argc, char** argv)
 		// estimation problem
 		// -------------------------------------------------------------------------------------
 		std::shared_ptr<CAssembledRigidModel> aMBS_GT =
-		    model.assembleRigidMBS();
+			model.assembleRigidMBS();
 
 		// Prepare ground truth dynamic simulation:
 		// -----------------------------------------------
@@ -303,7 +303,7 @@ int main(int argc, char** argv)
 		vector<double> STATS_t, GT_ang0, EST_ang0_mean, EST_ang0_std;
 		mrpt::poses::CPosePDFParticles orientation_averager;
 		orientation_averager.resetDeterministic(
-		    mrpt::math::TPose2D(), pf.m_particles.size());
+			mrpt::math::TPose2D(), pf.m_particles.size());
 #endif
 
 		// Prepare sensor descriptions:
@@ -319,7 +319,7 @@ int main(int argc, char** argv)
 
 		// Gyroscope on body #1:
 		sensor_descriptions.push_back(
-		    CVirtualSensor::Ptr(new CVirtualSensor_Gyro(1 /* body index */)));
+			CVirtualSensor::Ptr(new CVirtualSensor_Gyro(1 /* body index */)));
 		sensor_descriptions.back()->sensor_noise_std = PF_SENSOR_NOISE_STD;
 
 		// -----------------------------------------------
@@ -348,7 +348,7 @@ int main(int argc, char** argv)
 			for (size_t j = 0; j < nSensors; j++)
 				sensor_readings[j] =
 					sensor_descriptions[j]->simulate_reading(*aMBS_GT) +
-				    mrpt::random::getRandomGenerator().drawGaussian1D(
+					mrpt::random::getRandomGenerator().drawGaussian1D(
 						0, REAL_SENSOR_STD);
 
 			// Run the PF models:
@@ -375,7 +375,7 @@ int main(int argc, char** argv)
 				orientation_averager.m_particles[i].d.phi = atan2(
 					part->num_model.m_q[part->num_model.m_points2DOFs[1].dof_y],
 					part->num_model
-				        .m_q[part->num_model.m_points2DOFs[1].dof_x]);
+						.m_q[part->num_model.m_points2DOFs[1].dof_x]);
 				orientation_averager.m_particles[i].log_w =
 					pf.m_particles[i].log_w;
 			}
@@ -469,7 +469,7 @@ int main(int argc, char** argv)
 					true /*draw shadow */);
 
 				std::this_thread::sleep_for(
-				    std::chrono::milliseconds(DRAW_DELAY_MS));
+					std::chrono::milliseconds(DRAW_DELAY_MS));
 			}
 #endif  // SHOW_GUI
 		}
@@ -521,11 +521,11 @@ void pf_initialize_uniform_distribution(
 		{
 			const double R = model.getBodies()[0].length();
 			const double ang =
-			    mrpt::random::getRandomGenerator().drawUniform(-M_PI, M_PI);
+				mrpt::random::getRandomGenerator().drawUniform(-M_PI, M_PI);
 			const size_t nTotalDOFs = part->num_model.m_q.size();
 			for (size_t k = 0; k < nTotalDOFs; k++)
 				part->num_model.m_q[k] =
-				    mrpt::random::getRandomGenerator().drawUniform(-20, 20);
+					mrpt::random::getRandomGenerator().drawUniform(-20, 20);
 
 			const size_t PT_IDX = 1;  // This point is the one we force to be at
 									  // a predefined position:

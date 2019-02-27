@@ -45,7 +45,7 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 			//	m_q[i] = pt.coords.z;
 			//	break;
 			default:
-			    THROW_EXCEPTION("Unexpected value for m_DOFs[i].point_dof");
+				THROW_EXCEPTION("Unexpected value for m_DOFs[i].point_dof");
 		};
 	}
 
@@ -173,7 +173,12 @@ void CAssembledRigidModel::update3DRepresentation(
 	const std::vector<CBody>& parent_bodies = m_parent.getBodies();
 
 	const size_t nBodies = parent_bodies.size();
-	ASSERT_(m_gl_objects.size() == nBodies);
+	if (m_gl_objects.size() != nBodies)
+	{
+		std::cerr << "[CAssembledRigidModel::update3DRepresentation] Warning: "
+					 "Opengl model is not initialized.\n";
+		return;
+	}
 
 	for (size_t i = 0; i < nBodies; i++)
 	{
@@ -210,8 +215,8 @@ void CAssembledRigidModel::update3DRepresentation(
 		if (rp.render_style == CBody::reLine)
 		{
 			auto gl_line =
-			    mrpt::ptr_cast<mrpt::opengl::CSetOfObjects>::from(obj)
-			        ->getByClass<mrpt::opengl::CSimpleLine>();
+				mrpt::ptr_cast<mrpt::opengl::CSetOfObjects>::from(obj)
+					->getByClass<mrpt::opengl::CSimpleLine>();
 			if (gl_line) gl_line->setColorA_u8(rp.line_alpha);
 		}
 	}
@@ -345,7 +350,7 @@ mrpt::opengl::CSetOfObjects::Ptr
 		const TMBSPoint& pt, const CBody::TRenderParams& rp) const
 {
 	mrpt::opengl::CSetOfObjects::Ptr obj =
-	    mrpt::opengl::CSetOfObjects::Create();
+		mrpt::opengl::CSetOfObjects::Create();
 	obj->setLocation(pt.coords.x, pt.coords.y, 0);
 
 	const double support_LXZ = 0.03;
