@@ -38,9 +38,6 @@ if(NOT SuiteSparse_FOUND)
         #set(SuiteSparse_VERBOSE ON)
         find_package(SuiteSparse REQUIRED) # 2nd: Use FindSuiteSparse.cmake module
         include_directories(${SuiteSparse_INCLUDE_DIRS})
-else()
-        message(STATUS "Find SuiteSparse : include(${USE_SuiteSparse})")
-        include(${USE_SuiteSparse})
 endif()
 #message(STATUS "SuiteSparse_LIBS: ${SuiteSparse_LIBRARIES}")
 # ------------------------------------------------------------------
