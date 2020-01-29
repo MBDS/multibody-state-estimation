@@ -28,13 +28,6 @@ if( BUILD_TESTING)
 	add_subdirectory(tests)
 endif( BUILD_TESTING)
 
-
-# Used even for MSVC, so blas function names have the final "_"
-#if (MSVC)
-#	add_definitions(-D__MINGW32__)
-#endif(MSVC)
-
-
 file(GLOB LIBHDRS "src/*.h")
 file(GLOB LIBSRCS "src/*.cpp")
 file(GLOB LIBHDRSPUB "include/sparsembs/*.h")
