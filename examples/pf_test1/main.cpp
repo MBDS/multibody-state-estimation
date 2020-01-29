@@ -163,6 +163,12 @@ void buildFollowerMBS(CModelDefinition& model)
 void pf_initialize_uniform_distribution(
 	CMultiBodyParticleFilter& pf, CModelDefinition& model);
 
+#if MRPT_VERSION >= 0x199
+auto& rnd = mrpt::random::getRandomGenerator();
+#else
+auto& rnd = mrpt::random::randomGenerator;
+#endif
+
 int main(int argc, char** argv)
 {
 	try
@@ -303,7 +309,12 @@ int main(int argc, char** argv)
 		vector<double> STATS_t, GT_ang0, EST_ang0_mean, EST_ang0_std;
 		mrpt::poses::CPosePDFParticles orientation_averager;
 		orientation_averager.resetDeterministic(
-			mrpt::math::TPose2D(), pf.m_particles.size());
+#if MRPT_VERSION >= 0x199
+			mrpt::math::TPose2D(),
+#else
+			mrpt::poses::CPose2D(),
+#endif
+			pf.m_particles.size());
 #endif
 
 		// Prepare sensor descriptions:
@@ -348,8 +359,7 @@ int main(int argc, char** argv)
 			for (size_t j = 0; j < nSensors; j++)
 				sensor_readings[j] =
 					sensor_descriptions[j]->simulate_reading(*aMBS_GT) +
-					mrpt::random::getRandomGenerator().drawGaussian1D(
-						0, REAL_SENSOR_STD);
+					rnd.drawGaussian1D(0, REAL_SENSOR_STD);
 
 			// Run the PF models:
 			// ==============================================
@@ -372,10 +382,17 @@ int main(int argc, char** argv)
 			{
 				auto part = pf.m_particles[i].d;
 
-				orientation_averager.m_particles[i].d.phi = atan2(
+				const double val_phi = atan2(
 					part->num_model.m_q[part->num_model.m_points2DOFs[1].dof_y],
 					part->num_model
 						.m_q[part->num_model.m_points2DOFs[1].dof_x]);
+
+#if MRPT_VERSION >= 0x199
+				orientation_averager.m_particles[i].d.phi = val_phi;
+#else
+				orientation_averager.m_particles[i].d->phi(val_phi);
+#endif
+
 				orientation_averager.m_particles[i].log_w =
 					pf.m_particles[i].log_w;
 			}
@@ -520,12 +537,10 @@ void pf_initialize_uniform_distribution(
 		do
 		{
 			const double R = model.getBodies()[0].length();
-			const double ang =
-				mrpt::random::getRandomGenerator().drawUniform(-M_PI, M_PI);
+			const double ang = rnd.drawUniform(-M_PI, M_PI);
 			const size_t nTotalDOFs = part->num_model.m_q.size();
 			for (size_t k = 0; k < nTotalDOFs; k++)
-				part->num_model.m_q[k] =
-					mrpt::random::getRandomGenerator().drawUniform(-20, 20);
+				part->num_model.m_q[k] = rnd.drawUniform(-20, 20);
 
 			const size_t PT_IDX = 1;  // This point is the one we force to be at
 									  // a predefined position:
