@@ -15,8 +15,7 @@ void sparsembs::MRF_optimizer(
 	MRPT_TRY_START
 
 	gtsam::NonlinearFactorGraph graph;
-
-	gtsam::LevenbergMarquardtOptimizer solver;
+	//	gtsam::LevenbergMarquardtOptimizer solver();
 
 	MRPT_TRY_END
 #else
