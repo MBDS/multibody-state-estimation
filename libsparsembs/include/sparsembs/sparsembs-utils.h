@@ -15,9 +15,13 @@ void insert_submatrix_in_triplet(
 	{
 		// tri is unsymmetric OR we're out of its diagonal blocks:
 		if (tri->stype > 0)
+		{
 			ASSERTDEB_(col > row);
+		}
 		else if (tri->stype < 0)
+		{
 			ASSERTDEB_(row > col);
+		}
 
 		// Insert the entire submatrix:
 		for (int r = 0; r < m.rows(); r++)
@@ -92,6 +96,33 @@ void insert_submatrix(
 	for (int r = 0; r < m.rows(); r++)
 		for (int c = 0; c < m.cols(); c++)
 			tri.push_back(Eigen::Triplet<T>(row + r, col + c, m.coeff(r, c)));
+}
+
+/** Removes columns of the matrix.
+ * This "unsafe" version assumes indices sorted in ascending order. */
+template <class MATRIX>
+void unsafeRemoveColumns(MATRIX& m, const std::vector<std::size_t>& idxs)
+{
+	std::size_t k = 1;
+	const auto nR = m.rows();
+	for (auto it = idxs.rbegin(); it != idxs.rend(); ++it, ++k)
+	{
+		const auto nC = m.cols() - *it - k;
+		if (nC > 0)
+			m.block(0, *it, nR, nC) = m.block(0, *it + 1, nR, nC).eval();
+	}
+	m.resize(nR, m.cols() - idxs.size());
+}
+
+/** Removes columns of the matrix. Indices may be unsorted and duplicated */
+template <class MATRIX>
+void removeColumns(MATRIX& m, const std::vector<std::size_t>& idxsToRemove)
+{
+	std::vector<std::size_t> idxs = idxsToRemove;
+	std::sort(idxs.begin(), idxs.end());
+	auto itEnd = std::unique(idxs.begin(), idxs.end());
+	idxs.resize(itEnd - idxs.begin());
+	unsafeRemoveColumns(m, idxs);
 }
 
 }  // namespace sparsembs
