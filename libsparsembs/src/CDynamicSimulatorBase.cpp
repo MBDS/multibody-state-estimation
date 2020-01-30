@@ -1,6 +1,7 @@
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/CAssembledModelRigid.h>
 #include <sparsembs/dynamic-simulators.h>
+#include <fstream>
 
 using namespace sparsembs;
 using namespace Eigen;
@@ -25,8 +26,8 @@ CDynamicSimulatorBase::~CDynamicSimulatorBase() {}
  * "CDynamicSimulator_Lagrange_UMFPACK", ...
  */
 CDynamicSimulatorBase::Ptr CDynamicSimulatorBase::Create(
-    const std::string& name,
-    const std::shared_ptr<CAssembledRigidModel> arm_ptr)
+	const std::string& name,
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 {
 	if (name == "CDynamicSimulator_Lagrange_LU_dense")
 		return Ptr(new CDynamicSimulator_Lagrange_LU_dense(arm_ptr));
@@ -44,8 +45,8 @@ CDynamicSimulatorBase::Ptr CDynamicSimulatorBase::Create(
 //  Solver: Virtual base class
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulatorBase::CDynamicSimulatorBase(
-    std::shared_ptr<CAssembledRigidModel> arm_ptr)
-    : m_arm_ptr(arm_ptr), m_arm(arm_ptr.get()), m_init(false)
+	std::shared_ptr<CAssembledRigidModel> arm_ptr)
+	: m_arm_ptr(arm_ptr), m_arm(arm_ptr.get()), m_init(false)
 {
 	ASSERT_(arm_ptr);
 }
@@ -229,14 +230,14 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					}
 
 					ASSERTMSG_(
-					    iter < MAX_ITERS, "Trapezoidal convergence failed!");
+						iter < MAX_ITERS, "Trapezoidal convergence failed!");
 
 					timelog.registerUserMeasure("trapezoidal.iters", iter);
 				}
 				break;
 
 				default:
-				    THROW_EXCEPTION("Unknown value for params.ode_solver");
+					THROW_EXCEPTION("Unknown value for params.ode_solver");
 			};
 		}
 

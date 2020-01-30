@@ -399,9 +399,14 @@ int main(int argc, char** argv)
 
 			// Estimate a full (x,y,phi) pose just for easy reusing of MRPT
 			// implementation:
+#if MRPT_VERSION >= 0x199
+			const auto [parts_cov, parts_mean] =
+				orientation_averager.getCovarianceAndMean();
+#else
 			mrpt::poses::CPose2D parts_mean;
 			mrpt::math::CMatrixDouble33 parts_cov;
 			orientation_averager.getCovarianceAndMean(parts_cov, parts_mean);
+#endif
 
 			// and only keep the orientation:
 			EST_ang0_mean.push_back(parts_mean.phi());

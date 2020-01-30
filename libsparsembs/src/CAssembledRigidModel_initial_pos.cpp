@@ -1,4 +1,5 @@
 #include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/sparsembs-utils.h>
 
 using namespace sparsembs;
 using namespace Eigen;
@@ -95,7 +96,7 @@ double CAssembledRigidModel::finiteDisplacement(
 		{
 			this->getPhi_q_dense(Phi_q);
 
-			Phi_q.removeColumns(z_indices);
+			sparsembs::removeColumns(Phi_q, z_indices);
 
 			lu_Phiq.compute(Phi_q);
 			rebuild_lu = false;
@@ -143,7 +144,8 @@ double CAssembledRigidModel::finiteDisplacement(
 			p[i] = r;
 		}
 
-		Phi_q.removeColumns(z_indices);
+		sparsembs::removeColumns(Phi_q, z_indices);
+
 		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
 
 		for (size_t i = 0; i < idxs_d.size(); i++)
@@ -203,7 +205,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 			{
 				this->getPhi_q_dense(Phi_q);
 
-				Phi_q.removeColumns(z_indices);
+				sparsembs::removeColumns(Phi_q, z_indices);
 
 				lu_Phiq.compute(Phi_q);
 				rebuild_lu = false;
@@ -253,7 +255,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 			p[i] = r;
 		}
 
-		Phi_q.removeColumns(z_indices);
+		sparsembs::removeColumns(Phi_q, z_indices);
 		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
 
 		for (size_t i = 0; i < idxs_d.size(); i++)
@@ -266,7 +268,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 	// Update \ddot{q}
 	// ------------------------------------------
 	ASSERT_(
-	    (ptr_ddotz && out_results.ddotq) || (!ptr_ddotz && !out_results.ddotq));
+		(ptr_ddotz && out_results.ddotq) || (!ptr_ddotz && !out_results.ddotq));
 	if (ptr_ddotz)
 	{
 		timelog.enter("computeDependentPosVelAcc.ddotq");
@@ -306,7 +308,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 			p[i] = r;
 		}
 
-		Phiq.removeColumns(z_indices);
+		sparsembs::removeColumns(Phiq, z_indices);
 		const Eigen::VectorXd ddotq_d = Phiq.lu().solve(p);
 
 		// ------------------------------------
