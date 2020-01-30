@@ -48,7 +48,8 @@ class CModelDefinition
 
 	const TMBSPoint& getPointInfo(const size_t i) const
 	{
-		ASSERTDEB_(i < m_points.size()) return m_points[i];
+		ASSERTDEB_(i < m_points.size());
+		return m_points[i];
 	}
 
 	/** Appends a new empty body to the end of m_bodies and returns a reference
