@@ -15,9 +15,9 @@ void insert_submatrix_in_triplet(
 	{
 		// tri is unsymmetric OR we're out of its diagonal blocks:
 		if (tri->stype > 0)
-			ASSERTDEB_(col > row)
+			ASSERTDEB_(col > row);
 		else if (tri->stype < 0)
-			ASSERTDEB_(row > col)
+			ASSERTDEB_(row > col);
 
 		// Insert the entire submatrix:
 		for (int r = 0; r < m.rows(); r++)
@@ -34,7 +34,7 @@ void insert_submatrix_in_triplet(
 	else
 	{
 		// tri is symmetric AND we're on a diagonal block:
-		ASSERTDEB_(m.cols() == m.rows())
+		ASSERTDEB_(m.cols() == m.rows());
 
 		if (tri->stype > 0)
 		{

@@ -64,8 +64,7 @@ struct TSimulationState
 
 typedef TSimulationState& TSimulationStateRef;
 
-typedef std::pointer_to_unary_function<const TSimulationStateRef, void>
-	simul_callback_t;
+using simul_callback_t = std::function<void(const TSimulationStateRef)>;
 
 class CDynamicSimulatorBase;
 
