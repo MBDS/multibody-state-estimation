@@ -343,12 +343,12 @@ int main(int argc, char** argv)
 
 		// Define a double pendulum mechanism:
 		// ------------------------------------------------
-		// buildFourBarsMBS(model);
-		buildFourBarsMBS_JavierCuadrado(model);
+		//buildFourBarsMBS(model);
+		//buildFourBarsMBS_JavierCuadrado(model);
 		// buildSliderCrankMBS(model);
 		// buildFollowerMBS(model);
-		// buildLongStringMBS( 2, model);
-		// buildTwoSliderBlocks(model);
+		//buildLongStringMBS( 15, model);
+		buildTwoSliderBlocks(model);
 
 		// const size_t Nx = 5, Ny = 4;
 		// buildParameterizedMBS(Nx, Ny, model, 0.6 /*random imperfections in
@@ -442,8 +442,8 @@ int main(int argc, char** argv)
 		// CDynamicSimulator_Lagrange_UMFPACK
 		// CDynamicSimulator_Lagrange_KLU
 		// CDynamicSimulator_Lagrange_CHOLMOD
-		// CDynamicSimulator_R_matrix_dense
-		CDynamicSimulator_Indep_dense
+		CDynamicSimulator_R_matrix_dense
+		//CDynamicSimulator_Indep_dense
 			// CDynamicSimulator_AugmentedLagrangian_KLU
 			// CDynamicSimulator_AugmentedLagrangian_Dense
 			// CDynamicSimulator_ALi3_Dense
