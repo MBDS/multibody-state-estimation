@@ -1,12 +1,3 @@
-/*+-------------------------------------------------------------------------+
-  |    FactorGraph Control (sparsembs)  C++ library                         |
-  |                                                                         |
-  | Copyright (C) 2019-2020 University of Almeria                           |
-  | See README for list of authors and papers                               |
-  | Distributed under GNU General Public License version 3                  |
-  |   See <http://www.gnu.org/licenses/>                                    |
-  +-------------------------------------------------------------------------+ */
-
 #include <sparsembs/FactorEulerInt.h>
 
 using namespace sparsembs;
