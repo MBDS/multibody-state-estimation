@@ -69,7 +69,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 			m_cholmod_common.method[0].ordering = CHOLMOD_COLAMD;
 			break;
 		default:
-		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
+			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 	// m_cholmod_common.postorder = TRUE;
 
@@ -125,7 +125,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// Compress sparse matrix Phi_q_t:
 	cholmod_sparse* Phi_q_t = cholmod_triplet_to_sparse(
 		m_Phi_q_t_tri, m_Phi_q_t_tri->nnz, &m_cholmod_common);
-	ASSERTDEB_(Phi_q_t != NULL)
+	ASSERTDEB_(Phi_q_t != NULL);
 
 	// Solve:
 	//   L   *   X   = B
@@ -133,10 +133,10 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	//
 	cholmod_sparse* E_t =
 		cholmod_spsolve(CHOLMOD_L /*Lx=b*/, m_Lm, Phi_q_t, &m_cholmod_common);
-	ASSERTDEB_(E_t != NULL)
+	ASSERTDEB_(E_t != NULL);
 	cholmod_sparse* E = cholmod_transpose(
 		E_t, 2 /* A' complex conjugate transpose */, &m_cholmod_common);
-	ASSERTDEB_(E != NULL)
+	ASSERTDEB_(E != NULL);
 
 	//  T = E * E^t
 	//  T = Lt * Lt^t
@@ -161,7 +161,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 			m_cholmod_common.method[0].ordering = CHOLMOD_COLAMD;
 			break;
 		default:
-		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
+			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	m_Lt = cholmod_analyze(E, &m_cholmod_common);
@@ -234,7 +234,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	timelog.enter("solver_ddotq.ccs");
 	cholmod_sparse* Phi_q_t = cholmod_triplet_to_sparse(
 		m_Phi_q_t_tri, m_Phi_q_t_tri->nnz, &m_cholmod_common);
-	ASSERTDEB_(Phi_q_t != NULL)
+	ASSERTDEB_(Phi_q_t != NULL);
 	timelog.leave("solver_ddotq.ccs");
 
 	// Solve:
@@ -244,11 +244,11 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	timelog.enter("solver_ddotq.solve_E");
 	cholmod_sparse* E_t =
 		cholmod_spsolve(CHOLMOD_L /*Lx=b*/, m_Lm, Phi_q_t, &m_cholmod_common);
-	ASSERTDEB_(E_t != NULL)
+	ASSERTDEB_(E_t != NULL);
 
 	cholmod_sparse* E = cholmod_transpose(
 		E_t, 2 /* A' complex conjugate transpose */, &m_cholmod_common);
-	ASSERTDEB_(E != NULL)
+	ASSERTDEB_(E != NULL);
 	timelog.leave("solver_ddotq.solve_E");
 
 	//  T = E * E^t
@@ -272,7 +272,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	// Solve: Lm x2 = Q
 	cholmod_dense* x2 =
 		cholmod_solve(CHOLMOD_L /*Lx=b*/, m_Lm, m_Q, &m_cholmod_common);
-	ASSERTDEB_(x2 != NULL)
+	ASSERTDEB_(x2 != NULL);
 
 	// Solve: l2 = Lt \ (E*x2-c)
 	double one[2] = {1, 0}, m1[2] = {-1, 0};  // Scalars: 1 and -1

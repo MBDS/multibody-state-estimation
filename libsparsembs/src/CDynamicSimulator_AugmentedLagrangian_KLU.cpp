@@ -78,7 +78,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 					 itCol != row_r.end(); ++itCol)
 				{
 					const size_t col = itCol->first;
-					if (col > j) break;  // We're done in this row.
+					if (col > j) break;	 // We're done in this row.
 					if (col != i && col != j) continue;
 
 					if (col == i) Phi_r_i = &(itCol->second);
@@ -132,7 +132,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 			m_common.ordering = 1;
 			break;
 		default:
-		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
+			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	m_symbolic = klu_analyze(
@@ -234,7 +234,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 
 	if (!m_numeric)
 		THROW_EXCEPTION(
-		    "Error: KLU couldn't numeric-factorize the augmented matrix.");
+			"Error: KLU couldn't numeric-factorize the augmented matrix.");
 	timelog.leave("solver_ddotq.numeric_factor");
 
 	// Build the RHS vector:
@@ -327,7 +327,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	timelog.leave("solver_ddotq.solve");
 
 	ASSERTDEBMSG_(
-		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq")
+		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq");
 
 	timelog.leave("solver_ddotq");
 }

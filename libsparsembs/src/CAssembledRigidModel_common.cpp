@@ -33,11 +33,11 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 		const TMBSPoint& pt = m_parent.getPointInfo(pt_idx);
 		switch (m_DOFs[i].point_dof)
 		{
-			case 0:  // x
+			case 0:	 // x
 				m_q[i] = pt.coords.x;
 				m_points2DOFs[pt_idx].dof_x = i;
 				break;
-			case 1:  // y
+			case 1:	 // y
 				m_q[i] = pt.coords.y;
 				m_points2DOFs[pt_idx].dof_y = i;
 				break;
@@ -242,10 +242,10 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 {
 #ifdef _DEBUG
 	// Security checks, just in case...
-	ASSERT_(this->m_q.size() == o.m_q.size())
-	ASSERT_(this->m_dotq.size() == o.m_dotq.size())
-	ASSERT_(this->m_DOFs.size() == o.m_DOFs.size())
-	ASSERT_(this->m_Phi.size() == o.m_Phi.size())
+	ASSERT_(this->m_q.size() == o.m_q.size());
+	ASSERT_(this->m_dotq.size() == o.m_dotq.size());
+	ASSERT_(this->m_DOFs.size() == o.m_DOFs.size());
+	ASSERT_(this->m_Phi.size() == o.m_Phi.size());
 	const double* ptr_q0 = &m_q[0];
 	const double* ptr_dotq0 = &m_dotq[0];
 #endif
@@ -255,12 +255,12 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 
 #ifdef _DEBUG
 	ASSERT_(
-		ptr_q0 == &m_q[0])  // make sure the vectors didn't suffer mem
-							// reallocation, since we save pointers to these!
+		ptr_q0 == &m_q[0]);	 // make sure the vectors didn't suffer mem
+							 // reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
-		&m_dotq[0])  // make sure the vectors didn't suffer mem reallocation,
-					 // since we save pointers to these!
+		&m_dotq[0]);  // make sure the vectors didn't suffer mem reallocation,
+					  // since we save pointers to these!
 #endif
 }
 
@@ -322,7 +322,7 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	const size_t body_index, const mrpt::math::TPoint2D& relative_pt,
 	mrpt::math::TPoint2D& out_pt) const
 {
-	ASSERTDEB_(body_index < m_parent.getBodies().size())
+	ASSERTDEB_(body_index < m_parent.getBodies().size());
 
 	const CBody& b = m_parent.getBodies()[body_index];
 
@@ -331,10 +331,10 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	this->getPointCurrentCoords(b.points[1], q[1]);
 
 	const double L = b.length();
-	ASSERTDEB_(L > 0)
+	ASSERTDEB_(L > 0);
 	const double Linv = 1.0 / L;
 
-	mrpt::math::TPoint2D u, v;  // unit vectors in X,Y,Z local to the body
+	mrpt::math::TPoint2D u, v;	// unit vectors in X,Y,Z local to the body
 
 	u = (q[1] - q[0]) * Linv;
 	v.x = -u.y;
@@ -398,13 +398,13 @@ void CAssembledRigidModel::evaluateEnergy(
 
 		// Potential energy:
 		mrpt::math::TPoint2D
-			global_cog;  // current COG position, in global coords:
+			global_cog;	 // current COG position, in global coords:
 		this->getPointOnBodyCurrentCoords(i, b.cog(), global_cog);
 
 		e.E_pot -= b.mass() *
 				   (this->m_gravity[0] * global_cog.x +
 					this->m_gravity[1] *
-						global_cog.y);  // + this->m_gravity[2] * global_cog.z
+						global_cog.y);	// + this->m_gravity[2] * global_cog.z
 	}
 
 	e.E_total = e.E_kin + e.E_pot;

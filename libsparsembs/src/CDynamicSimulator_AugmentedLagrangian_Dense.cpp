@@ -123,7 +123,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	timelog.leave("solver_ddotq.solve");
 
 	ASSERTDEBMSG_(
-		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq")
+		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq");
 
 	timelog.leave("solver_ddotq");
 }
@@ -174,5 +174,5 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 //	m_arm->m_dotq = (V*V.transpose()) * m_arm->m_dotq;
 
 	timelog.leave("solver.post_iteration");
-#endif  // 0	timelog.enter("solver.post_iteration");
+#endif	// 0	timelog.enter("solver.post_iteration");
 }
