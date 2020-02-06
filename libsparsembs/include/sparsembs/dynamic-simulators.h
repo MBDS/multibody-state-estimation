@@ -123,6 +123,16 @@ class CDynamicSimulatorBase
 	 */
 	virtual double run(const double t_ini, const double t_end);
 
+	const std::shared_ptr<CAssembledRigidModel>& get_model() const
+	{
+		return m_arm_ptr;
+	}
+
+	CAssembledRigidModel* get_model_non_const() const
+	{
+		return m_arm_ptr.get();
+	}
+
 	/** \name Sensors
 		 @{ */
 
@@ -139,8 +149,8 @@ class CDynamicSimulatorBase
 	/** @} */
 
    protected:
-	const std::shared_ptr<CAssembledRigidModel>
-		m_arm_ptr;  //!< The smart pointer. Normally use m_arm which is faster
+	//!< The smart pointer. Normally use m_arm which is faster
+	const std::shared_ptr<CAssembledRigidModel> m_arm_ptr;
 	CAssembledRigidModel* const m_arm;  //!< The prepared MBS model.
 
 	/** Build the two subvectors of the RHS of the motion equation, with the
