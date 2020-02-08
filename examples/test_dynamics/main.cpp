@@ -30,7 +30,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 
 		b.length() = 1;
 		b.mass() = 1;
-		b.I0() = (1. / 3.) * b.mass() * square(b.length());
+		b.I0() = (1. / 3.) * b.mass() * mrpt::square(b.length());
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 
 		b.render_params.z_layer = 0;
@@ -42,7 +42,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 
 		b.length() = 2;
 		b.mass() = 2;
-		b.I0() = (1. / 3.) * b.mass() * square(b.length());
+		b.I0() = (1. / 3.) * b.mass() * mrpt::square(b.length());
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 
 		b.render_params.z_layer = -0.05;
@@ -54,7 +54,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 
 		b.length() = std::sqrt(2.0 * 2.0 + 3.0 * 3.0);
 		b.mass() = 4;
-		b.I0() = (1. / 3.) * b.mass() * square(b.length());
+		b.I0() = (1. / 3.) * b.mass() * mrpt::square(b.length());
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 
 		b.render_params.z_layer = 0;
@@ -63,15 +63,15 @@ void buildFourBarsMBS(CModelDefinition& model)
 
 void test_dynamics()
 {
+	using gtsam::symbol_shorthand::A;
 	using gtsam::symbol_shorthand::Q;
 	using gtsam::symbol_shorthand::V;
-	using gtsam::symbol_shorthand::A;
-	//using namespace sparsembs; /Already used in the global section above
+	// using namespace sparsembs; /Already used in the global section above
 
 	// Create the multibody object:
 	CModelDefinition model;
 	buildFourBarsMBS(model);
-	
+
 	std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);
 
@@ -87,13 +87,13 @@ void test_dynamics()
 
 	const double noise_vel_sigma = 0.1, noise_acc_sigma = 0.1;
 
-	auto noise_vel = gtsam::noiseModel::Isotropic(n, noise_vel_sigma);
-	auto noise_acc = gtsam::noiseModel::Isotropic(n, noise_acc_sigma);
+	auto noise_vel = gtsam::noiseModel::Isotropic::Sigma(n, noise_vel_sigma);
+	auto noise_acc = gtsam::noiseModel::Isotropic::Sigma(n, noise_acc_sigma);
 
-	auto noise_prior_q = gtsam::noiseModel::Isotropic(n, 0.1);
-	auto noise_prior_dq = gtsam::noiseModel::Isotropic(n, 0.1);
+	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
+	auto noise_prior_dq = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
-	auto noise_dyn = gtsam::noiseModel::Isotropic(n, 0.1);
+	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
 	const double dt = 0.1;
 
@@ -105,25 +105,42 @@ void test_dynamics()
 	graph.emplace_shared<FactorTrapInt>(dt, noise_acc, V(1), V(2), A(1), A(2));
 
 	// Create Dynamics factors:
-	graph.emplace_shared<FactorDynamic>(&dynSimul, noise_dyn, Q(0), V(0), A(0));
-	graph.emplace_shared<FactorDynamic>(&dynSimul, noise_dyn, Q(1), V(1), A(1));
+	graph.emplace_shared<FactorDynamics>(
+		&dynSimul, noise_dyn, Q(0), V(0), A(0));
+	graph.emplace_shared<FactorDynamics>(
+		&dynSimul, noise_dyn, Q(1), V(1), A(1));
 
-	// Create null vector:
-	const state_t zeros = gtsam::Vector(gtsam::Vector3(0.0, 0.0));
+	// Create null vector, for use in velocity and accelerations:
+	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
 
-	// Create Prior vectors:
-	const state_t prior_q1 = gtsam::Vector(gtsam::Vector2(0.0, 0.0));
-	const state_t prior_v1 = gtsam::Vector(gtsam::Vector2(1.0, 2.0));
+	// Create a feasible Q(0):
+	aMBS->m_q.setZero();
+	aMBS->m_dotq.setZero();
+	aMBS->m_ddotq.setZero();
+
+	// x1, *y1*, x2, y2
+	// 0   1     2   3
+	std::vector<size_t> indep_coord_indices;
+	indep_coord_indices.push_back(1);
+	CAssembledRigidModel::TComputeDependentParams cdp;  // default params
+	CAssembledRigidModel::TComputeDependentResults cdr;
+	// Solve the position problem:
+	aMBS->computeDependentPosVelAcc(indep_coord_indices, true, false, cdp, cdr);
+	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
+			  << "\n";
+
+	// Extract m_q from the assembled multibody problem:
+	state_t q_0 = gtsam::Vector(aMBS->m_q);
+	std::cout << "q0: " << q_0.transpose() << "\n";
 
 	// Create Prior factors:
+	graph.emplace_shared<gtsam::PriorFactor<state_t>>(Q(0), q_0, noise_prior_q);
 	graph.emplace_shared<gtsam::PriorFactor<state_t>>(
-		Q(0), prior_q1, noise_prior);
-	graph.emplace_shared<gtsam::PriorFactor<state_t>>(
-		V(0), prior_v1, noise_prior);
+		V(0), zeros, noise_prior_dq);
 
 	// Create initial estimates:
-	initValues.insert(Q(0), zeros);
-	initValues.insert(Q(1), zeros);
+	initValues.insert(Q(0), q_0);
+	initValues.insert(Q(1), q_0);
 	initValues.insert(V(0), zeros);
 	initValues.insert(V(1), zeros);
 	initValues.insert(A(0), zeros);
@@ -146,7 +163,7 @@ int main()
 	{
 		test_dynamics();
 	}
-	catch (const std::exception & e)
+	catch (const std::exception& e)
 	{
 		std::cerr << "Error: " << e.what() << "\n";
 	}

@@ -17,11 +17,12 @@ namespace sparsembs
 {
 /** Factor for multibody dynamics, using a general dynamics solver.
  *
- * This implements: \f$ \text{error} = \ddot{q}_k - \ddot{q}(q_k,\dot{q}_k,M,...) = 0\f$
+ * This implements: \f$ \text{error} = \ddot{q}_k -
+ * \ddot{q}(q_k,\dot{q}_k,M,...) = 0\f$
  *
  * Unknowns: \ddot{q}_k, \dot{q}_k, q_k
  *
- * Fixed data: 
+ * Fixed data:
  */
 class FactorDynamics
 	: public gtsam::NoiseModelFactor3<state_t, state_t, state_t>
@@ -86,7 +87,6 @@ class FactorDynamics
 	{
 		ar& boost::serialization::make_nvp(
 			"FactorDynamics", boost::serialization::base_object<Base>(*this));
-		ar& BOOST_SERIALIZATION_NVP(timestep_);
 	}
 };
 

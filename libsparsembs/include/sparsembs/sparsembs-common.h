@@ -6,7 +6,6 @@
  */
 
 #include <memory>  // for auto_ptr
-#include <mrpt/math/lightweight_geom_data.h>
 #include <mrpt/poses/CPose3D.h>
 
 #include <mrpt/version.h>
