@@ -77,6 +77,9 @@ void test_dynamics()
 
 	CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
 
+	// Must be called before solve_ddotq(), needed inside the dynamics factors
+	dynSimul.prepare();
+
 	// Create the empty factor graph:
 	gtsam::NonlinearFactorGraph graph;
 	gtsam::Values initValues;
@@ -125,7 +128,8 @@ void test_dynamics()
 	CAssembledRigidModel::TComputeDependentParams cdp;  // default params
 	CAssembledRigidModel::TComputeDependentResults cdr;
 	// Solve the position problem:
-	aMBS->computeDependentPosVelAcc(indep_coord_indices, true, false, cdp, cdr);
+	aMBS->m_q[1] = 3;
+	aMBS->computeDependentPosVelAcc(indep_coord_indices, true, true, cdp, cdr);
 	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
 			  << "\n";
 
@@ -141,10 +145,13 @@ void test_dynamics()
 	// Create initial estimates:
 	initValues.insert(Q(0), q_0);
 	initValues.insert(Q(1), q_0);
+	initValues.insert(Q(2), q_0);
 	initValues.insert(V(0), zeros);
 	initValues.insert(V(1), zeros);
+	initValues.insert(V(2), zeros);
 	initValues.insert(A(0), zeros);
 	initValues.insert(A(1), zeros);
+	initValues.insert(A(2), zeros);
 
 	// Run optimizer:
 	graph.print("Factor graph: ");
