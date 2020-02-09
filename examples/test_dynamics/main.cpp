@@ -88,7 +88,7 @@ void test_dynamics()
 	// Create factor noises:
 	const auto n = aMBS->m_q.size();
 
-	const double noise_vel_sigma = 0.1, noise_acc_sigma = 0.1;
+	const double noise_vel_sigma = 0.01, noise_acc_sigma = 0.01;
 
 	auto noise_vel = gtsam::noiseModel::Isotropic::Sigma(n, noise_vel_sigma);
 	auto noise_acc = gtsam::noiseModel::Isotropic::Sigma(n, noise_acc_sigma);
@@ -98,7 +98,7 @@ void test_dynamics()
 
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
-	const double dt = 0.1;
+	const double dt = 0.01;
 
 	// Create Trapezoidal Integrator factors:
 	graph.emplace_shared<FactorTrapInt>(dt, noise_vel, Q(0), Q(1), V(0), V(1));
@@ -154,6 +154,8 @@ void test_dynamics()
 	initValues.insert(A(2), zeros);
 
 	// Run optimizer:
+	std::cout.precision(3);
+
 	graph.print("Factor graph: ");
 	initValues.print("initValues: ");
 	gtsam::LevenbergMarquardtOptimizer optimizer(graph, initValues);
@@ -162,6 +164,9 @@ void test_dynamics()
 
 	// Process results:
 	optimValues.print("optimValues");
+
+	std::cout << "Initial factors error: " << graph.error(initValues) << "\n";
+	std::cout << "Final factors error: " << graph.error(optimValues) << "\n";
 }
 
 int main()
