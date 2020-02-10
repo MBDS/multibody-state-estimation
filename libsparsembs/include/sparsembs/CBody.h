@@ -16,10 +16,11 @@ struct CBody
 
 	std::string name;
 
-	// A 2D body is defined (in natural coords) with 2 points:
-	size_t points[2];  //!< Indices of the body 2 points (from the list of all
-					   //!< points in the problem); may include one fixed point
-					   //!< (not a variable)
+	/** A 2D body is defined (in natural coords) with 2 points
+	* Indices of the body 2 points (from the list of all
+	* points in the problem); may include one fixed point
+	* (not a variable) */
+	size_t points[2];
 
 	/** In (kg) */
 	inline double mass() const { return m_mass; }

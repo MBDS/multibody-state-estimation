@@ -1,6 +1,7 @@
 // Example of dynamics
 // ------------------------------------------------------------
 #include <sparsembs/FactorTrapInt.h>
+#include <sparsembs/model-examples.h>
 #include <sparsembs/FactorDynamics.h>
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/CAssembledModelRigid.h>
@@ -15,52 +16,6 @@
 using namespace std;
 using namespace sparsembs;
 
-void buildFourBarsMBS(CModelDefinition& model)
-{
-	model.setPointCount(4);
-	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
-	model.setPointCoords(1, TPoint2D(1, 0));
-	model.setPointCoords(2, TPoint2D(1, 2));
-	model.setPointCoords(3, TPoint2D(4, 0), true /*is fixed*/);
-
-	{
-		CBody& b = model.addBody();
-		b.points[0] = 0;
-		b.points[1] = 1;
-
-		b.length() = 1;
-		b.mass() = 1;
-		b.I0() = (1. / 3.) * b.mass() * mrpt::square(b.length());
-		b.cog() = TPoint2D(b.length() * 0.5, 0);
-
-		b.render_params.z_layer = 0;
-	}
-	{
-		CBody& b = model.addBody();
-		b.points[0] = 1;
-		b.points[1] = 2;
-
-		b.length() = 2;
-		b.mass() = 2;
-		b.I0() = (1. / 3.) * b.mass() * mrpt::square(b.length());
-		b.cog() = TPoint2D(b.length() * 0.5, 0);
-
-		b.render_params.z_layer = -0.05;
-	}
-	{
-		CBody& b = model.addBody();
-		b.points[0] = 2;
-		b.points[1] = 3;
-
-		b.length() = std::sqrt(2.0 * 2.0 + 3.0 * 3.0);
-		b.mass() = 4;
-		b.I0() = (1. / 3.) * b.mass() * mrpt::square(b.length());
-		b.cog() = TPoint2D(b.length() * 0.5, 0);
-
-		b.render_params.z_layer = 0;
-	}
-}
-
 void test_dynamics()
 {
 	using gtsam::symbol_shorthand::A;
@@ -70,7 +25,7 @@ void test_dynamics()
 
 	// Create the multibody object:
 	CModelDefinition model;
-	buildFourBarsMBS(model);
+	sparsembs::buildFourBarsMBS(model);
 
 	std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);
@@ -134,10 +89,10 @@ void test_dynamics()
 	aMBS->m_dotq.setZero();
 	aMBS->m_ddotq.setZero();
 
-	CAssembledRigidModel::TComputeDependentParams cdp;  // default params
+	CAssembledRigidModel::TComputeDependentParams cdp;	// default params
 	CAssembledRigidModel::TComputeDependentResults cdr;
 	// Solve the position problem:
-	aMBS->m_q[1] = 3;
+	aMBS->m_q[1] = 0.1;
 	aMBS->computeDependentPosVelAcc(indep_coord_indices, true, true, cdp, cdr);
 	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
 			  << "\n";
