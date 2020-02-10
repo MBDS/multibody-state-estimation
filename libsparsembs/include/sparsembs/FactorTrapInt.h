@@ -15,7 +15,7 @@ namespace sparsembs
  *
  * Unknowns: \f$x_{k},x_{k+1}, v_{k}, v_{k+1}\f$
  * Fixed data: dt
- * (Create derived class “FactorTrapInt” from superclass "NoiseModelFacotor4")
+ * (Create derived class FactorTrapInt from superclass "NoiseModelFacotor4")
  */
 class FactorTrapInt
 	: public gtsam::NoiseModelFactor4<state_t, state_t, state_t, state_t>

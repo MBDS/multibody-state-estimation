@@ -134,12 +134,12 @@ int main(int argc, char** argv)
 		// CDynamicSimulator_Lagrange_UMFPACK
 		// CDynamicSimulator_Lagrange_KLU
 		// CDynamicSimulator_Lagrange_CHOLMOD
-		CDynamicSimulator_R_matrix_dense
-			// CDynamicSimulator_Indep_dense
-			// CDynamicSimulator_AugmentedLagrangian_KLU
-			// CDynamicSimulator_AugmentedLagrangian_Dense
-			// CDynamicSimulator_ALi3_Dense
-			dynSimul(aMBS);
+		//CDynamicSimulator_Indep_dense
+		// CDynamicSimulator_AugmentedLagrangian_KLU
+		// CDynamicSimulator_AugmentedLagrangian_Dense
+		// CDynamicSimulator_ALi3_Dense
+
+		CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
 
 		// dynSimul.params_penalty.alpha = 1e7;
 		// dynSimul.params_penalty.xi = 1;
