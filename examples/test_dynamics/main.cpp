@@ -93,9 +93,20 @@ void test_dynamics()
 	auto noise_vel = gtsam::noiseModel::Isotropic::Sigma(n, noise_vel_sigma);
 	auto noise_acc = gtsam::noiseModel::Isotropic::Sigma(n, noise_acc_sigma);
 
-	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
-	auto noise_prior_dq = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
+	// x1, *y1*, x2, y2
+	// 0   1     2   3
+	std::vector<size_t> indep_coord_indices;
+	indep_coord_indices.push_back(1);
 
+	// Velocity prior: large sigma for all dq(i), except dq(i_indep)
+	gtsam::Vector prior_dq_sigmas;
+	const double large_std = 1e6;
+	const double small_std = 1e-3;
+	prior_dq_sigmas.setConstant(n, large_std);
+	for (auto idx : indep_coord_indices) prior_dq_sigmas(idx) = small_std;
+
+	auto noise_prior_dq = gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
+	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
 	const double dt = 0.01;
@@ -112,6 +123,8 @@ void test_dynamics()
 		&dynSimul, noise_dyn, Q(0), V(0), A(0));
 	graph.emplace_shared<FactorDynamics>(
 		&dynSimul, noise_dyn, Q(1), V(1), A(1));
+	graph.emplace_shared<FactorDynamics>(
+		&dynSimul, noise_dyn, Q(2), V(2), A(2));
 
 	// Create null vector, for use in velocity and accelerations:
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
@@ -121,10 +134,6 @@ void test_dynamics()
 	aMBS->m_dotq.setZero();
 	aMBS->m_ddotq.setZero();
 
-	// x1, *y1*, x2, y2
-	// 0   1     2   3
-	std::vector<size_t> indep_coord_indices;
-	indep_coord_indices.push_back(1);
 	CAssembledRigidModel::TComputeDependentParams cdp;  // default params
 	CAssembledRigidModel::TComputeDependentResults cdr;
 	// Solve the position problem:
@@ -167,6 +176,7 @@ void test_dynamics()
 
 	std::cout << "Initial factors error: " << graph.error(initValues) << "\n";
 	std::cout << "Final factors error: " << graph.error(optimValues) << "\n";
+	std::cout << "Optimization iterations: " << optimizer.iterations() << "\n";
 }
 
 int main()
