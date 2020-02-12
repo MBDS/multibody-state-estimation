@@ -20,7 +20,7 @@ void CConstraintConstantDistance::buildSparseStructures(
 
 	ASSERTMSG_(
 		!(m_points[0]->fixed && m_points[1]->fixed),
-        "Useless constraint added between two fixed points!");
+		"Useless constraint added between two fixed points!");
 
 	m_pointDOFs[0] = arm.getPoints2DOFs()[this->point_index0];
 	m_pointDOFs[1] = arm.getPoints2DOFs()[this->point_index1];
@@ -58,22 +58,22 @@ void CConstraintConstantDistance::buildSparseStructures(
 			&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOFs[1].dof_y];
 	}
 
-    // Add columns to sparse row in d(Phiq*dq)_dq
-    // --------------------------------------------
-    if (!m_points[0]->fixed)  // Only for the variables, not fixed points:
-    {
-        dPhiqdq_dx0 =
-            &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[0].dof_x];
-        dPhiqdq_dy0 =
-            &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[0].dof_y];
-    }
-    if (!m_points[1]->fixed)
-    {
-        dPhiqdq_dx1 =
-            &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[1].dof_x];
-        dPhiqdq_dy1 =
-            &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[1].dof_y];
-    }
+	// Add columns to sparse row in d(Phiq*dq)_dq
+	// --------------------------------------------
+	if (!m_points[0]->fixed)  // Only for the variables, not fixed points:
+	{
+		dPhiqdq_dx0 =
+			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[0].dof_x];
+		dPhiqdq_dy0 =
+			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[0].dof_y];
+	}
+	if (!m_points[1]->fixed)
+	{
+		dPhiqdq_dx1 =
+			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[1].dof_x];
+		dPhiqdq_dy1 =
+			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[1].dof_y];
+	}
 }
 
 void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
@@ -141,12 +141,12 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	if (dot_dPhi_dx1) *dot_dPhi_dx1 = 2 * Adotx;
 	if (dot_dPhi_dy1) *dot_dPhi_dy1 = 2 * Adoty;
 
-    // Update Jacobian \{dPhiq*dq}_(dq)(i,:)
-    // --------------------------------------
-    if (dPhiqdq_dx0) *dPhiqdq_dx0 = 0;
-    if (dPhiqdq_dy0) *dPhiqdq_dy0 = 0;
-    if (dPhiqdq_dx1) *dPhiqdq_dx1 = 0;
-    if (dPhiqdq_dy1) *dPhiqdq_dy1 = 0;
+	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
+	// --------------------------------------
+	if (dPhiqdq_dx0) *dPhiqdq_dx0 = 0;
+	if (dPhiqdq_dy0) *dPhiqdq_dy0 = 0;
+	if (dPhiqdq_dx1) *dPhiqdq_dx1 = 0;
+	if (dPhiqdq_dy1) *dPhiqdq_dy1 = 0;
 }
 
 /* -------------------------------------------------------------------
@@ -158,8 +158,8 @@ void CConstraintFixedSlider::buildSparseStructures(
 	m_Delta = line_pt[1] - line_pt[0];
 	ASSERTMSG_(
 		m_Delta.norm() > 0,
-        "Error: the two constraint points must define a line but they "
-        "coincide");
+		"Error: the two constraint points must define a line but they "
+		"coincide");
 
 	m_point = &arm.m_parent.getPointInfo(this->point_index);
 
@@ -236,7 +236,7 @@ void CConstraintMobileSlider::buildSparseStructures(
 	m_points[2] = &arm.m_parent.getPointInfo(this->ref_pts[1]);
 
 	ASSERTMSG_(
-        !m_points[0]->fixed, "Useless constraint added to a fixed point!");
+		!m_points[0]->fixed, "Useless constraint added to a fixed point!");
 
 	m_pointDOF[0] = arm.getPoints2DOFs()[this->point_index];
 	m_pointDOF[1] = arm.getPoints2DOFs()[this->ref_pts[0]];
