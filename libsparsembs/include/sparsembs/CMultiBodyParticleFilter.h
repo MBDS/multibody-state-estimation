@@ -5,7 +5,7 @@
 #include "CBody.h"
 #include "constraints.h"
 #include "CModelDefinition.h"
-#include "CAssembledModelRigid.h"
+#include "CAssembledRigidModel.h"
 #include "dynamic-simulators.h"
 #include "virtual-sensors.h"
 

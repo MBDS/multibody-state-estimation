@@ -2,7 +2,7 @@
 
 #include "sparsembs-common.h"
 #include "sparsembs-utils.h"
-#include "CAssembledModelRigid.h"
+#include "CAssembledRigidModel.h"
 
 namespace sparsembs
 {

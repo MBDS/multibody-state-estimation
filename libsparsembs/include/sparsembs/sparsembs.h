@@ -5,6 +5,6 @@
 
 // Include the main classes/structs:
 #include "CModelDefinition.h"
-#include "CAssembledModelRigid.h"
+#include "CAssembledRigidModel.h"
 #include "dynamic-simulators.h"
 #include "CMultiBodyParticleFilter.h"

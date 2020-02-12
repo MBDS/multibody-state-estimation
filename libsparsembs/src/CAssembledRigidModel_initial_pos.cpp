@@ -1,4 +1,4 @@
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 #include <sparsembs/sparsembs-utils.h>
 
 using namespace sparsembs;

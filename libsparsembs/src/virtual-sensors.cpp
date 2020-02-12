@@ -1,4 +1,4 @@
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 #include <sparsembs/virtual-sensors.h>
 
 using namespace sparsembs;

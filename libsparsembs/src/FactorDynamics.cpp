@@ -1,5 +1,5 @@
 #include <sparsembs/FactorDynamics.h>
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 
 using namespace sparsembs;
 
@@ -46,7 +46,7 @@ gtsam::Vector FactorDynamics::evaluateError(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;	// wallclock time (useless?)
+    const double t = 0;  // wallclock time (useless?)
 
 	m_dynamic_solver->solve_ddotq(t, qpp_predicted);
 

@@ -1,5 +1,5 @@
 #include <sparsembs/constraints.h>
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 #include <mrpt/opengl/CSimpleLine.h>
 
 using namespace sparsembs;

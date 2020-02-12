@@ -1,4 +1,4 @@
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 #include <mrpt/opengl.h>
 
 using namespace sparsembs;

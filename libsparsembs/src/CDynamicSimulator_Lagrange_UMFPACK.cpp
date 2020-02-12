@@ -1,4 +1,4 @@
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <mrpt/math/utils.h>  // saveEigenSparseTripletsToFile()
 

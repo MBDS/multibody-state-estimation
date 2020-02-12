@@ -1,5 +1,5 @@
 #include <sparsembs/CModelDefinition.h>
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 
 using namespace sparsembs;
 using namespace Eigen;

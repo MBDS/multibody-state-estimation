@@ -1,5 +1,5 @@
 #include <sparsembs/dynamic-simulators.h>
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 
 using namespace sparsembs;
 using namespace Eigen;
