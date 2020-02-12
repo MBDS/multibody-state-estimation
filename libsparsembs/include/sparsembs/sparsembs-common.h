@@ -87,8 +87,14 @@ struct TPoint2DOF
 
 struct TCompressedRowSparseMatrix
 {
-	typedef std::map<size_t, double> row_t;
-	std::deque<row_t> matrix;  // Use deque<> to avodi mem reallocations
+    using row_t = std::map<size_t, double>;
+
+    /** Important: Use deque<> to avoid mem reallocations since we use
+     * *pointers* to elements inside here */
+    std::deque<row_t> matrix;
+
+    /** Defines the number of rows. */
+    void setRowCount(size_t n) { matrix.resize(n); }
 
 	size_t ncols;  //!< The number of cols in a sparse matrix can be set freely
 				   //!< by the user (we don't check for columns out of this

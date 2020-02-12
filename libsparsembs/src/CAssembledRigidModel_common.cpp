@@ -33,11 +33,11 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 		const TMBSPoint& pt = m_parent.getPointInfo(pt_idx);
 		switch (m_DOFs[i].point_dof)
 		{
-			case 0:	 // x
+            case 0:  // x
 				m_q[i] = pt.coords.x;
 				m_points2DOFs[pt_idx].dof_x = i;
 				break;
-			case 1:	 // y
+            case 1:  // y
 				m_q[i] = pt.coords.y;
 				m_points2DOFs[pt_idx].dof_y = i;
 				break;
@@ -225,13 +225,16 @@ void CAssembledRigidModel::update3DRepresentation(
 size_t CAssembledRigidModel::addNewRowToConstraints()
 {
 	const size_t idx = m_Phi.size();
-	const size_t N = idx + 1;  // new size
+    const size_t m = idx + 1;  // new size
 
 	// Add rows:
-	m_Phi.resize(N);
-	m_dotPhi.resize(N);
-	m_Phi_q.matrix.resize(N);
-	m_dotPhi_q.matrix.resize(N);
+    m_Phi.resize(m);
+    m_dotPhi.resize(m);
+
+    // Jacobians:
+    m_Phi_q.setRowCount(m);
+    m_dotPhi_q.setRowCount(m);
+    m_dPhiqdq_dq.setRowCount(m);
 
 	return idx;
 }
@@ -255,7 +258,7 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 
 #ifdef _DEBUG
 	ASSERT_(
-		ptr_q0 == &m_q[0]);	 // make sure the vectors didn't suffer mem
+        ptr_q0 == &m_q[0]);  // make sure the vectors didn't suffer mem
 							 // reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
@@ -270,6 +273,8 @@ void CAssembledRigidModel::copyOpenGLRepresentationFrom(
 {
 	this->m_gl_objects = o.m_gl_objects;
 }
+
+void getdotPhi_q_dense(Eigen::MatrixXd& dotPhi_q) const;
 
 /** Form a dense matrix from the sparse Jacobian dPhi_dq \note This method does
  * NOT call update_numeric_Phi_and_Jacobians(), do it if required beforehand */
@@ -289,6 +294,24 @@ void CAssembledRigidModel::getPhi_q_dense(Eigen::MatrixXd& Phi_q) const
 			 itCol != row_i.end(); ++itCol)
 			Phi_q(i, itCol->first) = itCol->second;
 	}
+}
+
+void CAssembledRigidModel::getdotPhi_q_dense(Eigen::MatrixXd& dotPhi_q) const
+{
+    const size_t nCoords = m_Phi_q.getNumCols();  // Columns
+    const size_t nConstraints = m_Phi.size();  // rows
+
+    dotPhi_q.setZero(nConstraints, nCoords);
+
+    // Update numeric values of the constraint Jacobians:
+    for (size_t i = 0; i < nConstraints; i++)
+    {
+        const TCompressedRowSparseMatrix::row_t row_i = m_dotPhi_q.matrix[i];
+        for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+                 row_i.begin();
+             itCol != row_i.end(); ++itCol)
+            dotPhi_q(i, itCol->first) = itCol->second;
+    }
 }
 
 /** Retrieves the current coordinates of a point, which may include either fixed
@@ -334,7 +357,7 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	ASSERTDEB_(L > 0);
 	const double Linv = 1.0 / L;
 
-	mrpt::math::TPoint2D u, v;	// unit vectors in X,Y,Z local to the body
+    mrpt::math::TPoint2D u, v;  // unit vectors in X,Y,Z local to the body
 
 	u = (q[1] - q[0]) * Linv;
 	v.x = -u.y;
@@ -398,13 +421,12 @@ void CAssembledRigidModel::evaluateEnergy(
 
 		// Potential energy:
 		mrpt::math::TPoint2D
-			global_cog;	 // current COG position, in global coords:
+            global_cog;  // current COG position, in global coords:
 		this->getPointOnBodyCurrentCoords(i, b.cog(), global_cog);
 
-		e.E_pot -= b.mass() *
-				   (this->m_gravity[0] * global_cog.x +
-					this->m_gravity[1] *
-						global_cog.y);	// + this->m_gravity[2] * global_cog.z
+        e.E_pot -= b.mass() * (this->m_gravity[0] * global_cog.x +
+                               this->m_gravity[1] * global_cog.y +
+                               this->m_gravity[2] * global_cog.z);
 	}
 
 	e.E_total = e.E_kin + e.E_pot;

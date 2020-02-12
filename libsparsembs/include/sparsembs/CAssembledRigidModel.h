@@ -107,6 +107,8 @@ class CAssembledRigidModel
 	 * beforehand */
 	void getPhi_q_dense(Eigen::MatrixXd& Phi_q) const;
 
+    void getdotPhi_q_dense(Eigen::MatrixXd& dotPhi_q) const;
+
 	/** Retrieves the current coordinates of a point, which may include either
 	 * fixed or variable components */
 	void getPointCurrentCoords(
@@ -154,16 +156,21 @@ class CAssembledRigidModel
 	VectorXd m_Phi;  //!< The vector of numerical values of Phi, the vector of
 					 //!< constraint functions Phi=0
 	VectorXd m_dotPhi;  //!< The vector of numerical values of \dot{\Phi}
-	TCompressedRowSparseMatrix
-		m_Phi_q;  //!< Jacobian dPhi_dq (as a sparse matrix)
-	TCompressedRowSparseMatrix
-		m_dotPhi_q;  //!< Jacobian d(dPhi_dq)_dt (as a sparse matrix)
 
-	/** The list of all constraints (of different kinds/classes).
-	 * \note This list DOES include constant-distance constraints (not like in
-	 * the original list in the parent CModelDefinition)
-	 */
-	std::vector<CConstraintBase::Ptr> m_constraints;
+    /** Jacobian dPhi_dq (as a sparse matrix) */
+    TCompressedRowSparseMatrix m_Phi_q;
+
+    /** Jacobian d(dPhi_dq)_dt (as a sparse matrix) */
+    TCompressedRowSparseMatrix m_dotPhi_q;
+
+    /** Jacobian d(Phiq*dq)_dq (as a sparse matrix) */
+    TCompressedRowSparseMatrix m_dPhiqdq_dq;
+
+    /** The list of all constraints (of different kinds/classes).
+     * \note This list DOES include constant-distance constraints (not like
+     * in the original list in the parent CModelDefinition)
+     */
+    std::vector<CConstraintBase::Ptr> m_constraints;
 
 	/** @} */
 
@@ -174,7 +181,7 @@ class CAssembledRigidModel
 	 * of 3D objects in m_gl_objects
 	 */
 	void getAs3DRepresentation(
-	    mrpt::opengl::CSetOfObjects::Ptr& outObj,
+        mrpt::opengl::CSetOfObjects::Ptr& outObj,
 		const CBody::TRenderParams& rp) const;
 
 	/** Animates a 3D representation of the MBS, previously built in

@@ -59,17 +59,8 @@ class CConstraintConstantDistance : public CConstraintBase
 		: point_index0(_point_index0),
 		  point_index1(_point_index1),
 		  length(_length),
-		  m_idx_constr(static_cast<size_t>(-1)),
-		  dPhi_dx0(NULL),
-		  dPhi_dy0(NULL),
-		  dPhi_dx1(NULL),
-		  dPhi_dy1(NULL),
-		  dot_dPhi_dx0(NULL),
-		  dot_dPhi_dy0(NULL),
-		  dot_dPhi_dx1(NULL),
-		  dot_dPhi_dy1(NULL)
+          m_idx_constr(static_cast<size_t>(-1))
 	{
-		m_points[0] = m_points[1] = NULL;
 	}
 
 	virtual void buildSparseStructures(CAssembledRigidModel& arm) const;
@@ -82,15 +73,22 @@ class CConstraintConstantDistance : public CConstraintBase
 	}
 
    protected:
-	mutable const TMBSPoint* m_points[2];
-	mutable TPoint2DOF
-		m_pointDOFs[2];  // The indices of each point in the state vector "q"
+    mutable const TMBSPoint* m_points[2] = {nullptr, nullptr};
+    /** The indices of each point in the state vector "q" */
+    mutable TPoint2DOF m_pointDOFs[2];
 	mutable size_t m_idx_constr;
-	mutable double *dPhi_dx0, *dPhi_dy0, *dPhi_dx1,
-		*dPhi_dy1;  // Pointers to entries in the sparse Jacobian dPhi_dq
-	mutable double *dot_dPhi_dx0, *dot_dPhi_dy0, *dot_dPhi_dx1,
-		*dot_dPhi_dy1;  // Pointers to entries in the sparse Jacobian
-						// \dot{dPhi_dq}
+
+    /** Pointers to entries in the sparse Jacobian dPhi_dq */
+    mutable double *dPhi_dx0 = nullptr, *dPhi_dy0 = nullptr,
+                   *dPhi_dx1 = nullptr, *dPhi_dy1 = nullptr;
+
+    /** Pointers to entries in the sparse Jacobian \dot{dPhi_dq} */
+    mutable double *dot_dPhi_dx0 = nullptr, *dot_dPhi_dy0 = nullptr,
+                   *dot_dPhi_dx1 = nullptr, *dot_dPhi_dy1 = nullptr;
+
+    /** Pointers to entries in the sparse Jacobian d(Phiq*dq)_dq */
+    mutable double *dPhiqdq_dx0 = nullptr, *dPhiqdq_dy0 = nullptr,
+                   *dPhiqdq_dx1 = nullptr, *dPhiqdq_dy1 = nullptr;
 };
 
 /** Constraint: forces a point to lie exactly on a fixed line (e.g. sliders) */
