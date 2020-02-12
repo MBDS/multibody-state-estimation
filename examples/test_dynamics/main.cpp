@@ -7,12 +7,14 @@
 #include <gtsam/slam/PriorFactor.h>
 #include <iostream>
 #include <fstream>
-#include <sparsembs/CAssembledModelRigid.h>
+#include <sparsembs/CAssembledRigidModel.h>
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/FactorDynamics.h>
 #include <sparsembs/FactorTrapInt.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <sparsembs/model-examples.h>
+
+#include <mrpt/gui/CDisplayWindowPlots.h>
 
 using namespace std;
 using namespace sparsembs;
@@ -66,7 +68,7 @@ void test_dynamics()
     auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
     const double dt = 0.01;
-    const double t_end = 5.0;
+    const double t_end = 2;
     double t = 0;
     unsigned int N = t_end / dt;
 
@@ -118,8 +120,10 @@ void test_dynamics()
 
         if (nn == N - 1)
         {
+            // Create Dynamics factors:
             graph.emplace_shared<FactorDynamics>(
                 &dynSimul, noise_dyn, Q(nn + 1), V(nn + 1), A(nn + 1));
+            // Create initial estimates:
             initValues.insert(Q(nn + 1), q_0);
             initValues.insert(V(nn + 1), zeros);
             initValues.insert(A(nn + 1), zeros);
@@ -149,6 +153,18 @@ void test_dynamics()
     std::cout << "Initial factors error: " << graph.error(initValues) << "\n";
     std::cout << "Final factors error: " << graph.error(optimValues) << "\n";
     std::cout << "Optimization iterations: " << optimizer.iterations() << "\n";
+
+    /* mrpt::gui::CDisplayWindowPlots win;
+
+    std::vector<double> xs, ys;
+    for (int i = 0; i < 100; i++)
+    {
+        xs.push_back(i);
+        ys.push_back(sin(i * 0.01));
+    }
+
+    win.plot(xs, ys, "r.5");
+    win.waitForKey();*/
 }
 
 int main()
