@@ -40,7 +40,7 @@ void test_dynamics()
 
 	// Create the empty factor graph:
 	gtsam::NonlinearFactorGraph graph;
-	gtsam::Values initValues;
+	gtsam::Values values;
 
 	// Add factors:
 	// Create factor noises:
@@ -67,8 +67,8 @@ void test_dynamics()
 	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
-	const double dt = 0.01;
-	const double t_end = 2;
+	const double dt = 0.001;
+	const double t_end = 1.0;
 	double t = 0;
 	unsigned int N = t_end / dt;
 
@@ -95,11 +95,15 @@ void test_dynamics()
 	// Extract m_q from the assembled multibody problem:
 	state_t q_0 = gtsam::Vector(aMBS->m_q);
 	std::cout << "q0: " << q_0.transpose() << "\n";
+	state_t last_q = q_0;
 
 	// Create Prior factors:
 	graph.emplace_shared<gtsam::PriorFactor<state_t>>(Q(0), q_0, noise_prior_q);
 	graph.emplace_shared<gtsam::PriorFactor<state_t>>(
 		V(0), zeros, noise_prior_dq);
+
+	gtsam::LevenbergMarquardtParams lmp;
+	lmp.maxIterations = 1000;
 
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
@@ -114,50 +118,61 @@ void test_dynamics()
 			&dynSimul, noise_dyn, Q(nn), V(nn), A(nn));
 
 		// Create initial estimates:
-		initValues.insert(Q(nn), q_0);
-		initValues.insert(V(nn), zeros);
-		initValues.insert(A(nn), zeros);
+		if (values.find(Q(nn)) == values.end()) values.insert(Q(nn), last_q);
+		if (values.find(V(nn)) == values.end()) values.insert(V(nn), zeros);
+		if (values.find(A(nn)) == values.end()) values.insert(A(nn), zeros);
 
 		if (nn == N - 1)
 		{
 			// Create Dynamics factors:
 			graph.emplace_shared<FactorDynamics>(
 				&dynSimul, noise_dyn, Q(nn + 1), V(nn + 1), A(nn + 1));
-			// Create initial estimates:
-			initValues.insert(Q(nn + 1), q_0);
-			initValues.insert(V(nn + 1), zeros);
-			initValues.insert(A(nn + 1), zeros);
 		}
+
+		// Create initial estimates (so we can run LevMarq)
+		values.insert(Q(nn + 1), last_q);
+		values.insert(V(nn + 1), zeros);
+		values.insert(A(nn + 1), zeros);
+
+		// Once in a while, run the optimizer so the initial values are not so
+		// far from the optimal place and the problem is easier to solve:
+		// Also, make sure we run at the LAST timestep:
+		if ((nn % 1000) == 0 || nn == N - 1)
+		{
+			std::cout << "Running optimization at t=" << nn << "/" << N << "\n";
+			std::cout << " Initial factors error: " << graph.error(values)
+					  << "\n";
+
+			gtsam::LevenbergMarquardtOptimizer optimizer(graph, values, lmp);
+			values = optimizer.optimize();
+
+			std::cout << " Final factors error: " << graph.error(values)
+					  << "\n";
+			std::cout << " Optimization iterations: " << optimizer.iterations()
+					  << "\n";
+		}
+
+		last_q = values.at<state_t>(Q(nn));
 	}
 
 	// Run optimizer:
-	std::cout.precision(3);
-
+	// std::cout.precision(3);
 	// graph.print("Factor graph: ");
-	// initValues.print("initValues: ");
-
-	gtsam::LevenbergMarquardtParams lmp;
-	lmp.maxIterations = 1000;
-
-	gtsam::LevenbergMarquardtOptimizer optimizer(graph, initValues, lmp);
-
-	const auto& optimValues = optimizer.optimize();
-
-	// Process results:
-	optimValues.print("optimValues");
+	// values.print("values");
 
 	// Save states to files:
 	mrpt::math::CMatrixDouble Qs(N, n), dotQs(N, n), ddotQs(N, n);
 	for (unsigned int step = 0; step < N; step++)
 	{
-		const state_t q_val = optimValues.at<state_t>(Q(step));
-		const state_t dq_val = optimValues.at<state_t>(V(step));
-		const state_t ddq_val = optimValues.at<state_t>(A(step));
+		const state_t q_val = values.at<state_t>(Q(step));
+		const state_t dq_val = values.at<state_t>(V(step));
+		const state_t ddq_val = values.at<state_t>(A(step));
 
 		Qs.row(step) = q_val;
 		dotQs.row(step) = q_val;
 		ddotQs.row(step) = q_val;
 	}
+	std::cout << "Saving results to TXT files...\n";
 	Qs.saveToTextFile("q.txt");
 	dotQs.saveToTextFile("dq.txt");
 	ddotQs.saveToTextFile("ddq.txt");
@@ -167,12 +182,8 @@ void test_dynamics()
 	{
 		std::ofstream f("graph.dot");
 		gtsam::GraphvizFormatting gvf;
-		graph.saveGraph(f, optimValues, gvf);
+		graph.saveGraph(f, values, gvf);
 	}
-
-	std::cout << "Initial factors error: " << graph.error(initValues) << "\n";
-	std::cout << "Final factors error: " << graph.error(optimValues) << "\n";
-	std::cout << "Optimization iterations: " << optimizer.iterations() << "\n";
 
 	/* mrpt::gui::CDisplayWindowPlots win;
 
