@@ -1,6 +1,10 @@
 *~
 build*
 html
+<<<<<<< HEAD
 .vs
+=======
+
+>>>>>>> origin/master
 # qtcreator:
 CMakeLists.txt.user

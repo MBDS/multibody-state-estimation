@@ -111,7 +111,11 @@ void unsafeRemoveColumns(MATRIX& m, const std::vector<std::size_t>& idxs)
 		if (nC > 0)
 			m.block(0, *it, nR, nC) = m.block(0, *it + 1, nR, nC).eval();
 	}
+<<<<<<< HEAD
 	m.conservativeResize(nR, m.cols() - idxs.size());
+=======
+	m.resize(nR, m.cols() - idxs.size());
+>>>>>>> origin/master
 }
 
 /** Removes columns of the matrix. Indices may be unsorted and duplicated */
