@@ -155,8 +155,8 @@ void test_dynamics()
 		const state_t ddq_val = optimValues.at<state_t>(A(step));
 
 		Qs.row(step) = q_val;
-		dotQs.row(step) = q_val;
-		ddotQs.row(step) = q_val;
+		dotQs.row(step) = dq_val;
+		ddotQs.row(step) = ddq_val;
 	}
 	Qs.saveToTextFile("q.txt");
 	dotQs.saveToTextFile("dq.txt");
