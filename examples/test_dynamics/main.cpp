@@ -10,6 +10,7 @@
 #include <sparsembs/CAssembledRigidModel.h>
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/FactorDynamics.h>
+#include <sparsembs/FactorConstraints.h>
 #include <sparsembs/FactorTrapInt.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <sparsembs/model-examples.h>
@@ -45,6 +46,7 @@ void test_dynamics()
 	// Add factors:
 	// Create factor noises:
 	const auto n = aMBS->m_q.size();
+	const auto m = aMBS->m_Phi_q.getNumRows();
 
 	const double noise_vel_sigma = 0.01, noise_acc_sigma = 0.01;
 
@@ -54,7 +56,7 @@ void test_dynamics()
 	// x1, *y1*, x2, y2
 	// 0   1     2   3
 	std::vector<size_t> indep_coord_indices;
-	indep_coord_indices.push_back(1);
+	indep_coord_indices.push_back(0);
 
 	// Velocity prior: large sigma for all dq(i), except dq(i_indep)
 	gtsam::Vector prior_dq_sigmas;
@@ -66,8 +68,9 @@ void test_dynamics()
 	auto noise_prior_dq = gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
 	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
+	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.01);
 
-	const double dt = 0.001;
+	const double dt = 0.01;
 	const double t_end = 1.0;
 	double t = 0;
 	unsigned int N = t_end / dt;
@@ -117,6 +120,11 @@ void test_dynamics()
 		graph.emplace_shared<FactorDynamics>(
 			&dynSimul, noise_dyn, Q(nn), V(nn), A(nn));
 
+		// Add dependent-coordinates constraint factor:
+		if ((nn % 100) == 0)
+			graph.emplace_shared<FactorConstraints>(
+				aMBS, noise_constr_q, Q(nn));
+
 		// Create initial estimates:
 		if (values.find(Q(nn)) == values.end()) values.insert(Q(nn), last_q);
 		if (values.find(V(nn)) == values.end()) values.insert(V(nn), zeros);
@@ -137,16 +145,21 @@ void test_dynamics()
 		// Once in a while, run the optimizer so the initial values are not so
 		// far from the optimal place and the problem is easier to solve:
 		// Also, make sure we run at the LAST timestep:
-		if ((nn % 1000) == 0 || nn == N - 1)
+		if ((nn % 10) == 0 || nn == N - 1)
 		{
 			std::cout << "Running optimization at t=" << nn << "/" << N << "\n";
-			std::cout << " Initial factors error: " << graph.error(values)
-					  << "\n";
+			const double err_init = graph.error(values);
 
 			gtsam::LevenbergMarquardtOptimizer optimizer(graph, values, lmp);
 			values = optimizer.optimize();
 
-			std::cout << " Final factors error: " << graph.error(values)
+			const double err_final = graph.error(values);
+
+			std::cout << " Initial factors error: " << err_init
+					  << ", RMSE=" << std::sqrt(err_init / graph.size())
+					  << "\n";
+			std::cout << " Final factors error: " << err_final
+					  << ", RMSE=" << std::sqrt(err_final / graph.size())
 					  << "\n";
 			std::cout << " Optimization iterations: " << optimizer.iterations()
 					  << "\n";
