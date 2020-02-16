@@ -83,7 +83,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	//                                                                    = b
 	timelog.enter("solver_ddotq.build_rhs");
 
-	m_arm->m_dotPhi_q.getAsDense(m_dotPhi_q);
+	m_arm->m_dotPhi_q.asDense(m_dotPhi_q);
 
 	const Eigen::MatrixXd RHS2 =
 		params_penalty.alpha * m_Phi_q.transpose() *

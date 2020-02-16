@@ -111,7 +111,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 	m_arm->m_dotq = m_A_lu.solve(m_M * m_arm->m_dotq);
 
 	// phiqpqp_0 = phiqpqp(q, qp, l);
-	m_arm->m_dotPhi_q.getAsDense(m_dotPhi_q);
+	m_arm->m_dotPhi_q.asDense(m_dotPhi_q);
 
 	// qpp_out = f_q\((M + 0.5*dt*C + 0.25*dt^2*K)*qpp -
 	// 0.25*dt^2*jac'*alpha*phiqpqp_0);
@@ -171,7 +171,7 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 	// * \dot{Phi} + omega^2 * Phi ] - Phi_q^t * \lambda
 	//
 
-	m_arm->m_dotPhi_q.getAsDense(m_dotPhi_q);
+	m_arm->m_dotPhi_q.asDense(m_dotPhi_q);
 
 	// Solve linear system:
 	// -----------------------------------

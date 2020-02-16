@@ -87,14 +87,14 @@ struct TPoint2DOF
 
 struct TCompressedRowSparseMatrix
 {
-    using row_t = std::map<size_t, double>;
+	using row_t = std::map<size_t, double>;
 
-    /** Important: Use deque<> to avoid mem reallocations since we use
-     * *pointers* to elements inside here */
-    std::deque<row_t> matrix;
+	/** Important: Use deque<> to avoid mem reallocations since we use
+	 * *pointers* to elements inside here */
+	std::deque<row_t> matrix;
 
-    /** Defines the number of rows. */
-    void setRowCount(size_t n) { matrix.resize(n); }
+	/** Defines the number of rows. */
+	void setRowCount(size_t n) { matrix.resize(n); }
 
 	size_t ncols;  //!< The number of cols in a sparse matrix can be set freely
 				   //!< by the user (we don't check for columns out of this
@@ -105,18 +105,13 @@ struct TCompressedRowSparseMatrix
 
 	/** Create a dense version of this sparse matrix */
 	template <class MATRIX>
-	void getAsDense(MATRIX& M) const
+	void asDense(MATRIX& M) const
 	{
 		M.resize(getNumRows(), getNumCols());
 		M.fill(0);
 		for (size_t i = 0; i < matrix.size(); i++)
-		{
-			for (row_t::const_iterator it = matrix[i].begin();
-				 it != matrix[i].end(); ++it)
-			{
-				M(i, it->first) = it->second;
-			}
-		}
+			for (const auto& row_val : matrix[i])
+				M(i, row_val.first) = row_val.second;
 	}
 };
 

@@ -274,44 +274,6 @@ void CAssembledRigidModel::copyOpenGLRepresentationFrom(
 	this->m_gl_objects = o.m_gl_objects;
 }
 
-/** Form a dense matrix from the sparse Jacobian dPhi_dq \note This method does
- * NOT call update_numeric_Phi_and_Jacobians(), do it if required beforehand */
-void CAssembledRigidModel::getPhi_q_dense(Eigen::MatrixXd& Phi_q) const
-{
-	const size_t nCoords = m_Phi_q.getNumCols();  // Columns
-	const size_t nConstraints = m_Phi.size();  // rows
-
-	Phi_q.setZero(nConstraints, nCoords);
-
-	// Update numeric values of the constraint Jacobians:
-	for (size_t i = 0; i < nConstraints; i++)
-	{
-		const TCompressedRowSparseMatrix::row_t row_i = m_Phi_q.matrix[i];
-		for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
-				 row_i.begin();
-			 itCol != row_i.end(); ++itCol)
-			Phi_q(i, itCol->first) = itCol->second;
-	}
-}
-
-void CAssembledRigidModel::getdotPhi_q_dense(Eigen::MatrixXd& dotPhi_q) const
-{
-	const size_t nCoords = m_Phi_q.getNumCols();  // Columns
-	const size_t nConstraints = m_Phi.size();  // rows
-
-	dotPhi_q.setZero(nConstraints, nCoords);
-
-	// Update numeric values of the constraint Jacobians:
-	for (size_t i = 0; i < nConstraints; i++)
-	{
-		const TCompressedRowSparseMatrix::row_t row_i = m_dotPhi_q.matrix[i];
-		for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
-				 row_i.begin();
-			 itCol != row_i.end(); ++itCol)
-			dotPhi_q(i, itCol->first) = itCol->second;
-	}
-}
-
 /** Retrieves the current coordinates of a point, which may include either fixed
  * or variable components */
 void CAssembledRigidModel::getPointCurrentCoords(

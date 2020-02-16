@@ -15,17 +15,15 @@ void FactorConstraints::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
 	std::cout << s << "FactorConstrints(" << keyFormatter(this->key()) << ")\n";
-	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
 	this->noiseModel_->print("  noise model: ");
 }
 
-/*bool FactorConstraints::equals(
+bool FactorConstraints::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
 {
 	const This* e = dynamic_cast<const This*>(&expected);
-	return e != nullptr && Base::equals(*e, tol) &&
-		   m_constraints->get_mode () == e->m_constraints->get_model();
-}*/
+	return e != nullptr && Base::equals(*e, tol);
+}
 
 gtsam::Vector FactorConstraints::evaluateError(
 	const state_t& q_k, boost::optional<gtsam::Matrix&> H1) const
@@ -34,37 +32,21 @@ gtsam::Vector FactorConstraints::evaluateError(
 	if (n < 1) throw std::runtime_error("Empty state vector!");
 
 	// Set q in the multibody model:
-	CAssembledRigidModel& arm = *m_constraints->buildSparseStructures();
-	arm.m_q = q_k.vector();
-	CAssembledRigidModel& arm = *m_constraints->update();
-	arm.m_Phi_q = H1;
+	m_arm->m_q = q_k.vector();
 
-	// Predict accelerations:
-	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
-
-	m_dynamic_solver->solve_ddotq(t, qpp_predicted);
+	// Update Jacobians:
+	m_arm->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
-	gtsam::Vector err = qpp_predicted - ddq_k.vector();
+	gtsam::Vector err = m_arm->m_Phi;
 
+	// Get the Jacobians required for optimization:
 	// d err / d q_k
 	if (H1)
 	{
 		auto& Hv = H1.value();
-		Hv.setZero(n, n);
+		Hv = m_arm->getPhi_q_dense();
 	}
-	// d err / d dq_k
-	if (H2)
-	{
-		auto& Hv = H2.value();
-		Hv.setZero(n, n);
-	}
-	// d err / d ddq_k
-	if (H3)
-	{
-		auto& Hv = H3.value();
-		Hv = -Eigen::MatrixXd::Identity(n, n);
-	}
+
 	return err;
 }

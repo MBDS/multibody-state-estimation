@@ -3,7 +3,7 @@
 
 #include <sparsembs/factor-common.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
-#include <sparsembs/constraints.h>
+#include <sparsembs/CAssembledRigidModel.h>
 
 namespace sparsembs
 {
@@ -15,24 +15,24 @@ namespace sparsembs
 class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 {
    private:
-    using This = FactorConstraints;
-    using Base = gtsam::NoiseModelFactor1<state_t>;
+	using This = FactorConstraints;
+	using Base = gtsam::NoiseModelFactor1<state_t>;
 
 	// Class parameters (pointer to type "CConstraintBase")
-	CConstraintBase* m_constraints = nullptr;
+	CAssembledRigidModel::Ptr m_arm;
 
    public:
-    // shorthand for a smart pointer to a factor
-    using shared_ptr = boost::shared_ptr<This>;
+	// shorthand for a smart pointer to a factor
+	using shared_ptr = boost::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
 	FactorConstraints() = default;
 
 	/** Construcotr */
 	FactorConstraints(
-		CConstraintBase* constraints, const gtsam::SharedNoiseModel& noiseModel,
-		gtsam::Key key_q_k)
-		: Base(noiseModel, key_q_k), m_constraints(constraints)
+		const CAssembledRigidModel::Ptr& arm,
+		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k)
+		: Base(noiseModel, key_q_k), m_arm(arm)
 	{
 	}
 
@@ -47,9 +47,9 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 								  gtsam::DefaultKeyFormatter) const override;
 
 	/** equals */
-	/*virtual bool equals(
+	virtual bool equals(
 		const gtsam::NonlinearFactor& expected,
-		double tol = 1e-9) const override; */
+		double tol = 1e-9) const override;
 
 	/** implement functions needed to derive from Factor */
 	/** vector of errors */
@@ -61,15 +61,15 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 	std::size_t size() const { return 1; }
 
    private:
-    /** Serialization function */
-    friend class boost::serialization::access;
-    template <class ARCHIVE>
-    void serialize(ARCHIVE& ar, const unsigned int /*version*/)
-    {
-        ar& boost::serialization::make_nvp(
-            "FactorConstraints",
-            boost::serialization::base_object<Base>(*this));
-    }
+	/** Serialization function */
+	friend class boost::serialization::access;
+	template <class ARCHIVE>
+	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
+	{
+		ar& boost::serialization::make_nvp(
+			"FactorConstraints",
+			boost::serialization::base_object<Base>(*this));
+	}
 };
 
 }  // namespace sparsembs
