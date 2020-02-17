@@ -62,9 +62,9 @@ struct TSimulationState
 	TSimulationState(const CAssembledRigidModel* arm_);
 };
 
-typedef TSimulationState& TSimulationStateRef;
+using TSimulationStateRef = const TSimulationState&;
 
-using simul_callback_t = std::function<void(const TSimulationStateRef)>;
+using simul_callback_t = std::function<void(TSimulationStateRef)>;
 
 class CDynamicSimulatorBase;
 
@@ -79,8 +79,8 @@ class CDynamicSimulatorBase
 	 * "CDynamicSimulator_Lagrange_UMFPACK", ...
 	 */
 	static Ptr Create(
-	    const std::string& name,
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::string& name,
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
 	CDynamicSimulatorBase(std::shared_ptr<CAssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulatorBase();
@@ -244,7 +244,7 @@ class CDynamicSimulator_Lagrange_LU_dense : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_LU_dense(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
    private:
 	virtual void internal_prepare();
@@ -258,7 +258,7 @@ class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_R_matrix_dense(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
    private:
 	virtual void internal_prepare();
@@ -274,7 +274,7 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
 {
    public:
 	CDynamicSimulator_Indep_dense(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
 	virtual void dq_plus_dz(
 		const Eigen::VectorXd& dq, const Eigen::VectorXd& dz,
@@ -297,7 +297,7 @@ class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_CHOLMOD(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_Lagrange_CHOLMOD();
 
 	TOrderingMethods ordering_M;  //!< The ordering algorithm for factorizing M
@@ -325,7 +325,7 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_UMFPACK(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_Lagrange_UMFPACK();
 
 	TOrderingMethods ordering;
@@ -353,7 +353,7 @@ class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_KLU(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_Lagrange_KLU();
 
 	TOrderingMethods ordering;
@@ -391,7 +391,7 @@ class CDynamicSimulatorBasePenalty : public CDynamicSimulatorBase
 		params_penalty;  //!< Parameters of the "penalty" dynamic formulation
 
 	CDynamicSimulatorBasePenalty(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr)
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 		: CDynamicSimulatorBase(arm_ptr)
 	{
 	}
@@ -463,7 +463,7 @@ class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
 {
    public:
 	CDynamicSimulator_ALi3_Dense(
-	    const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_ALi3_Dense();
 
 	/** Integrators will call this after each time step */

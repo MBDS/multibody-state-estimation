@@ -67,7 +67,7 @@ void CDynamicSimulatorBase::prepare()
 	m_init = true;
 }
 
-void do_nothing(const TSimulationStateRef st) {}
+static void do_nothing(TSimulationStateRef st) {}
 
 CDynamicSimulatorBase::TParameters::TParameters()
 	: ode_solver(ODE_Euler),
