@@ -1,9 +1,9 @@
 // Example of dynamics
 // ------------------------------------------------------------
 #include <gtsam/inference/Symbol.h>
-#include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/Values.h>
+#include <gtsam/nonlinear/ISAM2.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <iostream>
 #include <fstream>
@@ -11,21 +11,16 @@
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/FactorDynamics.h>
 #include <sparsembs/FactorConstraints.h>
-#include <sparsembs/FactorTrapInt.h>
+#include <sparsembs/FactorEulerInt.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <sparsembs/model-examples.h>
 
-#include <mrpt/gui/CDisplayWindowPlots.h>
-
-using namespace std;
-using namespace sparsembs;
-
-void test_dynamics()
+void test_smoother()
 {
 	using gtsam::symbol_shorthand::A;
 	using gtsam::symbol_shorthand::Q;
 	using gtsam::symbol_shorthand::V;
-	// using namespace sparsembs; /Already used in the global section above
+	using namespace sparsembs;
 
 	// Create the multibody object:
 	CModelDefinition model;
@@ -39,9 +34,9 @@ void test_dynamics()
 	// Must be called before solve_ddotq(), needed inside the dynamics factors
 	dynSimul.prepare();
 
-	// Create the empty factor graph:
-	gtsam::NonlinearFactorGraph graph;
-	gtsam::Values values;
+	// iSAM2: Incrementally build the graph:
+	gtsam::NonlinearFactorGraph new_factors;
+	gtsam::Values new_values;
 
 	// Add factors:
 	// Create factor noises:
@@ -70,10 +65,10 @@ void test_dynamics()
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.01);
 
-	const double dt = 0.01;
-	const double t_end = 1.0;
+	const double dt = 0.005;
+	const double t_end = 5.0;
 	double t = 0;
-	unsigned int N = t_end / dt;
+	unsigned int N = static_cast<unsigned int>(t_end / dt);
 
 	// Create null vector, for use in velocity and accelerations:
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
@@ -101,88 +96,84 @@ void test_dynamics()
 	state_t last_q = q_0;
 
 	// Create Prior factors:
-	graph.emplace_shared<gtsam::PriorFactor<state_t>>(Q(0), q_0, noise_prior_q);
-	graph.emplace_shared<gtsam::PriorFactor<state_t>>(
+	new_factors.emplace_shared<gtsam::PriorFactor<state_t>>(
+		Q(0), q_0, noise_prior_q);
+	new_factors.emplace_shared<gtsam::PriorFactor<state_t>>(
 		V(0), zeros, noise_prior_dq);
 
-	gtsam::LevenbergMarquardtParams lmp;
-	lmp.maxIterations = 1000;
+	gtsam::ISAM2Params isam2params;
+	isam2params.relinearizeThreshold = 0.001;
+	isam2params.cacheLinearizedFactors = false;  // Default=true
+	isam2params.evaluateNonlinearError = true;  // for debugging mostly
+
+	gtsam::ISAM2 isam2(isam2params);
+	gtsam::Values estimated;
 
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
 		// Create Trapezoidal Integrator factors:
-		graph.emplace_shared<FactorTrapInt>(
-			dt, noise_vel, Q(nn), Q(nn + 1), V(nn), V(nn + 1));
-		graph.emplace_shared<FactorTrapInt>(
-			dt, noise_acc, V(nn), V(nn + 1), A(nn), A(nn + 1));
+		new_factors.emplace_shared<FactorEulerInt>(
+			dt, noise_vel, Q(nn), Q(nn + 1), V(nn));
+		new_factors.emplace_shared<FactorEulerInt>(
+			dt, noise_acc, V(nn), V(nn + 1), A(nn));
 
 		// Create Dynamics factors:
-		graph.emplace_shared<FactorDynamics>(
+		new_factors.emplace_shared<FactorDynamics>(
 			&dynSimul, noise_dyn, Q(nn), V(nn), A(nn));
 
 		// Add dependent-coordinates constraint factor:
-		if ((nn % 100) == 0)
-			graph.emplace_shared<FactorConstraints>(
-				aMBS, noise_constr_q, Q(nn));
+		// if ((nn % 2) == 0)
+		new_factors.emplace_shared<FactorConstraints>(
+			aMBS, noise_constr_q, Q(nn));
+
+		// TODO: Add velocity constraints!!
 
 		// Create initial estimates:
-		if (values.find(Q(nn)) == values.end()) values.insert(Q(nn), last_q);
-		if (values.find(V(nn)) == values.end()) values.insert(V(nn), zeros);
-		if (values.find(A(nn)) == values.end()) values.insert(A(nn), zeros);
+		if (!isam2.valueExists(Q(nn)) && !new_values.exists(Q(nn)))
+			new_values.insert(Q(nn), last_q);
+		if (!isam2.valueExists(V(nn)) && !new_values.exists(V(nn)))
+			new_values.insert(V(nn), zeros);
+		if (!isam2.valueExists(A(nn)) && !new_values.exists(A(nn)))
+			new_values.insert(A(nn), zeros);
 
-		if (nn == N - 1)
+		// Create initial estimates (so we can run the optimizer)
+		new_values.insert(Q(nn + 1), last_q);
+		new_values.insert(V(nn + 1), zeros);
+		new_values.insert(A(nn + 1), zeros);
+
+		// Run iSAM every N steps:
+		const int SMOOTHER_RUN_PERIOD = 5;
+		if ((SMOOTHER_RUN_PERIOD - 1) == (nn % SMOOTHER_RUN_PERIOD))
 		{
-			// Create Dynamics factors:
-			graph.emplace_shared<FactorDynamics>(
-				&dynSimul, noise_dyn, Q(nn + 1), V(nn + 1), A(nn + 1));
+			// new_factors.print("new_factors:");
+
+			gtsam::ISAM2UpdateParams updateParams;  // defaults
+
+			gtsam::ISAM2Result res =
+				isam2.update(new_factors, new_values, updateParams);
+
+			estimated = isam2.calculateEstimate();
+			last_q = estimated.at<state_t>(Q(nn));
+
+			std::cout << "Running smoother at t=" << nn << "/" << N
+					  << " errorBefore=" << *res.errorBefore
+					  << " errorAfter=" << *res.errorAfter << "\n";
+
+			// reset containers:
+			new_factors = gtsam::NonlinearFactorGraph();
+			new_values.clear();
 		}
-
-		// Create initial estimates (so we can run LevMarq)
-		values.insert(Q(nn + 1), last_q);
-		values.insert(V(nn + 1), zeros);
-		values.insert(A(nn + 1), zeros);
-
-		// Once in a while, run the optimizer so the initial values are not so
-		// far from the optimal place and the problem is easier to solve:
-		// Also, make sure we run at the LAST timestep:
-		if ((nn % 10) == 0 || nn == N - 1)
-		{
-			std::cout << "Running optimization at t=" << nn << "/" << N << "\n";
-			const double err_init = graph.error(values);
-
-			gtsam::LevenbergMarquardtOptimizer optimizer(graph, values, lmp);
-			values = optimizer.optimize();
-
-			const double err_final = graph.error(values);
-
-			// Uncomment to see per-factor errors:
-			// graph.printErrors(values, "ERRORS:");
-
-			std::cout << " Initial factors error: " << err_init
-					  << ", RMSE=" << std::sqrt(err_init / graph.size())
-					  << "\n";
-			std::cout << " Final factors error: " << err_final
-					  << ", RMSE=" << std::sqrt(err_final / graph.size())
-					  << "\n";
-			std::cout << " Optimization iterations: " << optimizer.iterations()
-					  << "\n";
-		}
-
-		last_q = values.at<state_t>(Q(nn));
 	}
 
-	// Run optimizer:
-	// std::cout.precision(3);
-	// graph.print("Factor graph: ");
-	// values.print("values");
+	// estimated.print("FINAL VALUES:");
 
 	// Save states to files:
 	mrpt::math::CMatrixDouble Qs(N, n), dotQs(N, n), ddotQs(N, n);
 	for (unsigned int step = 0; step < N; step++)
 	{
-		const state_t q_val = values.at<state_t>(Q(step));
-		const state_t dq_val = values.at<state_t>(V(step));
-		const state_t ddq_val = values.at<state_t>(A(step));
+		const state_t q_val = estimated.at<state_t>(Q(step));
+		const state_t dq_val = estimated.at<state_t>(V(step));
+		const state_t ddq_val = estimated.at<state_t>(A(step));
 
 		Qs.row(step) = q_val;
 		dotQs.row(step) = dq_val;
@@ -192,33 +183,13 @@ void test_dynamics()
 	Qs.saveToTextFile("q.txt");
 	dotQs.saveToTextFile("dq.txt");
 	ddotQs.saveToTextFile("ddq.txt");
-
-	// Save graph:
-	if (0)
-	{
-		std::ofstream f("graph.dot");
-		gtsam::GraphvizFormatting gvf;
-		graph.saveGraph(f, values, gvf);
-	}
-
-	/* mrpt::gui::CDisplayWindowPlots win;
-
-	std::vector<double> xs, ys;
-	for (int i = 0; i < 100; i++)
-	{
-		xs.push_back(i);
-		ys.push_back(sin(i * 0.01));
-	}
-
-	win.plot(xs, ys, "r.5");
-	win.waitForKey();*/
 }
 
 int main()
 {
 	try
 	{
-		test_dynamics();
+		test_smoother();
 	}
 	catch (const std::exception& e)
 	{
