@@ -11,7 +11,7 @@
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/FactorDynamics.h>
 #include <sparsembs/FactorConstraints.h>
-#include <sparsembs/FactorEulerInt.h>
+#include <sparsembs/FactorTrapInt.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <sparsembs/model-examples.h>
 
@@ -112,10 +112,10 @@ void test_smoother()
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
 		// Create Trapezoidal Integrator factors:
-		new_factors.emplace_shared<FactorEulerInt>(
-			dt, noise_vel, Q(nn), Q(nn + 1), V(nn));
-		new_factors.emplace_shared<FactorEulerInt>(
-			dt, noise_acc, V(nn), V(nn + 1), A(nn));
+		new_factors.emplace_shared<FactorTrapInt>(
+			dt, noise_vel, Q(nn), Q(nn + 1), V(nn), V(nn + 1));
+		new_factors.emplace_shared<FactorTrapInt>(
+			dt, noise_acc, V(nn), V(nn + 1), A(nn), A(nn + 1));
 
 		// Create Dynamics factors:
 		new_factors.emplace_shared<FactorDynamics>(
@@ -142,7 +142,7 @@ void test_smoother()
 		new_values.insert(A(nn + 1), zeros);
 
 		// Run iSAM every N steps:
-		const int SMOOTHER_RUN_PERIOD = 5;
+		const int SMOOTHER_RUN_PERIOD = 3;
 		if ((SMOOTHER_RUN_PERIOD - 1) == (nn % SMOOTHER_RUN_PERIOD))
 		{
 			// new_factors.print("new_factors:");

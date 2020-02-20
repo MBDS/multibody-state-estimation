@@ -71,7 +71,7 @@ void test_dynamics()
 	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.01);
 
 	const double dt = 0.01;
-	const double t_end = 1.0;
+	const double t_end = 10.0;
 	double t = 0;
 	unsigned int N = t_end / dt;
 
@@ -121,7 +121,7 @@ void test_dynamics()
 			&dynSimul, noise_dyn, Q(nn), V(nn), A(nn));
 
 		// Add dependent-coordinates constraint factor:
-		if ((nn % 100) == 0)
+		if ((nn % 10) == 0)
 			graph.emplace_shared<FactorConstraints>(
 				aMBS, noise_constr_q, Q(nn));
 
@@ -145,7 +145,7 @@ void test_dynamics()
 		// Once in a while, run the optimizer so the initial values are not so
 		// far from the optimal place and the problem is easier to solve:
 		// Also, make sure we run at the LAST timestep:
-		if ((nn % 10) == 0 || nn == N - 1)
+		if ((nn % 50) == 0 || nn == N - 1)
 		{
 			std::cout << "Running optimization at t=" << nn << "/" << N << "\n";
 			const double err_init = graph.error(values);
@@ -175,6 +175,7 @@ void test_dynamics()
 	// std::cout.precision(3);
 	// graph.print("Factor graph: ");
 	// values.print("values");
+	graph.printErrors(values);
 
 	// Save states to files:
 	mrpt::math::CMatrixDouble Qs(N, n), dotQs(N, n), ddotQs(N, n);
