@@ -8,16 +8,14 @@
 namespace sparsembs
 {
 /** Factor for contraints velocity
- * Here the constraints equation Phiq(q)*dotq=0 is implmented; for fixed
+ * Here the constraints equation Phiq(q)*dotq=0 is implemented; for fixed
  * constraints, Phit(q)=0.
  */
-
-// Create derived class "ConstraintsFactor" from superclass "NoiseModelFactor2"
 class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 {
    private:
-    using This = FactorConstraintsVel;
-    using Base = gtsam::NoiseModelFactor2<state_t, state_t>;
+	using This = FactorConstraintsVel;
+	using Base = gtsam::NoiseModelFactor2<state_t, state_t>;
 
 	// Class parameters (pointer to type "CConstraintBase")
 	CAssembledRigidModel::Ptr m_arm;
@@ -58,12 +56,7 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dotq_k,
 		boost::optional<gtsam::Matrix&> H1 = boost::none,
-		boost::optional<Eigen::Tensor<double, 3>&> H2 =
-			boost::none) const override;
-	//==========================================================================
-	//  H2 is a tensor, but it seems to not exist in Eigen! Maybe Eigen version
-	//  is not enough updated or I have to define tensorse before its using!
-	//==========================================================================
+		boost::optional<gtsam::Matrix&> H2 = boost::none) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 1; }

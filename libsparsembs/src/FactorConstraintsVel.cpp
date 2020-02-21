@@ -29,11 +29,7 @@ bool FactorConstraintsVel::equals(
 gtsam::Vector FactorConstraintsVel::evaluateError(
 	const state_t& q_k, const state_t& dotq_k,
 	boost::optional<gtsam::Matrix&> H1,
-	boost::optional<Eigen::Tensor<double, 3>&> H2) const
-//=============================================================================
-//  H2 is a tensor, but it seems to not exist in Eigen! Maybe Eigen version
-//  is not enough updated or I have to define tensorse before its using!
-//=============================================================================
+	boost::optional<gtsam::Matrix&> H2) const
 {
 	const auto n = q_k.size();
 	if (dotq_k.size() != n)
@@ -46,11 +42,11 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 
 	// Update Jacobian and Hessian tensor:
 	m_arm->update_numeric_Phi_and_Jacobians();
-	m_arm
-		->  // update_numeric_Phi_and_Jacobians(); DOES IT WORK ? ? ? <---------
 
-		// Evaluate error:
-		gtsam::Vector err = m_arm->m_Phi;
+	// Evaluate error:
+	const Eigen::MatrixXd Phi_q = m_arm->getPhi_q_dense();
+
+	gtsam::Vector err = Phi_q * dotq_k.vector();
 
 	// Get the Jacobians required for optimization:
 	// d err / d q_k
@@ -63,7 +59,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	if (H2)
 	{
 		auto& Hv = H2.value();
-		Hv = m_arm->  // getPhi_qq_dense(); Phi_qq is the Hessian Tensor
+		// Hv = m_arm->  // getPhi_qq_dense(); Phi_qq is the Hessian Tensor
 	}
 
 	return err;
