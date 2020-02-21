@@ -11,6 +11,8 @@
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/FactorDynamics.h>
 #include <sparsembs/FactorConstraints.h>
+#include <sparsembs/FactorConstraintsVel.h>
+#include <sparsembs/FactorEulerInt.h>
 #include <sparsembs/FactorTrapInt.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <sparsembs/model-examples.h>
@@ -63,7 +65,8 @@ void test_smoother()
 	auto noise_prior_dq = gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
 	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
-	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.01);
+	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.1);
+	auto noise_constr_dq = gtsam::noiseModel::Isotropic::Sigma(m, 0.1);
 
 	const double dt = 0.005;
 	const double t_end = 5.0;
@@ -93,7 +96,7 @@ void test_smoother()
 	// Extract m_q from the assembled multibody problem:
 	state_t q_0 = gtsam::Vector(aMBS->m_q);
 	std::cout << "q0: " << q_0.transpose() << "\n";
-	state_t last_q = q_0;
+	state_t last_q = q_0, last_dq = zeros, last_ddq = zeros;
 
 	// Create Prior factors:
 	new_factors.emplace_shared<gtsam::PriorFactor<state_t>>(
@@ -102,9 +105,11 @@ void test_smoother()
 		V(0), zeros, noise_prior_dq);
 
 	gtsam::ISAM2Params isam2params;
-	isam2params.relinearizeThreshold = 0.001;
-	isam2params.cacheLinearizedFactors = false;  // Default=true
+	isam2params.relinearizeThreshold = 0.0001;
+	isam2params.relinearizeSkip = 1;  // relinearize every N steps
+	isam2params.cacheLinearizedFactors = true;
 	isam2params.evaluateNonlinearError = true;  // for debugging mostly
+	isam2params.factorization = gtsam::ISAM2Params::QR;
 
 	gtsam::ISAM2 isam2(isam2params);
 	gtsam::Values estimated;
@@ -112,38 +117,38 @@ void test_smoother()
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
 		// Create Trapezoidal Integrator factors:
-		new_factors.emplace_shared<FactorTrapInt>(
-			dt, noise_vel, Q(nn), Q(nn + 1), V(nn), V(nn + 1));
-		new_factors.emplace_shared<FactorTrapInt>(
-			dt, noise_acc, V(nn), V(nn + 1), A(nn), A(nn + 1));
+		new_factors.emplace_shared<FactorEulerInt>(
+			dt, noise_vel, Q(nn), Q(nn + 1), V(nn));
+		new_factors.emplace_shared<FactorEulerInt>(
+			dt, noise_acc, V(nn), V(nn + 1), A(nn));
 
 		// Create Dynamics factors:
 		new_factors.emplace_shared<FactorDynamics>(
 			&dynSimul, noise_dyn, Q(nn), V(nn), A(nn));
 
 		// Add dependent-coordinates constraint factor:
-		// if ((nn % 2) == 0)
 		new_factors.emplace_shared<FactorConstraints>(
 			aMBS, noise_constr_q, Q(nn));
-
-		// TODO: Add velocity constraints!!
+		new_factors.emplace_shared<FactorConstraintsVel>(
+			aMBS, noise_constr_dq, Q(nn), V(nn));
 
 		// Create initial estimates:
 		if (!isam2.valueExists(Q(nn)) && !new_values.exists(Q(nn)))
 			new_values.insert(Q(nn), last_q);
 		if (!isam2.valueExists(V(nn)) && !new_values.exists(V(nn)))
-			new_values.insert(V(nn), zeros);
+			new_values.insert(V(nn), last_dq);
 		if (!isam2.valueExists(A(nn)) && !new_values.exists(A(nn)))
-			new_values.insert(A(nn), zeros);
+			new_values.insert(A(nn), last_ddq);
 
 		// Create initial estimates (so we can run the optimizer)
 		new_values.insert(Q(nn + 1), last_q);
-		new_values.insert(V(nn + 1), zeros);
-		new_values.insert(A(nn + 1), zeros);
+		new_values.insert(V(nn + 1), last_dq);
+		// new_values.insert(A(nn + 1), zeros); // not for Euler integrator
 
 		// Run iSAM every N steps:
-		const int SMOOTHER_RUN_PERIOD = 3;
-		if ((SMOOTHER_RUN_PERIOD - 1) == (nn % SMOOTHER_RUN_PERIOD))
+		const int SMOOTHER_RUN_PERIOD = 10;
+		if ((SMOOTHER_RUN_PERIOD - 1) == (nn % SMOOTHER_RUN_PERIOD) ||
+			nn == (N - 1))
 		{
 			// new_factors.print("new_factors:");
 
@@ -154,10 +159,18 @@ void test_smoother()
 
 			estimated = isam2.calculateEstimate();
 			last_q = estimated.at<state_t>(Q(nn));
+			last_dq = estimated.at<state_t>(V(nn));
+			last_ddq = estimated.at<state_t>(A(nn));
 
+			const auto numFactors = isam2.getFactorsUnsafe().size();
 			std::cout << "Running smoother at t=" << nn << "/" << N
 					  << " errorBefore=" << *res.errorBefore
-					  << " errorAfter=" << *res.errorAfter << "\n";
+					  << " RMSE=" << std::sqrt(*res.errorBefore / numFactors)
+					  << " errorAfter=" << *res.errorAfter
+					  << " RMSE=" << std::sqrt(*res.errorAfter / numFactors)
+					  << " numFactors=" << numFactors << "\n";
+
+			// isam2.getFactorsUnsafe().printErrors(estimated);
 
 			// reset containers:
 			new_factors = gtsam::NonlinearFactorGraph();

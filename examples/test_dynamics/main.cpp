@@ -11,6 +11,7 @@
 #include <sparsembs/CModelDefinition.h>
 #include <sparsembs/FactorDynamics.h>
 #include <sparsembs/FactorConstraints.h>
+#include <sparsembs/FactorConstraintsVel.h>
 #include <sparsembs/FactorTrapInt.h>
 #include <sparsembs/dynamic-simulators.h>
 #include <sparsembs/model-examples.h>
@@ -68,7 +69,8 @@ void test_dynamics()
 	auto noise_prior_dq = gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
 	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
-	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.01);
+	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 0.001);
+	auto noise_constr_dq = gtsam::noiseModel::Isotropic::Sigma(m, 0.001);
 
 	const double dt = 0.01;
 	const double t_end = 10.0;
@@ -98,7 +100,7 @@ void test_dynamics()
 	// Extract m_q from the assembled multibody problem:
 	state_t q_0 = gtsam::Vector(aMBS->m_q);
 	std::cout << "q0: " << q_0.transpose() << "\n";
-	state_t last_q = q_0;
+	state_t last_q = q_0, last_dq = zeros, last_ddq = zeros;
 
 	// Create Prior factors:
 	graph.emplace_shared<gtsam::PriorFactor<state_t>>(Q(0), q_0, noise_prior_q);
@@ -106,7 +108,9 @@ void test_dynamics()
 		V(0), zeros, noise_prior_dq);
 
 	gtsam::LevenbergMarquardtParams lmp;
-	lmp.maxIterations = 1000;
+	// just a few iterations since we will run it many times with partial,
+	// incrementally-built problem:
+	lmp.maxIterations = 5;
 
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
@@ -121,14 +125,14 @@ void test_dynamics()
 			&dynSimul, noise_dyn, Q(nn), V(nn), A(nn));
 
 		// Add dependent-coordinates constraint factor:
-		if ((nn % 10) == 0)
-			graph.emplace_shared<FactorConstraints>(
-				aMBS, noise_constr_q, Q(nn));
+		graph.emplace_shared<FactorConstraints>(aMBS, noise_constr_q, Q(nn));
+		graph.emplace_shared<FactorConstraintsVel>(
+			aMBS, noise_constr_dq, Q(nn), V(nn));
 
 		// Create initial estimates:
 		if (values.find(Q(nn)) == values.end()) values.insert(Q(nn), last_q);
-		if (values.find(V(nn)) == values.end()) values.insert(V(nn), zeros);
-		if (values.find(A(nn)) == values.end()) values.insert(A(nn), zeros);
+		if (values.find(V(nn)) == values.end()) values.insert(V(nn), last_dq);
+		if (values.find(A(nn)) == values.end()) values.insert(A(nn), last_ddq);
 
 		if (nn == N - 1)
 		{
@@ -139,14 +143,16 @@ void test_dynamics()
 
 		// Create initial estimates (so we can run LevMarq)
 		values.insert(Q(nn + 1), last_q);
-		values.insert(V(nn + 1), zeros);
-		values.insert(A(nn + 1), zeros);
+		values.insert(V(nn + 1), last_dq);
+		values.insert(A(nn + 1), last_ddq);
 
 		// Once in a while, run the optimizer so the initial values are not so
 		// far from the optimal place and the problem is easier to solve:
 		// Also, make sure we run at the LAST timestep:
 		if ((nn % 50) == 0 || nn == N - 1)
 		{
+			if (nn == (N - 1)) lmp.maxIterations = 10;
+
 			std::cout << "Running optimization at t=" << nn << "/" << N << "\n";
 			const double err_init = graph.error(values);
 
@@ -169,6 +175,8 @@ void test_dynamics()
 		}
 
 		last_q = values.at<state_t>(Q(nn));
+		last_dq = values.at<state_t>(V(nn));
+		last_ddq = values.at<state_t>(A(nn));
 	}
 
 	// Run optimizer:
