@@ -53,7 +53,7 @@ set(SPARSEMBS_LIBS
 	CACHE INTERNAL "")
 
 if (GTSAM_FOUND)
-  target_link_libraries(sparsembs PUBLIC gtsam)
+  target_link_libraries(sparsembs PUBLIC gtsam gtsam_unstable)
   target_compile_definitions(sparsembs PUBLIC SPARSEMBS_HAVE_GTSAM)
 endif()
 

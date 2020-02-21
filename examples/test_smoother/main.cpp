@@ -3,7 +3,7 @@
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/Values.h>
-#include <gtsam/nonlinear/ISAM2.h>
+#include <gtsam_unstable/nonlinear/BatchFixedLagSmoother.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <iostream>
 #include <fstream>
@@ -104,23 +104,28 @@ void test_smoother()
 	new_factors.emplace_shared<gtsam::PriorFactor<state_t>>(
 		V(0), zeros, noise_prior_dq);
 
-	gtsam::ISAM2Params isam2params;
-	isam2params.relinearizeThreshold = 0.0001;
-	isam2params.relinearizeSkip = 1;  // relinearize every N steps
-	isam2params.cacheLinearizedFactors = true;
-	isam2params.evaluateNonlinearError = true;  // for debugging mostly
-	isam2params.factorization = gtsam::ISAM2Params::QR;
+	const double lag = 1;  // seconds
+	gtsam::BatchFixedLagSmoother smoother(lag);
 
-	gtsam::ISAM2 isam2(isam2params);
+	smoother.params().maxIterations = 5;
+
 	gtsam::Values estimated;
+	gtsam::FixedLagSmoother::KeyTimestampMap new_timestamps;
+
+	new_values.insert(Q(0), last_q);
+	new_values.insert(V(0), last_dq);
+	new_values.insert(A(0), last_ddq);
+	new_timestamps[Q(0)] = 0 * dt;
+	new_timestamps[V(0)] = 0 * dt;
+	new_timestamps[A(0)] = 0 * dt;
 
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
 		// Create Trapezoidal Integrator factors:
-		new_factors.emplace_shared<FactorEulerInt>(
-			dt, noise_vel, Q(nn), Q(nn + 1), V(nn));
-		new_factors.emplace_shared<FactorEulerInt>(
-			dt, noise_acc, V(nn), V(nn + 1), A(nn));
+		new_factors.emplace_shared<FactorTrapInt>(
+			dt, noise_vel, Q(nn), Q(nn + 1), V(nn), V(nn + 1));
+		new_factors.emplace_shared<FactorTrapInt>(
+			dt, noise_acc, V(nn), V(nn + 1), A(nn), A(nn + 1));
 
 		// Create Dynamics factors:
 		new_factors.emplace_shared<FactorDynamics>(
@@ -133,65 +138,82 @@ void test_smoother()
 			aMBS, noise_constr_dq, Q(nn), V(nn));
 
 		// Create initial estimates:
-		if (!isam2.valueExists(Q(nn)) && !new_values.exists(Q(nn)))
-			new_values.insert(Q(nn), last_q);
-		if (!isam2.valueExists(V(nn)) && !new_values.exists(V(nn)))
-			new_values.insert(V(nn), last_dq);
-		if (!isam2.valueExists(A(nn)) && !new_values.exists(A(nn)))
-			new_values.insert(A(nn), last_ddq);
+		new_values.insert(A(nn + 1), last_ddq);
+		new_timestamps[A(nn + 1)] = (nn + 1) * dt;
 
 		// Create initial estimates (so we can run the optimizer)
 		new_values.insert(Q(nn + 1), last_q);
+		new_timestamps[Q(nn + 1)] = (nn + 1) * dt;
+
 		new_values.insert(V(nn + 1), last_dq);
+		new_timestamps[V(nn + 1)] = (nn + 1) * dt;
+
 		// new_values.insert(A(nn + 1), zeros); // not for Euler integrator
 
 		// Run iSAM every N steps:
-		const int SMOOTHER_RUN_PERIOD = 10;
-		if ((SMOOTHER_RUN_PERIOD - 1) == (nn % SMOOTHER_RUN_PERIOD) ||
-			nn == (N - 1))
+		if ((nn % 10) == 0 || nn == (N - 1))
 		{
-			// new_factors.print("new_factors:");
+			std::cout << "n=" << nn << "/" << N
+					  << " keys: " << smoother.timestamps().size() << "\n";
+			const auto res =
+				smoother.update(new_factors, new_values, new_timestamps);
 
-			gtsam::ISAM2UpdateParams updateParams;  // defaults
-
-			gtsam::ISAM2Result res =
-				isam2.update(new_factors, new_values, updateParams);
-
-			estimated = isam2.calculateEstimate();
-			last_q = estimated.at<state_t>(Q(nn));
-			last_dq = estimated.at<state_t>(V(nn));
-			last_ddq = estimated.at<state_t>(A(nn));
-
-			const auto numFactors = isam2.getFactorsUnsafe().size();
-			std::cout << "Running smoother at t=" << nn << "/" << N
-					  << " errorBefore=" << *res.errorBefore
-					  << " RMSE=" << std::sqrt(*res.errorBefore / numFactors)
-					  << " errorAfter=" << *res.errorAfter
-					  << " RMSE=" << std::sqrt(*res.errorAfter / numFactors)
-					  << " numFactors=" << numFactors << "\n";
-
-			// isam2.getFactorsUnsafe().printErrors(estimated);
+			std::cout << "Error: " << res.getError() << "\n";
 
 			// reset containers:
 			new_factors = gtsam::NonlinearFactorGraph();
 			new_values.clear();
+			new_timestamps.clear();
 		}
 	}
+
+	// new_factors.print("new_factors:");
+	//	const double errorBefore = smoother.getFactors().error(estimated);
+
+	estimated = smoother.calculateEstimate();
+
+	const double errorAfter = smoother.getFactors().error(estimated);
+
+	//	last_q = estimated.at<state_t>(Q(nn));
+	//	last_dq = estimated.at<state_t>(V(nn));
+	//	last_ddq = estimated.at<state_t>(A(nn));
+
+	const auto numFactors = smoother.getFactors().size();
+
+	std::cout << "ErrorAfter=" << errorAfter
+			  << " RMSE=" << std::sqrt(errorAfter / numFactors)
+			  << " numFactors=" << numFactors << "\n";
 
 	// estimated.print("FINAL VALUES:");
 
 	// Save states to files:
-	mrpt::math::CMatrixDouble Qs(N, n), dotQs(N, n), ddotQs(N, n);
-	for (unsigned int step = 0; step < N; step++)
-	{
-		const state_t q_val = estimated.at<state_t>(Q(step));
-		const state_t dq_val = estimated.at<state_t>(V(step));
-		const state_t ddq_val = estimated.at<state_t>(A(step));
+	mrpt::math::CMatrixDouble Qs(N + 1, n), dotQs(N + 1, n), ddotQs(N + 1, n);
 
-		Qs.row(step) = q_val;
-		dotQs.row(step) = dq_val;
-		ddotQs.row(step) = ddq_val;
+	for (const auto& key_timestamp : smoother.timestamps())
+	{
+		// std::cout << "Key: " << key_timestamp.first
+		// << " Time: " << key_timestamp.second << std::endl;
+
+		const gtsam::Symbol s(key_timestamp.first);
+
+		const state_t val = estimated.at<state_t>(s);
+
+		const auto step = s.index();
+
+		switch (s.chr())
+		{
+			case 'q':
+				Qs.row(step) = val;
+				break;
+			case 'v':
+				dotQs.row(step) = val;
+				break;
+			case 'a':
+				ddotQs.row(step) = val;
+				break;
+		};
 	}
+
 	std::cout << "Saving results to TXT files...\n";
 	Qs.saveToTextFile("q.txt");
 	dotQs.saveToTextFile("dq.txt");
