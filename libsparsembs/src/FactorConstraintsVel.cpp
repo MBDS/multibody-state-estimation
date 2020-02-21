@@ -1,6 +1,8 @@
 #include <sparsembs/FactorConstraintsVel.h>
 #include <sparsembs/CAssembledRigidModel.h>
 
+#include <unsupported/Eigen/CXX11/Tensor>
+
 using namespace sparsembs;
 
 FactorConstraintsVel::~FactorConstraintsVel() = default;
