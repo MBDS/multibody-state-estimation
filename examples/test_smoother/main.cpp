@@ -104,10 +104,10 @@ void test_smoother()
 	new_factors.emplace_shared<gtsam::PriorFactor<state_t>>(
 		V(0), zeros, noise_prior_dq);
 
-	const double lag = 1;  // seconds
+	const double lag = 0.1;  // seconds
 	gtsam::BatchFixedLagSmoother smoother(lag);
 
-	smoother.params().maxIterations = 5;
+	smoother.params().maxIterations = 15;
 
 	gtsam::Values estimated;
 	gtsam::FixedLagSmoother::KeyTimestampMap new_timestamps;
@@ -118,6 +118,9 @@ void test_smoother()
 	new_timestamps[Q(0)] = 0 * dt;
 	new_timestamps[V(0)] = 0 * dt;
 	new_timestamps[A(0)] = 0 * dt;
+
+	// Save states to files:
+	mrpt::math::CMatrixDouble Qs(N + 1, n), dotQs(N + 1, n), ddotQs(N + 1, n);
 
 	for (unsigned int nn = 0; nn < N; nn++, t += dt)
 	{
@@ -151,7 +154,7 @@ void test_smoother()
 		// new_values.insert(A(nn + 1), zeros); // not for Euler integrator
 
 		// Run iSAM every N steps:
-		if ((nn % 10) == 0 || nn == (N - 1))
+		// if ((nn % 10) == 0 || nn == (N - 1))  <------------- Commented
 		{
 			std::cout << "n=" << nn << "/" << N
 					  << " keys: " << smoother.timestamps().size() << "\n";
@@ -164,13 +167,33 @@ void test_smoother()
 			new_factors = gtsam::NonlinearFactorGraph();
 			new_values.clear();
 			new_timestamps.clear();
+
+			estimated = smoother.calculateEstimate();
+
+			// save/update the last N values (older are "more refined"):
+			for (const auto& kv : estimated)
+			{
+				gtsam::Symbol s(kv.key);
+				const auto step = s.index();
+				const state_t val = estimated.at<state_t>(s);
+				switch (s.chr())
+				{
+					case 'q':
+						Qs.row(step) = val;
+						break;
+					case 'v':
+						dotQs.row(step) = val;
+						break;
+					case 'a':
+						ddotQs.row(step) = val;
+						break;
+				};
+			}
 		}
 	}
 
 	// new_factors.print("new_factors:");
 	//	const double errorBefore = smoother.getFactors().error(estimated);
-
-	estimated = smoother.calculateEstimate();
 
 	const double errorAfter = smoother.getFactors().error(estimated);
 
@@ -186,33 +209,15 @@ void test_smoother()
 
 	// estimated.print("FINAL VALUES:");
 
-	// Save states to files:
-	mrpt::math::CMatrixDouble Qs(N + 1, n), dotQs(N + 1, n), ddotQs(N + 1, n);
-
-	for (const auto& key_timestamp : smoother.timestamps())
+	/*for (const auto& key_timestamp : smoother.timestamps())
 	{
 		// std::cout << "Key: " << key_timestamp.first
 		// << " Time: " << key_timestamp.second << std::endl;
 
 		const gtsam::Symbol s(key_timestamp.first);
 
-		const state_t val = estimated.at<state_t>(s);
 
-		const auto step = s.index();
-
-		switch (s.chr())
-		{
-			case 'q':
-				Qs.row(step) = val;
-				break;
-			case 'v':
-				dotQs.row(step) = val;
-				break;
-			case 'a':
-				ddotQs.row(step) = val;
-				break;
-		};
-	}
+	}*/
 
 	std::cout << "Saving results to TXT files...\n";
 	Qs.saveToTextFile("q.txt");
