@@ -9,8 +9,6 @@
 
 using namespace sparsembs;
 
-FactorGyroscope::~FactorGyroscope() = default;
-
 gtsam::NonlinearFactor::shared_ptr FactorGyroscope::clone() const
 {
 	return boost::static_pointer_cast<gtsam::NonlinearFactor>(
@@ -22,49 +20,10 @@ void FactorGyroscope::print(
 {
 	std::cout << s << "FactorGyroscope(" << keyFormatter(this->key1()) << ","
 			  << keyFormatter(this->key2()) << ")\n";
+	std::cout << " body: " << m_body_idx << "\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
 	this->noiseModel_->print("  noise model: ");
 }
-
-/*  struct NumericJacobParams
-{
-	CAssembledRigidModel* arm = nullptr;
-	CDynamicSimulatorBase* dynamic_solver = nullptr;
-	gtsam::Vector q, dq, ddq;
-};
-
-static void num_err_wrt_q(
-	const gtsam::Vector& new_q, const NumericJacobParams& p, gtsam::Vector& err)
-{
-	// Set q & dq in the multibody model:
-	p.arm->m_q = new_q;
-	p.arm->m_dotq = p.dq;
-
-	// Predict accelerations:
-	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
-	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
-
-	// Evaluate error:
-	err = qpp_predicted - p.ddq;
-}
-
-static void num_err_wrt_dq(
-	const gtsam::Vector& new_dq, const NumericJacobParams& p,
-	gtsam::Vector& err)
-{
-	// Set q & dq in the multibody model:
-	p.arm->m_q = p.q;
-	p.arm->m_dotq = new_dq;
-
-	// Predict angular velocity:
-	Eigen::VectorXd omega_predicted;
-	const double t = 0;  // wallclock time (useless?)
-	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
-
-	// Evaluate error:
-	err = qpp_predicted - p.ddq;
-} */
 
 bool FactorGyroscope::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
@@ -82,78 +41,125 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		throw std::runtime_error("Inconsistent vector lengths!");
 	if (n < 1) throw std::runtime_error("Empty state vector!");
 
-	// Set q & dq in the multibody model:
-	CAssembledRigidModel& arm =
-		*m_gyro->simulate_reading(const CAssembledRigidModel& dq_k);
-	/* arm.m_q = q_k.vector();
-	arm.m_dotq = dq_k.vector(); */
-	/*
-		// Predict angular velocity:
-		Eigen::VectorXd qp_predicted;
-		const double t = 0;  // wallclock time (useless?)
+	// Set q in the multibody model:
+	m_arm->m_q = q_k;
+	m_arm->m_dotq = dq_k;
 
-		m_dynamic_solver->solve_ddotq(t, qpp_predicted);
+	const std::vector<CBody>& bodies = m_arm->m_parent.getBodies();
+	ASSERT_BELOW_(m_body_idx, bodies.size());
 
-		// Evaluate error:
-		gtsam::Vector err = qpp_predicted - ddq_k.vector();
+	const CBody& body = bodies[m_body_idx];
 
-		// d err / d q_k
-		if (H1)
+	const size_t pt0_idx = body.points[0];
+	const size_t pt1_idx = body.points[1];
+
+	TPoint2D pt0, pt1;
+	m_arm->getPointCurrentCoords(pt0_idx, pt0);
+	m_arm->getPointCurrentCoords(pt1_idx, pt1);
+
+	TPoint2D pt0vel, pt1vel;
+	m_arm->getPointCurrentVelocity(pt0_idx, pt0vel);
+	m_arm->getPointCurrentVelocity(pt1_idx, pt1vel);
+
+	// u: unit director vector from pt0->pt1
+	TPoint2D u = pt1 - pt0;
+	const double len = u.norm();
+	const double len_inv = 1.0 / len;
+	u *= len_inv;
+
+	// +90deg orthogonal direction:
+	const TPoint2D v(-u.y, u.x);
+
+	// The relative velocity of pt1 wrt pt0:
+	const TPoint2D rel_vel = pt1vel - pt0vel;
+
+	// Its one-dimensional value is the projection of that vector on "v":
+	const double rel_vel_value = rel_vel.x * v.x + rel_vel.y * v.y;
+
+	// w = rel_vel / distance
+	const double w = rel_vel_value * len_inv;
+
+	// Evaluate error:
+	gtsam::Vector err;
+	err.resize(1);
+
+	err[0] = w - m_reading;
+
+	// d err / d q_k
+	if (H1)
+	{
+		auto& Hv = H1.value();
+		Hv.setZero(1, n);
+
+		// point0 & point1:
+		const TMBSPoint pts_info[2] = {m_arm->m_parent.getPointInfo(pt0_idx),
+									   m_arm->m_parent.getPointInfo(pt1_idx)};
+		const TPoint2DOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
+										m_arm->m_points2DOFs[pt1_idx]};
+
+		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{
-			auto& Hv = H1.value();
-	#if USE_NUMERIC_JACOBIAN
-			NumericJacobParams p;
-			p.arm = &arm;
-			p.dynamic_solver = m_dynamic_solver;
-			p.q = q_k.vector();
-			p.dq = dq_k.vector();
-			p.ddq = ddq_k.vector();
-
-			const gtsam::Vector x = p.q;
-			const gtsam::Vector x_incr =
-				Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
-
-			mrpt::math::estimateJacobian(
-				x,
-				std::function<void(
-					const gtsam::Vector& new_q, const NumericJacobParams& p,
-					gtsam::Vector& err)>(&num_err_wrt_q),
-				x_incr, p, Hv);
-	#else
-			Hv.setZero(n, n);
-	#endif
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 111;
 		}
-		// d err / d dq_k
-		if (H2)
+		if (size_t i = pts_dofs[0].dof_y; i != INVALID_DOF)
 		{
-			auto& Hv = H2.value();
-	/* #if USE_NUMERIC_JACOBIAN
-			NumericJacobParams p;
-			p.arm = &arm;
-			p.dynamic_solver = m_dynamic_solver;
-			p.q = q_k.vector();
-			p.dq = dq_k.vector();
-			p.ddq = ddq_k.vector();
-
-			const gtsam::Vector x = p.dq;
-			const gtsam::Vector x_incr =
-				Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
-
-			mrpt::math::estimateJacobian(
-				x,
-				std::function<void(
-					const gtsam::Vector& new_q, const NumericJacobParams& p,
-					gtsam::Vector& err)>(&num_err_wrt_dq),
-				x_incr, p, Hv);
-	#else
-			Hv.setZero(n, n);
-	#endif
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 666;
 		}
-		// d err / d ddq_k
-		if (H3)
+		if (size_t i = pts_dofs[1].dof_x; i != INVALID_DOF)
 		{
-			auto& Hv = H3.value();
-			Hv = -Eigen::MatrixXd::Identity(n, n);
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 666;
 		}
-		return err;
-	} */
+		if (size_t i = pts_dofs[1].dof_y; i != INVALID_DOF)
+		{
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 666;
+		}
+	}
+
+	// d err / d dq_k
+	if (H2)
+	{
+		auto& Hv = H2.value();
+		Hv.setZero(1, n);
+
+		// point0 & point1:
+		const TMBSPoint pts_info[2] = {m_arm->m_parent.getPointInfo(pt0_idx),
+									   m_arm->m_parent.getPointInfo(pt1_idx)};
+		const TPoint2DOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
+										m_arm->m_points2DOFs[pt1_idx]};
+
+		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
+		{
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 111;
+		}
+		if (size_t i = pts_dofs[0].dof_y; i != INVALID_DOF)
+		{
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 666;
+		}
+		if (size_t i = pts_dofs[1].dof_x; i != INVALID_DOF)
+		{
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 666;
+		}
+		if (size_t i = pts_dofs[1].dof_y; i != INVALID_DOF)
+		{
+			// x0 is NOT a fixed point, it DO belong to q:
+			// fill Jacobian for column "i"
+			Hv(0, i) = 666;
+		}
+	}
+
+	return err;
+}

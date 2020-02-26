@@ -16,7 +16,7 @@
 
 namespace sparsembs
 {
-/** Factor for gyroscope reading.
+/** Factor for 2D gyroscope reading.
  *
  * Fixed data:
  */
@@ -26,7 +26,9 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
     using This = FactorGyroscope;
     using Base = gtsam::NoiseModelFactor2<state_t, state_t>;
 
-    CVirtualSensor_Gyro* m_gyro = nullptr;
+	CAssembledRigidModel* m_arm = nullptr;
+	size_t m_body_idx = 0;
+	double m_reading = 0;
 
    public:
 	// shorthand for a smart pointer to a factor
@@ -34,17 +36,19 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 
 	/** default constructor - only use for serialization */
 	FactorGyroscope() = default;
+	virtual ~FactorGyroscope() override = default;
 
-	/** Constructor */
+	/** Constructor. angvel_reading in rad/sec, positive CCW. */
 	FactorGyroscope(
-		CVirtualSensor_Gyro* gyro_solver,
-		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
-		gtsam::Key key_dq_k)
-		: Base(noiseModel, key_q_k, key_dq_k), m_gyro(gyro_solver)
+		CAssembledRigidModel& arm, const size_t body_idx,
+		const double angvel_reading, const gtsam::SharedNoiseModel& noiseModel,
+		gtsam::Key key_q_k, gtsam::Key key_dq_k)
+		: Base(noiseModel, key_q_k, key_dq_k),
+		  m_arm(&arm),
+		  m_body_idx(body_idx),
+		  m_reading(angvel_reading)
 	{
 	}
-
-	virtual ~FactorGyroscope() override;
 
 	/// @return a deep copy of this factor
 	virtual gtsam::NonlinearFactor::shared_ptr clone() const override;
