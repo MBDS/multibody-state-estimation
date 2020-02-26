@@ -101,25 +101,25 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 111;
+			Hv(0, i) = pt0vel.y - pt1vel.y;  // dq_k[1] - dq_k[3];
 		}
 		if (size_t i = pts_dofs[0].dof_y; i != INVALID_DOF)
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 666;
+			Hv(0, i) = pt1vel.x - pt0vel.x;  // dq_k[2] - dq_k[0];
 		}
 		if (size_t i = pts_dofs[1].dof_x; i != INVALID_DOF)
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 666;
+			Hv(0, i) = pt1vel.y - pt0vel.y;  // dq_k[3] - dq_k[1];
 		}
 		if (size_t i = pts_dofs[1].dof_y; i != INVALID_DOF)
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 666;
+			Hv(0, i) = pt1vel.x - pt0vel.x;  // dq_k[2] - dq_k[0];
 		}
 	}
 
@@ -139,25 +139,25 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 111;
+			Hv(0, i) = pt1.y - pt0.y;  // q_k[3] - q_k[1];
 		}
 		if (size_t i = pts_dofs[0].dof_y; i != INVALID_DOF)
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 666;
+			Hv(0, i) = pt0.x - pt1.x;  // q_k[0] - q_k[2];
 		}
 		if (size_t i = pts_dofs[1].dof_x; i != INVALID_DOF)
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 666;
+			Hv(0, i) = pt0.y - pt1.y;  // q_k[1] - q_k[3];
 		}
 		if (size_t i = pts_dofs[1].dof_y; i != INVALID_DOF)
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = 666;
+			Hv(0, i) = pt1.x - pt0.x;  // q_k[2] - q_k[0];
 		}
 	}
 
