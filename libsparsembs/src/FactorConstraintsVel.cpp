@@ -4,7 +4,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/CXX11/Tensor>
 
-#define USE_NUMERIC_JACOBIAN 1
+#define USE_NUMERIC_JACOBIAN 0
 
 #if USE_NUMERIC_JACOBIAN
 #include <mrpt/math/num_jacobian.h>
@@ -93,6 +93,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 
 	// Evaluate error:
 	const Eigen::MatrixXd Phi_q = m_arm->getPhi_q_dense();
+	const Eigen::MatrixXd dPhiqdq_dq = m_arm->getdPhiqdq_dq_dense();
 
 	gtsam::Vector err = Phi_q * dotq_k.vector();
 
@@ -118,7 +119,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 				gtsam::Vector& err)>(&num_err_wrt_q),
 			x_incr, p, Hv);
 #else
-		Hv.setZero(m, n);
+		Hv = dPhiqdq_dq;
+
 #endif
 	}
 
@@ -142,8 +144,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 				gtsam::Vector& err)>(&num_err_wrt_dq),
 			x_incr, p, Hv);
 #else
-		Hv.setZero(m, n);
-		// Hv = m_arm->  // getPhi_qq_dense(); Phi_qq is the Hessian Tensor
+		Hv = Phi_q;
 #endif
 	}
 

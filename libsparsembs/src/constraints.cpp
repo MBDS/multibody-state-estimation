@@ -143,10 +143,10 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 
 	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
 	// --------------------------------------
-	if (dPhiqdq_dx0) *dPhiqdq_dx0 = 0;
-	if (dPhiqdq_dy0) *dPhiqdq_dy0 = 0;
-	if (dPhiqdq_dx1) *dPhiqdq_dx1 = 0;
-	if (dPhiqdq_dy1) *dPhiqdq_dy1 = 0;
+	if (dPhiqdq_dx0) *dPhiqdq_dx0 = -2 * Adotx;
+	if (dPhiqdq_dy0) *dPhiqdq_dy0 = -2 * Adoty;
+	if (dPhiqdq_dx1) *dPhiqdq_dx1 = 2 * Adotx;
+	if (dPhiqdq_dy1) *dPhiqdq_dy1 = 2 * Adoty;
 }
 
 /* -------------------------------------------------------------------
