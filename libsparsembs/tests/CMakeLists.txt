@@ -6,48 +6,59 @@ project(tests)
 # Fix a "bug" in VS11 (MSVC 2012):
 if(MSVC)
 	add_definitions(-D_VARIADIC_MAX=10)
-endif(MSVC)
+endif()
 
-
+# Tests based on Google gtest:
+# -----------------------------
 # Compile gtest from sources:
 add_subdirectory(gtest-1.6.0)
 include_directories("gtest-1.6.0/fused-src")
 
+add_custom_target(test_legacy)
+add_custom_target(tests_build_all)
+set_target_properties(test_legacy PROPERTIES FOLDER "unit tests")
+set_target_properties(tests_build_all PROPERTIES FOLDER "unit tests")
 
-set(EXECUTABLE_OUTPUT_PATH "${${PROJECT_NAME}_BINARY_DIR}")
-
-# -----------------------------
-# Add the "make test" target:
-# -----------------------------
-add_custom_target(check)
-set_target_properties(check PROPERTIES FOLDER "Unit tests")
-
-
-# Tests based on Google gtest:
-# -----------------------------
+enable_testing()
 
 # If using system library, add C++ flags:
 if (UNIX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-endif (UNIX)
+endif ()
 
-file(GLOB TEST_SRCS "*.cpp")
+# Define a test:
+function (mbse_define_test NAME)
+  add_executable(test_${NAME} test_main.cpp ${NAME}.cpp)
 
-# Test project:
-add_executable(unit_tests ${TEST_SRCS})
-target_link_libraries(unit_tests ${MRPT_LIBS} ${SPARSEMBS_LIBS})
-if(NOT "${DEPENCENCIES_SPARSEMBS}" STREQUAL "")
-	add_dependencies(unit_tests ${DEPENCENCIES_SPARSEMBS})
-endif(NOT "${DEPENCENCIES_SPARSEMBS}" STREQUAL "")
+  # Add the required libraries for linking:
+  target_link_libraries(test_${NAME} 
+	gtest
+	${MRPT_LIBRARIES}
+	${SPARSEMBS_LIBRARIES}
+	)
+  if(NOT "${DEPENCENCIES_SPARSEMBS}" STREQUAL "")
+	add_dependencies(test_${NAME} ${DEPENCENCIES_SPARSEMBS})
+  endif()
+  
+  set_target_properties(test_${NAME} PROPERTIES FOLDER "Unit tests")
+  
+  add_test(test_${NAME}_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target test_${NAME})
+  add_test(test_${NAME}_run ${EXECUTABLE_OUTPUT_PATH}/test_${NAME})
+  set_tests_properties(test_${NAME}_run PROPERTIES DEPENDS test_${NAME}_build)
 
-# Add the required libraries for linking:
-target_link_libraries(unit_tests gtest)
-set_target_properties(unit_tests PROPERTIES FOLDER "Unit tests")
+  # Run it:
+  set(GENERATED_EXE "$<TARGET_FILE:test_${NAME}>")
+  add_custom_target(run_tests_${NAME} COMMAND "${GENERATED_EXE}")
+  add_dependencies(run_tests_${NAME} test_${NAME})
+  add_dependencies(test_legacy run_tests_${NAME})
+  add_dependencies(tests_build_all test_${NAME})
+endfunction()
 
-# Run it:
 
-set(GENERATED_EXE $<TARGET_FILE:unit_tests>)
-add_custom_target(run_tests COMMAND "${GENERATED_EXE}" "${${PROJECT_NAME}__SOURCE_DIR}")
-set_target_properties(run_tests PROPERTIES FOLDER "Unit tests")
-add_dependencies(run_tests unit_tests)
-add_dependencies(check run_tests)
+# List of tests:
+mbse_define_test(euler_integrator)
+mbse_define_test(fourbars)
+mbse_define_test(jacobian_gyroscope)
+
+
+

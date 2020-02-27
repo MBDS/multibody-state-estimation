@@ -21,10 +21,10 @@ set(SPARSEMBS_LIB_DIRS
 	CACHE INTERNAL "")
 
 # Tests
-set( BUILD_TESTING ON CACHE BOOL "Build unit tests")
+set(BUILD_TESTING ON CACHE BOOL "Build unit tests")
 
 # add before "D__MINGW32__"!!
-if( BUILD_TESTING)
+if(BUILD_TESTING)
 	add_subdirectory(tests)
 endif( BUILD_TESTING)
 
@@ -43,12 +43,12 @@ set(DEPENCENCIES_SPARSEMBS
 add_dependencies(sparsembs ${DEPENCENCIES_SPARSEMBS})
 
 # List of linking libs:
-set(SPARSEMBS_LIBS
+set(SPARSEMBS_LIBRARIES
 	""
 	CACHE INTERNAL "")
 
-set(SPARSEMBS_LIBS
-	${SPARSEMBS_LIBS}
+set(SPARSEMBS_LIBRARIES
+	${SPARSEMBS_LIBRARIES}
 	${SuiteSparse_LIBRARIES}
 	CACHE INTERNAL "")
 
@@ -59,17 +59,17 @@ endif()
 
 if(BUILD_SHARED)
 	target_link_libraries(sparsembs
-		LINK_PRIVATE ${MRPT_LIBS} ${SPARSEMBS_LIBS}
+		LINK_PRIVATE ${MRPT_LIBS} ${SPARSEMBS_LIBRARIES}
 		)
 else()
 	target_link_libraries(sparsembs
-		LINK_PUBLIC ${MRPT_LIBS} ${SPARSEMBS_LIBS}
+		LINK_PUBLIC ${MRPT_LIBS} ${SPARSEMBS_LIBRARIES}
 		)
 endif()
 
-set(SPARSEMBS_LIBS
+set(SPARSEMBS_LIBRARIES
 	sparsembs
-	${SPARSEMBS_LIBS}
+	${SPARSEMBS_LIBRARIES}
 	CACHE INTERNAL "")
 
 

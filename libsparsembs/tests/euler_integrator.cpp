@@ -1,6 +1,7 @@
-
 // Example of numerical integration using factor graphs:
 // ------------------------------------------------------------
+#include <gtest/gtest.h>
+
 #include <sparsembs/FactorEulerInt.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
@@ -11,7 +12,7 @@
 
 using namespace std;
 
-void test_numerical_integration()
+TEST(numerical_integrators, euler)
 {
 	using gtsam::symbol_shorthand::V;
 	using gtsam::symbol_shorthand::X;
@@ -59,16 +60,4 @@ void test_numerical_integration()
 
 	// Process results:
 	optimValues.print("optimValues");
-}
-
-int main()
-{
-	try
-	{
-		test_numerical_integration();
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr << "Error: " << e.what() << "\n";
-	}
 }
