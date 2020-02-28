@@ -210,6 +210,11 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	*dot_dPhi_dx0 = 0;
 	*dot_dPhi_dy0 = 0;
+
+	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
+	// -------------------------------------
+	*dPhiqdq_dx0 = -m_Delta.y;
+	*dPhiqdq_dy0 = m_Delta.x;
 }
 
 /** Creates a 3D representation of the constraint, if applicable (e.g. the line
