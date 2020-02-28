@@ -186,6 +186,12 @@ class CConstraintMobileSlider : public CConstraintBase
 	mutable double *dot_dPhi_dx[3],
 		*dot_dPhi_dy[3];  // Pointers to entries in the sparse Jacobian
 						  // \dot{dPhi_dq}
+	mutable double *
+		dPhiqdq_dx = nullptr,
+	   *dPhiqdq_dy = nullptr, *dPhiqdq_dx0 = nullptr, *dPhiqdq_dy0 = nullptr,
+	   *dPhiqdq_dx1 = nullptr,
+	   *dPhiqdq_dy1 =
+		   nullptr;  // Pointers to entries in the sparse Jacobian d(Phiq*dq)_dq
 };
 
 }  // namespace sparsembs

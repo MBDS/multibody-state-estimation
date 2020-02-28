@@ -329,7 +329,7 @@ void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 	arm.m_Phi[m_idx_constr] =
 		(pxr1 - pxr0) * (py - pyr0) - (pyr1 - pyr0) * (px - pxr0);
 
-	// Update dotPhi[i]
+	// Update dotPhi[i] (partial-Phi[i]_partial-t)
 	// ----------------------------------
 	arm.m_dotPhi[m_idx_constr] =
 		(vxr1 - vxr0) * (py - pyr0) + (pxr1 - pxr0) * (vy - vyr0) -
@@ -356,4 +356,13 @@ void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 
 	if (dot_dPhi_dx[2]) *dot_dPhi_dx[2] = vy - vyr0;
 	if (dot_dPhi_dy[2]) *dot_dPhi_dy[2] = -vx + vxr0;
+
+	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
+	// -------------------------------------
+	if (dPhiqdq_dx) *dPhiqdq_dx = vyr0 - vyr1;
+	if (dPhiqdq_dy) *dPhiqdq_dy = vxr1 - vxr0;
+	if (dPhiqdq_dx0) *dPhiqdq_dx0 = vyr1 - vy;
+	if (dPhiqdq_dy0) *dPhiqdq_dy0 = vx - vxr1;
+	if (dPhiqdq_dx1) *dPhiqdq_dx1 = vy - vyr0;
+	if (dPhiqdq_dy1) *dPhiqdq_dy1 = vxr0 - vx;
 }
