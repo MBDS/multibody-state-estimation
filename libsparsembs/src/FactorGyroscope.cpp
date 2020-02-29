@@ -119,7 +119,7 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		{
 			// x0 is NOT a fixed point, it DO belong to q:
 			// fill Jacobian for column "i"
-			Hv(0, i) = pt1vel.x - pt0vel.x;  // dq_k[2] - dq_k[0];
+			Hv(0, i) = pt0vel.x - pt1vel.x;  // dq_k[2] - dq_k[0];
 		}
 	}
 
