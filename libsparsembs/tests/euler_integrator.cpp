@@ -52,12 +52,35 @@ TEST(numerical_integrators, euler)
 	initValues.insert(V(2), zeros);
 
 	// Run optimizer:
-	graph.print("Factor graph: ");
-	initValues.print("initValues: ");
+	// graph.print("Factor graph: ");
+	// initValues.print("initValues: ");
 	gtsam::LevenbergMarquardtOptimizer optimizer(graph, initValues);
 
 	const auto& optimValues = optimizer.optimize();
 
 	// Process results:
-	optimValues.print("optimValues");
+	// optimValues.print("optimValues");
+	/* Expected values:
+	 * optimValuesValues with 5 values:
+	 * Value v1: (N9sparsembs7state_tE) 1 2
+	 * Value v2: (N9sparsembs7state_tE) 2 3
+	 * Value x1: (N9sparsembs7state_tE) -3.79966e-10 -6.59941e-10
+	 * Value x2: (N9sparsembs7state_tE) 1 2
+	 * Value x3: (N9sparsembs7state_tE) 3 5
+	 */
+
+	EXPECT_NEAR(optimValues.at<state_t>(V(1))[0], 1.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(V(1))[1], 2.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(V(2))[0], 2.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(V(2))[1], 3.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(X(1))[0], 0.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(X(1))[1], 0.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(X(2))[0], 1.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(X(2))[1], 2.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(X(3))[0], 3.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(X(3))[1], 5.0, 1e-6);
 }
