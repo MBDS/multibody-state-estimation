@@ -1,5 +1,7 @@
 // Example of numerical integration using factor graphs:
 // ------------------------------------------------------------
+#include <gtest/gtest.h>
+
 #include <sparsembs/FactorTrapInt.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
@@ -10,7 +12,7 @@
 
 using namespace std;
 
-void test_numerical_integration()
+TEST(numerical_integrators, trapezoidal)
 {
 	using gtsam::symbol_shorthand::V;
 	using gtsam::symbol_shorthand::X;
@@ -51,7 +53,6 @@ void test_numerical_integration()
 	graph.emplace_shared<gtsam::PriorFactor<state_t>>(
 		V(3), prior_v3, noise_prior);
 
-
 	// Create initial estimates:
 	initValues.insert(X(1), zeros);
 	initValues.insert(X(2), zeros);
@@ -61,24 +62,40 @@ void test_numerical_integration()
 	initValues.insert(V(3), zeros);
 
 	// Run optimizer:
-	graph.print("Factor graph: ");
-	initValues.print("initValues: ");
+	// graph.print("Factor graph: ");
+	// initValues.print("initValues: ");
 	gtsam::LevenbergMarquardtOptimizer optimizer(graph, initValues);
 
 	const auto& optimValues = optimizer.optimize();
 
 	// Process results:
-	optimValues.print("optimValues");
-}
+	// optimValues.print("optimValues");
 
-int main()
-{
-	try
-	{
-		test_numerical_integration();
-	}
-	catch (const std::exception & e)
-	{
-		std::cerr << "Error: " << e.what() << "\n";
-	}
+	/* Expected values:
+	 * optimValuesValues with 6 values:
+	 * Value v1: (N9sparsembs7state_tE) 1 2
+	 * Value v2: (N9sparsembs7state_tE) 2 3
+	 * Value v3: (N9sparsembs7state_tE) 2 3
+	 * Value x1: (N9sparsembs7state_tE) -4.32465e-10 -6.89945e-10
+	 * Value x2: (N9sparsembs7state_tE) 1.5 2.5
+	 * Value x3: (N9sparsembs7state_tE) 3.5 5.5
+	 */
+
+	EXPECT_NEAR(optimValues.at<state_t>(V(1))[0], 1.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(V(1))[1], 2.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(V(2))[0], 2.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(V(2))[1], 3.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(V(3))[0], 2.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(V(3))[1], 3.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(X(1))[0], 0.0, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(X(1))[1], 0.0, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(X(2))[0], 1.5, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(X(2))[1], 2.5, 1e-6);
+
+	EXPECT_NEAR(optimValues.at<state_t>(X(3))[0], 3.5, 1e-6);
+	EXPECT_NEAR(optimValues.at<state_t>(X(3))[1], 5.5, 1e-6);
 }
