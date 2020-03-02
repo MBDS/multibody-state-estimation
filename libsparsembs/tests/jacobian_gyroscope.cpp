@@ -127,14 +127,18 @@ TEST(Jacobians, gyroscope)
 						const gtsam::Vector& new_q, const NumericJacobParams& p,
 						gtsam::Vector& err)>(&num_err_wrt_state),
 					x_incr, p, H_num[i]);
+
+				// Check:
+				EXPECT_NEAR(
+					(H[i] - H_num[i]).array().abs().maxCoeff(), 0.0, 1e-2)
+					<< "H[" << i << "] Theoretical:\n"
+					<< H[i]
+					<< "\n"
+					   "H_num["
+					<< i << "] Numerical:\n"
+					<< H_num[i] << "\n";
 			}
 			timlog.leave("factorsGyro.numeric_jacob");
-
-			std::cout << "Body: " << body_idx << "\n";
-			std::cout << " Theoretical H1= " << H[0] << "\n";
-			std::cout << " Numerical   H1= " << H_num[0] << "\n";
-			std::cout << " Theoretical H2= " << H[1] << "\n";
-			std::cout << " Numerical   H2= " << H_num[1] << "\n";
 		}
 	}
 }
