@@ -31,17 +31,18 @@ function (mbse_define_test NAME)
   add_executable(test_${NAME} test_main.cpp ${NAME}.cpp)
 
   # Add the required libraries for linking:
-  target_link_libraries(test_${NAME} 
+  target_link_libraries(test_${NAME}
 	gtest
+	sparsembs
 	${MRPT_LIBRARIES}
-	${SPARSEMBS_LIBRARIES}
+	sparsembs
 	)
   if(NOT "${DEPENCENCIES_SPARSEMBS}" STREQUAL "")
 	add_dependencies(test_${NAME} ${DEPENCENCIES_SPARSEMBS})
   endif()
-  
+
   set_target_properties(test_${NAME} PROPERTIES FOLDER "Unit tests")
-  
+
   add_test(test_${NAME}_build "${CMAKE_COMMAND}" --build ${CMAKE_BINARY_DIR} --target test_${NAME})
   add_test(test_${NAME}_run ${EXECUTABLE_OUTPUT_PATH}/test_${NAME})
   set_tests_properties(test_${NAME}_run PROPERTIES DEPENDS test_${NAME}_build)
@@ -60,6 +61,3 @@ mbse_define_test(euler_integrator)
 mbse_define_test(trapezoidal_integrator)
 mbse_define_test(fourbars)
 mbse_define_test(jacobian_gyroscope)
-
-
-

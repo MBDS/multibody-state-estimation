@@ -8,7 +8,7 @@ else()
 endif()
 mark_as_advanced(LIB_POSTFIX)
 
-find_package(GTSAM QUIET)
+find_package(GTSAM REQUIRED)
 
 include_directories("include")
 set(SPARSEMBS_INCLUDE_DIRS
@@ -26,7 +26,7 @@ set(BUILD_TESTING ON CACHE BOOL "Build unit tests")
 # add before "D__MINGW32__"!!
 if(BUILD_TESTING)
 	add_subdirectory(tests)
-endif( BUILD_TESTING)
+endif()
 
 file(GLOB LIBHDRS "src/*.h")
 file(GLOB LIBSRCS "src/*.cpp")
@@ -36,42 +36,16 @@ add_library(sparsembs ${LIBHDRS} ${LIBSRCS} ${LIBHDRSPUB})
 set_target_properties(sparsembs PROPERTIES FOLDER "Libraries")
 
 
-set(DEPENCENCIES_SPARSEMBS
-	sparsembs
-	CACHE INTERNAL "")
-
-add_dependencies(sparsembs ${DEPENCENCIES_SPARSEMBS})
-
-# List of linking libs:
-set(SPARSEMBS_LIBRARIES
-	""
-	CACHE INTERNAL "")
-
-set(SPARSEMBS_LIBRARIES
-	${SPARSEMBS_LIBRARIES}
-	${SuiteSparse_LIBRARIES}
-	CACHE INTERNAL "")
 
 if (GTSAM_FOUND)
   target_link_libraries(sparsembs PUBLIC gtsam gtsam_unstable)
   target_compile_definitions(sparsembs PUBLIC SPARSEMBS_HAVE_GTSAM)
 endif()
 
-if(BUILD_SHARED)
-	target_link_libraries(sparsembs
-		LINK_PRIVATE ${MRPT_LIBS} ${SPARSEMBS_LIBRARIES}
-		)
-else()
-	target_link_libraries(sparsembs
-		LINK_PUBLIC ${MRPT_LIBS} ${SPARSEMBS_LIBRARIES}
-		)
-endif()
-
-set(SPARSEMBS_LIBRARIES
-	sparsembs
-	${SPARSEMBS_LIBRARIES}
-	CACHE INTERNAL "")
-
+target_link_libraries(sparsembs PUBLIC
+	${MRPT_LIBRARIES}
+	${SuiteSparse_LIBRARIES}
+)
 
 # Install target:
 set_target_properties(sparsembs PROPERTIES PUBLIC_HEADER "${LIBHDRSPUB}")

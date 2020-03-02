@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.0)
 
 enable_testing()
 
+option(BUILD_SHARED_LIBS ON)
+
 set(LIBRARY_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR}/lib CACHE PATH "Output directory for libraries" )
 set(EXECUTABLE_OUTPUT_PATH ${${PROJECT_NAME}_BINARY_DIR}/bin CACHE PATH "Output directory for applications" )
 
@@ -69,4 +71,3 @@ option(BUILD_EXAMPLES ON)
 if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
-
