@@ -6,6 +6,7 @@
 #include <gtsam/inference/Symbol.h>
 #include <sparsembs/FactorGyroscope.h>
 #include <mrpt/math/num_jacobian.h>
+#include <mrpt/system/CTimeLogger.h>
 
 using namespace std;
 using namespace sparsembs;
@@ -76,6 +77,9 @@ TEST(Jacobians, gyroscope)
 
 	dynSimul.params.time_step = 0.001;  // integrators timesteps
 
+	mrpt::system::CTimeLogger timlog;
+	timlog.enable(false);
+
 	for (double t = 0; t < t_end;)
 	{
 		const double t_next = t + t_steps;
@@ -95,11 +99,16 @@ TEST(Jacobians, gyroscope)
 		{
 			// Evaluate theoretical Jacobians:
 			gtsam::Matrix H[2];
+			timlog.enter("factorsGyro.theoretical_jacob");
+
 			factorsGyro[body_idx]->evaluateError(q, dotq, H[0], H[1]);
+
+			timlog.leave("factorsGyro.theoretical_jacob");
 
 			// Evaluate numerical Jacobians:
 			gtsam::Matrix H_num[2];
 
+			timlog.enter("factorsGyro.numeric_jacob");
 			for (int i = 0; i < 2; i++)
 			{
 				NumericJacobParams p;
@@ -110,7 +119,7 @@ TEST(Jacobians, gyroscope)
 
 				const gtsam::Vector x = i == 0 ? p.q : p.dq;
 				const gtsam::Vector x_incr =
-					Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-7);
+					Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-9);
 
 				mrpt::math::estimateJacobian(
 					x,
@@ -119,6 +128,7 @@ TEST(Jacobians, gyroscope)
 						gtsam::Vector& err)>(&num_err_wrt_state),
 					x_incr, p, H_num[i]);
 			}
+			timlog.leave("factorsGyro.numeric_jacob");
 
 			std::cout << "Body: " << body_idx << "\n";
 			std::cout << " Theoretical H1= " << H[0] << "\n";

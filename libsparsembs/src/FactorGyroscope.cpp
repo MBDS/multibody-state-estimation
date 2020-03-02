@@ -92,8 +92,6 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		Hv.setZero(1, n);
 
 		// point0 & point1:
-		const TMBSPoint pts_info[2] = {m_arm->m_parent.getPointInfo(pt0_idx),
-									   m_arm->m_parent.getPointInfo(pt1_idx)};
 		const TPoint2DOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
 										m_arm->m_points2DOFs[pt1_idx]};
 
@@ -130,8 +128,6 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		Hv.setZero(1, n);
 
 		// point0 & point1:
-		const TMBSPoint pts_info[2] = {m_arm->m_parent.getPointInfo(pt0_idx),
-									   m_arm->m_parent.getPointInfo(pt1_idx)};
 		const TPoint2DOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
 										m_arm->m_points2DOFs[pt1_idx]};
 
