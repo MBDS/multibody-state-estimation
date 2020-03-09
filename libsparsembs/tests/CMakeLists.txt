@@ -37,9 +37,6 @@ function (mbse_define_test NAME)
 	${MRPT_LIBRARIES}
 	sparsembs
 	)
-  if(NOT "${DEPENCENCIES_SPARSEMBS}" STREQUAL "")
-	add_dependencies(test_${NAME} ${DEPENCENCIES_SPARSEMBS})
-  endif()
 
   set_target_properties(test_${NAME} PROPERTIES FOLDER "Unit tests")
 

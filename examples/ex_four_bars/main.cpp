@@ -35,12 +35,12 @@ int main(int argc, char** argv)
 
 		// Define a double pendulum mechanism:
 		// ------------------------------------------------
-		// buildFourBarsMBS(model);
+		buildFourBarsMBS(model);
 		// buildFourBarsMBS_JavierCuadrado(model);
 		// buildSliderCrankMBS(model);
 		// buildFollowerMBS(model);
 		// buildLongStringMBS( 15, model);
-		sparsembs::buildTwoSliderBlocks(model);
+		// sparsembs::buildTwoSliderBlocks(model);
 
 		// const size_t Nx = 5, Ny = 4;
 		// buildParameterizedMBS(Nx, Ny, model, 0.6 /*random imperfections in
@@ -176,6 +176,10 @@ int main(int argc, char** argv)
 		double t_old = tictac.Tac();
 		double t_old_simul = t_old;
 
+		mrpt::opengl::TFontParams fp;
+		fp.vfont_scale = 15;  // pixels
+		fp.draw_shadow = true;
+
 		while (win3D.isOpen())
 		{
 			double t_new = tictac.Tac();
@@ -230,9 +234,7 @@ int main(int argc, char** argv)
 					mrpt::format(
 						"Time: %.03fs (x%.02f) |Phi|=%e", t_old,
 						REALTIME_FACTOR, aMBS->m_Phi.norm()),
-					TColorf(1, 1, 1), "mono", 15, mrpt::opengl::NICE,
-					0 /* txt ID */, 1.5 /*spacing*/, 0.1 /*kerning*/,
-					true /*draw shadow */);
+					0 /* txt ID */, fp);
 
 				const double simul_t =
 					sparsembs::timelog.getMeanTime("mbs.run_complete_timestep");
@@ -241,9 +243,7 @@ int main(int argc, char** argv)
 					10, 30,
 					mrpt::format(
 						"Simul: %.02fHz [%.02fms]", simul_Hz, simul_t * 1e3),
-					TColorf(1, 1, 1), "mono", 15, mrpt::opengl::NICE,
-					1 /* txt ID */, 1.5 /*spacing*/, 0.1 /*kerning*/,
-					true /*draw shadow */);
+					1 /* txt ID */, fp);
 
 				if (win3D.keyHit())
 				{

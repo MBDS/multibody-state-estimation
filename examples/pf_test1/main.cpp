@@ -272,10 +272,11 @@ int main(int argc, char** argv)
 				mrpt::opengl::stock_objects::CornerXYZSimple(0.2, 1));
 			gl_main->insert(gl_MBS);
 
-			win3D.addTextMessage(
-				10, 0.95, "Ground truth", TColorf(0, 0, 1), "mono", 20,
-				mrpt::opengl::NICE, 1 /* txt ID */, 1.5 /*spacing*/,
-				0.1 /*kerning*/, true /*draw shadow */);
+			mrpt::opengl::TFontParams fp;
+			fp.color = TColorf(0, 0, 1);
+			fp.vfont_scale = 20;  // pixels
+
+			win3D.addTextMessage(10, 0.95, "Ground truth", 1 /* txt ID */, fp);
 
 			// Estimate:
 			gl_estimate->setViewportPosition(0, 0, 1.0, 0.5);
@@ -284,10 +285,7 @@ int main(int argc, char** argv)
 				mrpt::opengl::stock_objects::CornerXYZSimple(0.2, 1));
 			gl_estimate->insert(gl_MBPF);
 
-			win3D.addTextMessage(
-				10, 0.45, "Estimation", TColorf(0, 0, 1), "mono", 20,
-				mrpt::opengl::NICE, 2 /* txt ID */, 1.5 /*spacing*/,
-				0.1 /*kerning*/, true /*draw shadow */);
+			win3D.addTextMessage(10, 0.45, "Estimation", 2 /* txt ID */, fp);
 
 			win3D.unlockAccess3DScene();
 		}
@@ -480,15 +478,18 @@ int main(int argc, char** argv)
 				}
 
 				// Update 3D scene:
+
+				mrpt::opengl::TFontParams fp;
+				fp.color = TColorf(1, 1, 1);
+				fp.vfont_scale = 15;  // pixels
+
 				win3D.addTextMessage(
 					10, 10,
 					mrpt::format(
 						"Time: %.03fs | ESS=%.02f | %u samples", t_old_simul,
 						pf_out_info.ESS,
 						static_cast<unsigned int>(pf.particlesCount())),
-					TColorf(1, 1, 1), "mono", 15, mrpt::opengl::NICE,
-					0 /* txt ID */, 1.5 /*spacing*/, 0.1 /*kerning*/,
-					true /*draw shadow */);
+					0 /* txt ID */, fp);
 
 				std::this_thread::sleep_for(
 					std::chrono::milliseconds(DRAW_DELAY_MS));

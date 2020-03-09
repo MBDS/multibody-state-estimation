@@ -179,6 +179,8 @@ void CConstraintFixedSlider::buildSparseStructures(
 	// --------------------------------------------
 	dot_dPhi_dx0 = &arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF.dof_x];
 	dot_dPhi_dy0 = &arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF.dof_y];
+
+	MRPT_TODO("Fill dPhiqdq_dx0");
 }
 
 void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
@@ -203,18 +205,18 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
-	*dPhi_dx0 = -m_Delta.y;
-	*dPhi_dy0 = m_Delta.x;
+	if (dPhi_dx0) *dPhi_dx0 = -m_Delta.y;
+	if (dPhi_dy0) *dPhi_dy0 = m_Delta.x;
 
 	// Update Jacobian \dot{dPhi_dq}(i,:)
 	// ----------------------------------
-	*dot_dPhi_dx0 = 0;
-	*dot_dPhi_dy0 = 0;
+	if (dot_dPhi_dx0) *dot_dPhi_dx0 = 0;
+	if (dot_dPhi_dy0) *dot_dPhi_dy0 = 0;
 
 	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
 	// -------------------------------------
-	*dPhiqdq_dx0 = -m_Delta.y;
-	*dPhiqdq_dy0 = m_Delta.x;
+	if (dPhiqdq_dx0) *dPhiqdq_dx0 = -m_Delta.y;
+	if (dPhiqdq_dy0) *dPhiqdq_dy0 = m_Delta.x;
 }
 
 /** Creates a 3D representation of the constraint, if applicable (e.g. the line
