@@ -123,6 +123,46 @@ gtsam::Vector FactorDynamics::evaluateError(
 			x_incr, p, Hv);
 #else
 		Hv.setZero(n, n);
+/*
+dq = param.dq;
+invM = param.invM;
+Q = param.Q;
+Phiq = ConstLen_q(q);
+Phiqq = NumJacob3D(@ConstLen_q, q);
+Phiqq_T = NumJacob3D(@ConstLen_T_q, q);
+G = Gamma(q,param);
+invGamma = inv(G);
+c = -InnerTensVect(Phiqq,param.dq)*param.dq;
+% ================================== [1]
+==================================
+A1 = invM*Q;
+B1 = Phiq*A1;
+C1 = invGamma*B1;
+D1 = InnerTensVect(Phiqq_T,C1);
+ddq_I = -invM*D1;
+dGamma_q = NumJacob3D(@Gamma, q, param);
+A2 = InnerTensVect(dGamma_q,C1);
+B2 = invGamma*A2;
+C2 = Phiq'*B2;
+ddq_II = invM*C2;
+A3 = invM*Q;
+B3 = InnerTensVect(Phiqq,A3);
+C3 = invGamma*B3;
+D3 = Phiq'*C3;
+ddq_III = -invM*D3;
+% ================================== [2]
+==================================
+dotPq = InnerTensVect(Phiqq,dq);A4 = dotPq*dq;
+B4 = invGamma*A4;
+C4 = InnerTensVect(Phiqq_T,B4);
+ddq_IV = -invM*C4;
+A5 = InnerTensVect(dGamma_q,B4);
+B5 = invGamma*A5;
+C5 = Phiq'*B5;
+ddq_V = invM*C5;
+% Theoretical Jacobian
+Jacc_qt = ddq_I+ddq_II+ddq_III+ddq_IV+ddq_V;
+*/
 #endif
 	}
 	// d err / d dq_k
@@ -149,6 +189,21 @@ gtsam::Vector FactorDynamics::evaluateError(
 			x_incr, p, Hv);
 #else
 		Hv.setZero(n, n);
+/*
+q = param.q;
+invM = param.invM;
+Q = param.Q;
+Phiq = ConstLen_q(q);
+Phiqq = NumJacob3D(@ConstLen_q, q);
+Phiqq_T = NumJacob3D(@ConstLen_T_q, q);
+G = Gamma(q,param);
+invGamma = inv(G);
+c = -InnerTensVect(Phiqq,dq)*dq;
+dotPq = InnerTensVect(Phiqq,dq);
+A = invGamma*dotPq;
+B = Phiq'*A;
+Jacc_dqt = -2*invM*B;
+*/
 #endif
 	}
 	// d err / d ddq_k
