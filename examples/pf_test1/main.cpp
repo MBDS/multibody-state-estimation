@@ -1,7 +1,7 @@
 
 // Example of particle-filter for tracking a multibody model
 // ------------------------------------------------------------
-#include <sparsembs/sparsembs.h>
+#include <mbse/sparsembs.h>
 
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
@@ -10,7 +10,7 @@
 #include <thread>  // for sleep()
 
 using namespace std;
-using namespace sparsembs;
+using namespace mbse;
 using namespace mrpt;
 using namespace mrpt::poses;
 using namespace mrpt::math;

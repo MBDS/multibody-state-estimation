@@ -7,22 +7,22 @@
 #include <gtsam/slam/PriorFactor.h>
 #include <iostream>
 #include <fstream>
-#include <sparsembs/CAssembledRigidModel.h>
-#include <sparsembs/CModelDefinition.h>
-#include <sparsembs/FactorDynamics.h>
-#include <sparsembs/FactorConstraints.h>
-#include <sparsembs/FactorConstraintsVel.h>
-#include <sparsembs/FactorEulerInt.h>
-#include <sparsembs/FactorTrapInt.h>
-#include <sparsembs/dynamic-simulators.h>
-#include <sparsembs/model-examples.h>
+#include <mbse/CAssembledRigidModel.h>
+#include <mbse/CModelDefinition.h>
+#include <mbse/FactorDynamics.h>
+#include <mbse/FactorConstraints.h>
+#include <mbse/FactorConstraintsVel.h>
+#include <mbse/FactorEulerInt.h>
+#include <mbse/FactorTrapInt.h>
+#include <mbse/dynamic-simulators.h>
+#include <mbse/model-examples.h>
 
 void test_smoother()
 {
 	using gtsam::symbol_shorthand::A;
 	using gtsam::symbol_shorthand::Q;
 	using gtsam::symbol_shorthand::V;
-	using namespace sparsembs;
+	using namespace mbse;
 
 	// Create the multibody object:
 	CModelDefinition model;

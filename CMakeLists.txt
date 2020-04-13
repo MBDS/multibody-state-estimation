@@ -2,8 +2,6 @@ project(MBSE)
 
 cmake_minimum_required(VERSION 3.0)
 
-enable_testing()
-
 # Must use GNUInstallDirs to install libraries into correct
 # locations on all platforms.
 include(GNUInstallDirs)
@@ -56,9 +54,9 @@ endif()
 # To generate DLLs:
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-# LIB : libsparsembs
+# LIB : MBSE
 # --------------------------------
-add_subdirectory(libsparsembs)
+add_subdirectory(libmbse)
 
 # Examples:
 # --------------------------------

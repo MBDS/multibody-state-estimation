@@ -1,8 +1,8 @@
 
 // Example of MBS model: Double Quad
 // -------------------------------------
-#include <sparsembs/sparsembs.h>
-#include <sparsembs/model-examples.h>
+#include <mbse/sparsembs.h>
+#include <mbse/model-examples.h>
 
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
@@ -10,7 +10,7 @@
 #include <thread>  // for sleep()
 
 using namespace std;
-using namespace sparsembs;
+using namespace mbse;
 using namespace mrpt;
 using namespace mrpt::poses;
 using namespace mrpt::math;
