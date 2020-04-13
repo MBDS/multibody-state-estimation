@@ -1,3 +1,13 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
+
 #include <mbse/CModelDefinition.h>
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/dynamic-simulators.h>
@@ -196,7 +206,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 #endif
 
 			default:
-			    THROW_EXCEPTION("Unknown value for params.ode_solver");
+				THROW_EXCEPTION("Unknown value for params.ode_solver");
 		};
 
 		timelog.leave("mbs.run_complete_timestep");
@@ -217,7 +227,7 @@ void CDynamicSimulatorIndepBase::internal_solve_ddotq(
 	ASSERTMSG_(
 		lagrangre == NULL,
 		"This solver uses independent coordinates, so it can't determine the "
-	    "lagrange multipliers as requested!");
+		"lagrange multipliers as requested!");
 
 	THROW_EXCEPTION("TO DO! Better use internal_solve_ddotz() instead.");
 }

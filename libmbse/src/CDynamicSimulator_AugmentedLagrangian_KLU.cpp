@@ -1,3 +1,13 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
+
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/dynamic-simulators.h>
 
@@ -78,7 +88,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 					 itCol != row_r.end(); ++itCol)
 				{
 					const size_t col = itCol->first;
-					if (col > j) break;	 // We're done in this row.
+					if (col > j) break;  // We're done in this row.
 					if (col != i && col != j) continue;
 
 					if (col == i) Phi_r_i = &(itCol->second);

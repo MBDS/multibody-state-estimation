@@ -1,3 +1,13 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
+
 #include <mbse/CBody.h>
 #include <mrpt/opengl.h>
 
@@ -87,13 +97,13 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 	using namespace mrpt;
 
 	mrpt::opengl::CSetOfObjects::Ptr objs =
-	    mrpt::opengl::CSetOfObjects::Create();
+		mrpt::opengl::CSetOfObjects::Create();
 
 	switch (render_params.render_style)
 	{
 		case reCylinder:
 		{
-		    auto obj = mrpt::opengl::CCylinder::Create();
+			auto obj = mrpt::opengl::CCylinder::Create();
 
 			obj->setRadius(render_params.cyl_diameter);
 			obj->setColor_u8(TColor(0xFF, 0x00, 0x00));
@@ -111,12 +121,12 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 
 		case reLine:
 		{
-		    auto obj = mrpt::opengl::CSimpleLine::Create();
+			auto obj = mrpt::opengl::CSimpleLine::Create();
 
 			obj->setLineWidth(render_params.line_width);
 			obj->enableAntiAliasing(true);
 			obj->setColor_u8(
-			    TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
+				TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
 
 			obj->setLineCoords(
 				0, 0, render_params.z_layer, this->m_length, 0,
@@ -127,7 +137,7 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 		break;
 
 		default:
-		    THROW_EXCEPTION("Unhandled render style!?");
+			THROW_EXCEPTION("Unhandled render style!?");
 	}
 
 	return objs;

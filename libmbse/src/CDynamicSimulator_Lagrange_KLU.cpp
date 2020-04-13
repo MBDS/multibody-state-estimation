@@ -1,3 +1,13 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
+
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/dynamic-simulators.h>
 
@@ -89,7 +99,7 @@ void CDynamicSimulator_Lagrange_KLU::internal_prepare()
 			m_common.ordering = 1;
 			break;
 		default:
-		    THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
+			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	m_symbolic = klu_analyze(
@@ -164,7 +174,7 @@ void CDynamicSimulator_Lagrange_KLU::internal_solve_ddotq(
 
 	if (!m_numeric)
 		THROW_EXCEPTION(
-		    "Error: KLU couldn't numeric-factorize the augmented matrix.");
+			"Error: KLU couldn't numeric-factorize the augmented matrix.");
 	timelog.leave("solver_ddotq.numeric_factor");
 
 	// Build the RHS vector:

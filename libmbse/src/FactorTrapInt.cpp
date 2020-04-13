@@ -1,10 +1,11 @@
 /*+-------------------------------------------------------------------------+
-  |    FactorGraph Control (sparsembs)  C++ library                         |
+  |            Multi Body State Estimation (mbse) C++ library               |
   |                                                                         |
-  | Copyright (C) 2019-2020 University of Almeria                           |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
   | See README for list of authors and papers                               |
-  | Distributed under GNU General Public License version 3                  |
-  |   See <http://www.gnu.org/licenses/>                                    |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/FactorTrapInt.h>

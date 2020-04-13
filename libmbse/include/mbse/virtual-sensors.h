@@ -1,3 +1,13 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
+
 #pragma once
 
 #include "mbse-common.h"
@@ -18,7 +28,7 @@ class CVirtualSensor
 	/** Simulates one sensor reading from the given system state, returning
 	 * the predicted value. */
 	virtual double simulate_reading(
-	    const CAssembledRigidModel& mb_state) const = 0;
+		const CAssembledRigidModel& mb_state) const = 0;
 
 	/** Returns the log-likelihhod of the given read value for the current
 	 * mechanism state */
@@ -27,7 +37,7 @@ class CVirtualSensor
 	{
 		const double sensor_prediction = this->simulate_reading(mb_state);
 		return -0.5 *
-		       mrpt::square(
+			   mrpt::square(
 				   (sensor_reading - sensor_prediction) / sensor_noise_std);
 	}
 
@@ -47,7 +57,7 @@ class CVirtualSensor_Gyro : public CVirtualSensor
 	/** Simulates one sensor reading from the given system state, returning the
 	 * predicted value. */
 	virtual double simulate_reading(
-	    const CAssembledRigidModel& mb_state) const override;
+		const CAssembledRigidModel& mb_state) const override;
 
 	CVirtualSensor_Gyro(const size_t body_idx) : m_body_idx(body_idx) {}
 

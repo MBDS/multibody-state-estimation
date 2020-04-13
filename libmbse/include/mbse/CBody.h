@@ -1,3 +1,12 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
 
 #pragma once
 
@@ -17,9 +26,9 @@ struct CBody
 	std::string name;
 
 	/** A 2D body is defined (in natural coords) with 2 points
-	* Indices of the body 2 points (from the list of all
-	* points in the problem); may include one fixed point
-	* (not a variable) */
+	 * Indices of the body 2 points (from the list of all
+	 * points in the problem); may include one fixed point
+	 * (not a variable) */
 	size_t points[2];
 
 	/** In (kg) */

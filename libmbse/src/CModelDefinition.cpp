@@ -1,3 +1,13 @@
+/*+-------------------------------------------------------------------------+
+  |            Multi Body State Estimation (mbse) C++ library               |
+  |                                                                         |
+  | Copyright (C) 2014-2020 University of Almeria                           |
+  | Copyright (C) 2020 University of Salento                                |
+  | See README for list of authors and papers                               |
+  | Distributed under 3-clause BSD license                                  |
+  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+  +-------------------------------------------------------------------------+ */
+
 #include <mbse/CModelDefinition.h>
 #include <mbse/CAssembledRigidModel.h>
 #include <mrpt/opengl.h>
@@ -14,7 +24,7 @@ CBody& CModelDefinition::addBody(const std::string& name)
 {
 	ASSERTMSG_(
 		!m_already_added_fixed_len_constraints,
-	    "Can't modify model after assembling!");
+		"Can't modify model after assembling!");
 
 	// Build name if none provided:
 	const std::string nam =
@@ -101,5 +111,5 @@ std::shared_ptr<CAssembledRigidModel> CModelDefinition::assembleRigidMBS()
 
 	// 2) Actual assembly:
 	return std::shared_ptr<CAssembledRigidModel>(
-	    new CAssembledRigidModel(armi));
+		new CAssembledRigidModel(armi));
 }
