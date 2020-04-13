@@ -26,7 +26,7 @@ void test_smoother()
 
 	// Create the multibody object:
 	CModelDefinition model;
-	sparsembs::buildFourBarsMBS(model);
+	mbse::buildFourBarsMBS(model);
 
 	std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);
