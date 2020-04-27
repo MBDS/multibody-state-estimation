@@ -1,7 +1,7 @@
-# State estimation algorithms for multibody dynamics
-This repository contains a C++ library for multibody dynamics estimation and some demo applications.
+# The MultiBody State Estimation (MBSE) C++ library 
+This repository contains a C++ library for multibody dynamics estimation.
 
-## Implementation #1: Particle filter estimator
+## Algorithm #1: Particle filter estimator
 A Bayesian filter has been implemented as a particle filter.
 Only planar dynamics models have been tested.
 For the theory behinds this work, refer to :
@@ -9,24 +9,24 @@ For the theory behinds this work, refer to :
 
 [![ScreenShot](https://raw.githubusercontent.com/MBDS/mbde-particle-filter/master/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
 
-## Implementation #2: A factor-graph optimizer
+## Algorithm #2: A factor-graph optimizer
 
-(In development)
-- Smoother
-- Batch
-
+- Smoother.
+- Batch.
 
 ## Compiling
-Prerequisites:
+Dependencies:
   * A C++ compiler
   * CMake
   * SuiteSparse
-  * [MRPT](http://www.mrpt.org) (either v1.5.x or v2.x)
-    * Ubuntu: The latest version of MRPT can be installed [from here](http://www.mrpt.org/MRPT_in_GNU/Linux_repositories)
+  * [MRPT](http://www.mrpt.org) (>=2.0.0)
+    * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/mrpt)
+  * [GTSAM]()
+    * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/gtsam-develop)
 
-In Ubuntu, install them with:
+In Ubuntu, install dependencies with:
 
-        sudo apt-get install build-essential cmake libsuitesparse-dev libmrpt-dev
+        sudo apt-get install build-essential cmake libsuitesparse-dev libmrpt-dev libgtsam-dev
 
 To build:
 
@@ -35,9 +35,9 @@ To build:
         cmake ..  
         # If you see no errors, go on, otherwise fix them!
         make        # To compile the library and examples
-        make test   # To run unit tests
+        make test_legacy   # To run unit tests
 
-You can also build under Windows and Visual Studio.
+You should also be able to compile this project under Windows and Visual Studio.
 
 ## Executing
 These programs come ready to be launched, and can be found in the `bin`
@@ -45,3 +45,14 @@ directory after compiling:
 
   * `pf_test1`: One of the particle filter estimation experiments showed in the paper.
   * `ex_four_bars`: An example of a dynamic simulation of a four bar linkage.
+
+## Using mbse as a library in a user program
+
+In your CMake project, add:
+
+        find_package(mbse REQUIRED)
+        # then in your target:
+        target_link_libraries(${PROJECT_NAME} mbse::mbse)
+
+For CMake to find the library, in `cmake-gui` or `ccmake`, set the variable `mbse_DIR` to 
+`BUILD_DIR/cmake`, where `BUILD_DIR` is the compilation directory where you built MBSE.
