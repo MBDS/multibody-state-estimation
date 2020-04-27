@@ -8,6 +8,7 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
+#include <mrpt/core/exceptions.h>
 #include <mbse/FactorDynamics.h>
 #include <mbse/CAssembledRigidModel.h>
 
@@ -91,9 +92,9 @@ gtsam::Vector FactorDynamics::evaluateError(
 	boost::optional<gtsam::Matrix&> H3) const
 {
 	const auto n = q_k.size();
-	if (dq_k.size() != n || ddq_k.size() != n)
-		throw std::runtime_error("Inconsistent vector lengths!");
-	if (n < 1) throw std::runtime_error("Empty state vector!");
+	ASSERT_EQUAL_(dq_k.size(), q_k.size());
+	ASSERT_EQUAL_(ddq_k.size(), q_k.size());
+	ASSERT_(q_k.size() > 0);
 
 	// Set q & dq in the multibody model:
 	CAssembledRigidModel& arm = *m_dynamic_solver->get_model_non_const();

@@ -10,6 +10,7 @@
 
 #include <mbse/FactorConstraintsVel.h>
 #include <mbse/CAssembledRigidModel.h>
+#include <mrpt/core/exceptions.h>
 
 #include <Eigen/Dense>
 #include <unsupported/Eigen/CXX11/Tensor>
@@ -90,9 +91,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	const auto n = q_k.size();
 	const auto m = m_arm->m_Phi.rows();
 
-	if (dotq_k.size() != n)
-		throw std::runtime_error("Inconsistent vector lengths!");
-	if (n < 1) throw std::runtime_error("Empty state vector!");
+	ASSERT_EQUAL_(dotq_k.size(), q_k.size());
+	ASSERT_(q_k.size() > 0);
 
 	// Set q in the multibody model:
 	m_arm->m_q = q_k.vector();

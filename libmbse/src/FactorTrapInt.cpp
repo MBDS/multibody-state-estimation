@@ -9,6 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/FactorTrapInt.h>
+#include <mrpt/core/exceptions.h>
 
 using namespace mbse;
 
@@ -20,7 +21,7 @@ gtsam::NonlinearFactor::shared_ptr FactorTrapInt::clone() const
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
-// Build function �print� defined in the header �FactorTrapInt.h�
+// Build function print defined in the header FactorTrapInt.h
 void FactorTrapInt::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
@@ -39,7 +40,7 @@ bool FactorTrapInt::equals(
 		   gtsam::traits<double>::Equals(this->timestep_, e->timestep_, tol);
 }
 
-// Build function �evaluateError� defined in the header �FactorTrapInt.h�
+// Build function evaluateError defined in the header FactorTrapInt.h
 
 gtsam::Vector FactorTrapInt::evaluateError(
 	const state_t& x_k, const state_t& x_kp1, const state_t& v_k,
@@ -48,14 +49,16 @@ gtsam::Vector FactorTrapInt::evaluateError(
 	boost::optional<gtsam::Matrix&> H4) const
 {
 	const auto n = x_k.size();
-	if (x_kp1.size() != n || v_k.size() != n)
-		throw std::runtime_error("Inconsistent vector lengths!");
+
+	ASSERT_EQUAL_(x_kp1.size(), x_k.size());
+	ASSERT_EQUAL_(v_k.size(), x_k.size());
+	ASSERT_EQUAL_(v_kp1.size(), x_k.size());
 
 	gtsam::Vector err = x_kp1.vector() - x_k.vector() -
 						0.5 * timestep_ * v_k.vector() -
 						0.5 * timestep_ * v_kp1.vector();
 
-	// Jacobian of �err� respect to[x_k x_kp1 v_k v_kp1]
+	// Jacobian of err respect to[x_k x_kp1 v_k v_kp1]
 	if (H1)
 	{
 		auto& H1v = H1.value();

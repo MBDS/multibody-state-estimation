@@ -46,101 +46,109 @@ static void num_err_wrt_state(
 
 TEST(Jacobians, dynamics)
 {
-	using gtsam::symbol_shorthand::A;
-	using gtsam::symbol_shorthand::Q;
-	using gtsam::symbol_shorthand::V;
-	using namespace mbse;
-
-	// Create the multibody object:
-	CModelDefinition model;
-	mbse::buildFourBarsMBS(model);
-
-	std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
-	aMBS->setGravityVector(0, -9.81, 0);
-
-	CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
-	// Must be called before solve_ddotq():
-	dynSimul.prepare();
-
-	// Add factors:
-	// Create factor noises:
-	const auto n = aMBS->m_q.size();
-	const auto m = aMBS->m_Phi_q.getNumRows();
-
-	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
-
-	// Create a dummy factor:
-	auto factorDyn = boost::make_shared<FactorDynamics>(
-		&dynSimul, noise_dyn, Q(1), V(1), A(1));
-
-	// For different instants of time and mechanism positions and velocities,
-	// test the factor jacobian:
-	double t = 0;  // initial time
-	const double t_end = 1.0;  // end simulation time
-	const double t_steps = 1.0;  // "large steps" to run the tests at
-
-	dynSimul.params.time_step = 0.001;  // integrators timesteps
-
-	mrpt::system::CTimeLogger timlog;
-	timlog.enable(false);
-
-	for (double t = 0; t < t_end;)
+	try
 	{
-		const double t_next = t + t_steps;
-		dynSimul.run(t, t_next);
-		t = t_next;
+		using gtsam::symbol_shorthand::A;
+		using gtsam::symbol_shorthand::Q;
+		using gtsam::symbol_shorthand::V;
+		using namespace mbse;
 
-		std::cout << "Evaluating test for t=" << t << "\n";
-		std::cout << "q  =" << aMBS->m_q.transpose() << "\n";
-		std::cout << "dq =" << aMBS->m_dotq.transpose() << "\n";
-		std::cout << "ddq =" << aMBS->m_ddotq.transpose() << "\n";
+		// Create the multibody object:
+		CModelDefinition model;
+		mbse::buildFourBarsMBS(model);
 
-		// Convert plain Eigen vectors into state_t classes (used as Values in
-		// GTSAM factor graphs):
-		const state_t q = state_t(aMBS->m_q);
-		const state_t dotq = state_t(aMBS->m_dotq);
-		const state_t ddotq = state_t(aMBS->m_ddotq);
+		std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
+		aMBS->setGravityVector(0, -9.81, 0);
 
-		// Evaluate theoretical Jacobians:
-		gtsam::Matrix H[3];
-		timlog.enter("factorsDyn.theoretical_jacob");
+		CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
+		// Must be called before solve_ddotq():
+		dynSimul.prepare();
 
-		factorDyn->evaluateError(q, dotq, ddotq, H[0], H[1], H[2]);
+		// Add factors:
+		// Create factor noises:
+		const auto n = aMBS->m_q.size();
+		const auto m = aMBS->m_Phi_q.getNumRows();
 
-		timlog.leave("factorsDyn.theoretical_jacob");
+		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
-		// Evaluate numerical Jacobians:
-		gtsam::Matrix H_num[3];
+		// Create a dummy factor:
+		auto factorDyn = boost::make_shared<FactorDynamics>(
+			&dynSimul, noise_dyn, Q(1), V(1), A(1));
 
-		timlog.enter("factorsDyn.numeric_jacob");
-		for (int i = 0; i < 3; i++)
+		// For different instants of time and mechanism positions and
+		// velocities, test the factor jacobian:
+		double t = 0;  // initial time
+		const double t_end = 1.0;  // end simulation time
+		const double t_steps = 1.0;  // "large steps" to run the tests at
+
+		dynSimul.params.time_step = 0.001;  // integrators timesteps
+
+		mrpt::system::CTimeLogger timlog;
+		timlog.enable(false);
+
+		for (double t = 0; t < t_end;)
 		{
-			NumericJacobParams p;
-			p.q = q.vector();
-			p.dq = dotq.vector();
-			p.diff_variable = i;
-			p.factor = factorDyn.get();
+			const double t_next = t + t_steps;
+			dynSimul.run(t, t_next);
+			t = t_next;
 
-			const gtsam::Vector& x = i == 0 ? p.q : (i == 1 ? p.dq : p.ddq);
-			const gtsam::Vector x_incr =
-				Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-9);
+			std::cout << "Evaluating test for t=" << t << "\n";
+			std::cout << "q  =" << aMBS->m_q.transpose() << "\n";
+			std::cout << "dq =" << aMBS->m_dotq.transpose() << "\n";
+			std::cout << "ddq =" << aMBS->m_ddotq.transpose() << "\n";
 
-			mrpt::math::estimateJacobian(
-				x,
-				std::function<void(
-					const gtsam::Vector& new_q, const NumericJacobParams& p,
-					gtsam::Vector& err)>(&num_err_wrt_state),
-				x_incr, p, H_num[i]);
+			// Convert plain Eigen vectors into state_t classes (used as Values
+			// in GTSAM factor graphs):
+			const state_t q = state_t(aMBS->m_q);
+			const state_t dotq = state_t(aMBS->m_dotq);
+			const state_t ddotq = state_t(aMBS->m_ddotq);
 
-			// Check:
-			EXPECT_NEAR((H[i] - H_num[i]).array().abs().maxCoeff(), 0.0, 1e-2)
-				<< "H[" << i << "] Theoretical:\n"
-				<< H[i]
-				<< "\n"
-				   "H_num["
-				<< i << "] Numerical:\n"
-				<< H_num[i] << "\n";
+			// Evaluate theoretical Jacobians:
+			gtsam::Matrix H[3];
+			timlog.enter("factorsDyn.theoretical_jacob");
+
+			factorDyn->evaluateError(q, dotq, ddotq, H[0], H[1], H[2]);
+
+			timlog.leave("factorsDyn.theoretical_jacob");
+
+			// Evaluate numerical Jacobians:
+			gtsam::Matrix H_num[3];
+
+			timlog.enter("factorsDyn.numeric_jacob");
+			for (int i = 0; i < 3; i++)
+			{
+				NumericJacobParams p;
+				p.q = q.vector();
+				p.dq = dotq.vector();
+				p.diff_variable = i;
+				p.factor = factorDyn.get();
+
+				const gtsam::Vector& x = i == 0 ? p.q : (i == 1 ? p.dq : p.ddq);
+				const gtsam::Vector x_incr =
+					Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-9);
+
+				mrpt::math::estimateJacobian(
+					x,
+					std::function<void(
+						const gtsam::Vector& new_q, const NumericJacobParams& p,
+						gtsam::Vector& err)>(&num_err_wrt_state),
+					x_incr, p, H_num[i]);
+
+				// Check:
+				EXPECT_NEAR(
+					(H[i] - H_num[i]).array().abs().maxCoeff(), 0.0, 1e-2)
+					<< "H[" << i << "] Theoretical:\n"
+					<< H[i]
+					<< "\n"
+					   "H_num["
+					<< i << "] Numerical:\n"
+					<< H_num[i] << "\n";
+			}
+			timlog.leave("factorsDyn.numeric_jacob");
 		}
-		timlog.leave("factorsDyn.numeric_jacob");
+	}
+	catch (const std::exception& e)
+	{
+		throw std::runtime_error(mrpt::exception_to_str(e));
 	}
 }

@@ -9,6 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/FactorEulerInt.h>
+#include <mrpt/core/exceptions.h>
 
 using namespace mbse;
 
@@ -44,8 +45,9 @@ gtsam::Vector FactorEulerInt::evaluateError(
 	boost::optional<gtsam::Matrix&> H3) const
 {
 	const auto n = x_k.size();
-	if (x_kp1.size() != n || v_k.size() != n)
-		throw std::runtime_error("Inconsistent vector lengths!");
+
+	ASSERT_EQUAL_(x_kp1.size(), x_k.size());
+	ASSERT_EQUAL_(v_k.size(), x_k.size());
 
 	gtsam::Vector err =
 		x_kp1.vector() - x_k.vector() - timestep_ * v_k.vector();
