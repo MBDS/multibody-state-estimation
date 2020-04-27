@@ -120,6 +120,7 @@ TEST(Jacobians, dynamics)
 				NumericJacobParams p;
 				p.q = q.vector();
 				p.dq = dotq.vector();
+				p.ddq = ddotq.vector();
 				p.diff_variable = i;
 				p.factor = factorDyn.get();
 
