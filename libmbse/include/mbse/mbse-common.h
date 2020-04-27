@@ -16,9 +16,9 @@
 
 #include <memory>  // for auto_ptr
 #include <mrpt/poses/CPose3D.h>
+#include <mrpt/core/exceptions.h>
 
 #include <mrpt/version.h>
-#if MRPT_VERSION >= 0x199
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
 using mrpt::img::TColor;
@@ -26,21 +26,6 @@ using mrpt::img::TColorf;
 using mrpt::system::CTicTac;
 using mrpt::system::CTimeLogger;
 using mrpt::system::CTimeLoggerEntry;
-#else
-#include <mrpt/utils/CTimeLogger.h>
-#include <mrpt/utils/TColor.h>
-using mrpt::utils::CTicTac;
-using mrpt::utils::CTimeLogger;
-using mrpt::utils::CTimeLoggerEntry;
-using mrpt::utils::TColor;
-using mrpt::utils::TColorf;
-namespace mrpt
-{
-using mrpt::math::square;
-using mrpt::utils::DEG2RAD;
-using mrpt::utils::RAD2DEG;
-}  // namespace mrpt
-#endif
 
 // Eigen's include must occur AFTER MRPT's headers:
 #include <Eigen/Dense>  // provided by MRPT or standalone
@@ -116,11 +101,16 @@ struct TCompressedRowSparseMatrix
 	template <class MATRIX>
 	void asDense(MATRIX& M) const
 	{
+		ASSERT_ABOVE_(getNumRows(), 0U);
+		ASSERT_ABOVE_(getNumCols(), 0U);
 		M.resize(getNumRows(), getNumCols());
 		M.fill(0);
-		for (size_t i = 0; i < matrix.size(); i++)
-			for (const auto& row_val : matrix[i])
-				M(i, row_val.first) = row_val.second;
+		for (size_t row = 0; row < matrix.size(); row++)
+			for (const auto& row_val : matrix[row])
+			{
+				ASSERT_BELOW_(row_val.first, ncols);
+				M(row, row_val.first) = row_val.second;
+			}
 	}
 };
 

@@ -62,6 +62,7 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 	// Save the number of DOFs as the number of columsn in sparse Jacobians:
 	m_Phi_q.ncols = nDOFs;
 	m_dotPhi_q.ncols = nDOFs;
+	m_dPhiqdq_dq.ncols = nDOFs;
 
 	// Generate constraint equations & create structure of sparse Jacobians:
 	// ---------------------------------------------------------------------------------------------------

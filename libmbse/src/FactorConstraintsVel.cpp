@@ -88,6 +88,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	boost::optional<gtsam::Matrix&> H1,
 	boost::optional<gtsam::Matrix&> H2) const
 {
+	MRPT_START
+
 	const auto n = q_k.size();
 	const auto m = m_arm->m_Phi.rows();
 
@@ -159,4 +161,6 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	}
 
 	return err;
+
+	MRPT_END
 }

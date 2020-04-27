@@ -91,6 +91,8 @@ gtsam::Vector FactorDynamics::evaluateError(
 	boost::optional<gtsam::Matrix&> H1, boost::optional<gtsam::Matrix&> H2,
 	boost::optional<gtsam::Matrix&> H3) const
 {
+	MRPT_START
+
 	const auto n = q_k.size();
 	ASSERT_EQUAL_(dq_k.size(), q_k.size());
 	ASSERT_EQUAL_(ddq_k.size(), q_k.size());
@@ -224,4 +226,6 @@ Jacc_dqt = -2*invM*B;
 		Hv = -Eigen::MatrixXd::Identity(n, n);
 	}
 	return err;
+
+	MRPT_END
 }

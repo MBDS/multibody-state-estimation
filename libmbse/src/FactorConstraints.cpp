@@ -38,6 +38,8 @@ bool FactorConstraints::equals(
 gtsam::Vector FactorConstraints::evaluateError(
 	const state_t& q_k, boost::optional<gtsam::Matrix&> H1) const
 {
+	MRPT_START
+
 	const auto n = q_k.size();
 	if (n < 1) throw std::runtime_error("Empty state vector!");
 
@@ -59,4 +61,6 @@ gtsam::Vector FactorConstraints::evaluateError(
 	}
 
 	return err;
+
+	MRPT_END
 }
