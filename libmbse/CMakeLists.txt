@@ -81,6 +81,12 @@ install(EXPORT ${PROJECT_NAME}-targets
     NAMESPACE ${PROJECT_NAME}::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
+export(
+	TARGETS ${PROJECT_NAME}
+	FILE "${CMAKE_BINARY_DIR}/cmake/${PROJECT_NAME}-targets.cmake"
+	NAMESPACE mbse::
+)
+
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(

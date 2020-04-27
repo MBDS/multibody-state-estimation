@@ -1,3 +1,7 @@
+if (POLICY CMP0048)
+    cmake_policy(SET CMP0048 NEW) # Allow project(xxx VERSION a.b.c)
+endif()
+
 project(MBSE)
 
 cmake_minimum_required(VERSION 3.0)
