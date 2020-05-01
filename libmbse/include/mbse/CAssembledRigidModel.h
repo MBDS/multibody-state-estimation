@@ -180,6 +180,8 @@ class CAssembledRigidModel
 	VectorXd m_dotq;  //!< Velocity vector \dot{q} for all the unknowns
 	VectorXd m_ddotq;  //!< The previously computed acceleration vector \ddot{q}
 					   //!< for all the unknowns
+
+	VectorXd m_Q;  //!< External generalized forces (gravity NOT to be included)
 	/**  @} */
 
 	/** @name Other main data, and values computed as a function of the state

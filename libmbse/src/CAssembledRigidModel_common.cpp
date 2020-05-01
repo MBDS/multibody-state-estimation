@@ -30,10 +30,16 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 
 	m_q.resize(nDOFs);
 	m_q.setConstant(0);
+
 	m_dotq.resize(nDOFs);
 	m_dotq.setConstant(0);
+
 	m_ddotq.resize(nDOFs);
 	m_ddotq.setConstant(0);
+
+	m_Q.resize(nDOFs);
+	m_Q.setConstant(0);
+
 	m_DOFs = armi.DOFs;
 	m_points2DOFs.resize(armi.model.getPointCount());
 

@@ -16,23 +16,28 @@
 
 namespace mbse
 {
-/** Factor for multibody forward (direct) dynamics, using a general dynamics
+/** Factor for multibody inverse dynamics, using a general dynamics
  * solver.
  *
  * This implements: \f$ \text{error} = \ddot{q}_k -
- * \ddot{q}(q_k,\dot{q}_k,M,...) = 0\f$
+ * \ddot{q}(q_k,\dot{q}_k,Q_k) = 0\f$
  *
- * Unknowns: \f$ q_k, \dot{q}_k, \ddot{q}_k \f$
+ * Unknowns: \f$ q_k, \dot{q}_k, \ddot{q}_k, Q_k \f$
  *
- * Fixed data: multibody model (inertias, masses, etc.), external forces.
+ * Note that this factor only provides accurate Jacobians wrt the external
+ * forces Q_k and accelerations ddq_k, disregarding the Jacobians wrt q_k and
+ * dq_k. This is done for efficiency in calculations, and since it's left to the
+ * factor graph designer how velocities and positions are integrated over time.
+ *
+ * Fixed data: multibody model (inertias, masses, etc.)
  */
-class FactorDynamics
-	: public gtsam::NoiseModelFactor3<
-		  state_t /* q_k */, state_t /* dq_k */, state_t /* ddq_k */>
+class FactorInverseDynamics : public gtsam::NoiseModelFactor4<
+								  state_t /* q_k */, state_t /* dq_k */,
+								  state_t /* ddq_k */, state_t /* Q_k */>
 {
    private:
-	using This = FactorDynamics;
-	using Base = gtsam::NoiseModelFactor3<state_t, state_t, state_t>;
+	using This = FactorInverseDynamics;
+	using Base = gtsam::NoiseModelFactor4<state_t, state_t, state_t, state_t>;
 
 	CDynamicSimulatorBase* m_dynamic_solver = nullptr;
 
@@ -41,19 +46,19 @@ class FactorDynamics
 	using shared_ptr = boost::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
-	FactorDynamics() = default;
+	FactorInverseDynamics() = default;
 
 	/** Constructor */
-	FactorDynamics(
+	FactorInverseDynamics(
 		CDynamicSimulatorBase* dynamic_solver,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
-		gtsam::Key key_dq_k, gtsam::Key key_ddq_k)
-		: Base(noiseModel, key_q_k, key_dq_k, key_ddq_k),
+		gtsam::Key key_dq_k, gtsam::Key key_ddq_k, gtsam::Key key_Q_k)
+		: Base(noiseModel, key_q_k, key_dq_k, key_ddq_k, key_Q_k),
 		  m_dynamic_solver(dynamic_solver)
 	{
 	}
 
-	virtual ~FactorDynamics() override;
+	virtual ~FactorInverseDynamics() override;
 
 	/// @return a deep copy of this factor
 	virtual gtsam::NonlinearFactor::shared_ptr clone() const override;
@@ -75,12 +80,13 @@ class FactorDynamics
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-		boost::optional<gtsam::Matrix&> H1 = boost::none,
+		const state_t& Q_k, boost::optional<gtsam::Matrix&> H1 = boost::none,
 		boost::optional<gtsam::Matrix&> H2 = boost::none,
-		boost::optional<gtsam::Matrix&> H3 = boost::none) const override;
+		boost::optional<gtsam::Matrix&> H3 = boost::none,
+		boost::optional<gtsam::Matrix&> H4 = boost::none) const override;
 
 	/** number of variables attached to this factor */
-	std::size_t size() const { return 3; }
+	std::size_t size() const { return 4; }
 
    private:
 	/** Serialization function */
@@ -89,7 +95,8 @@ class FactorDynamics
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
 		ar& boost::serialization::make_nvp(
-			"FactorDynamics", boost::serialization::base_object<Base>(*this));
+			"FactorInverseDynamics",
+			boost::serialization::base_object<Base>(*this));
 	}
 };
 

@@ -111,7 +111,7 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 
 	// External forces:
 	// --------------------------------
-	// ...
+	Q += m_Q;
 
 	timelog.leave("builGeneralizedForces");
 }
