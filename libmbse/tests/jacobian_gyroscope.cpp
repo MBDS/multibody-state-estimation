@@ -81,7 +81,6 @@ TEST(Jacobians, gyroscope)
 
 	// For different instants of time and mechanism positions and velocities,
 	// test the factor jacobian:
-	double t = 0;  // initial time
 	const double t_end = 10.0;  // end simulation time
 	const double t_steps = 1.0;  // "large steps" to run the tests at
 

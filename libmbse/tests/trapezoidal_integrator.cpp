@@ -18,11 +18,13 @@
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/nonlinear/Values.h>
+#include <gtsam/nonlinear/factorTesting.h>
+#include <mrpt/core/exceptions.h>  // ASSERT_()
 #include <iostream>
 
 using namespace std;
 
-TEST(numerical_integrators, trapezoidal)
+TEST(FactorTrapInt, optimize)
 {
 	using gtsam::symbol_shorthand::V;
 	using gtsam::symbol_shorthand::X;
@@ -108,4 +110,36 @@ TEST(numerical_integrators, trapezoidal)
 
 	EXPECT_NEAR(optimValues.at<state_t>(X(3))[0], 3.5, 1e-6);
 	EXPECT_NEAR(optimValues.at<state_t>(X(3))[1], 5.5, 1e-6);
+}
+
+TEST(FactorTrapInt, Jacobian)
+{
+// Use MRPT macros for testing as "EXPECT"
+#define EXPECT ASSERT_
+	const std::string name_ = "FactorTrapInt";
+
+	using gtsam::symbol_shorthand::V;
+	using gtsam::symbol_shorthand::X;
+	using namespace mbse;
+
+	auto noise = gtsam::noiseModel::Diagonal::Sigmas(gtsam::Vector2(1, 1));
+	const double dt = 1e-3;
+
+	FactorTrapInt factor(dt, noise, X(1), X(2), V(1), V(2));
+
+	// Set the linearization point
+	gtsam::Values values;
+
+	const state_t x1 = gtsam::Vector(gtsam::Vector2(1.0, 2.0));
+	const state_t x2 = gtsam::Vector(gtsam::Vector2(3.0, 4.0));
+	const state_t v1 = gtsam::Vector(gtsam::Vector2(5.0, 6.0));
+	const state_t v2 = gtsam::Vector(gtsam::Vector2(7.0, 8.0));
+
+	values.insert(X(1), x1);
+	values.insert(X(2), x2);
+	values.insert(V(1), v1);
+	values.insert(V(2), v2);
+
+	EXPECT_CORRECT_FACTOR_JACOBIANS(
+		factor, values, 1e-7 /*diff*/, 1e-6 /*tolerance*/);
 }

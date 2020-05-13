@@ -67,7 +67,7 @@ TEST(Jacobians, dynamics)
 		// Add factors:
 		// Create factor noises:
 		const auto n = aMBS->m_q.size();
-		const auto m = aMBS->m_Phi_q.getNumRows();
+		// const auto m = aMBS->m_Phi_q.getNumRows();
 
 		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
@@ -77,7 +77,6 @@ TEST(Jacobians, dynamics)
 
 		// For different instants of time and mechanism positions and
 		// velocities, test the factor jacobian:
-		double t = 0;  // initial time
 		const double t_end = 1.0;  // end simulation time
 		const double t_steps = 1.0;  // "large steps" to run the tests at
 
