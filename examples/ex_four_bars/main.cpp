@@ -28,7 +28,7 @@ using namespace mrpt::math;
 
 double REALTIME_FACTOR = 0.15;
 
-const double GUI_DESIRED_FPS = 75;  // Hz
+const double GUI_DESIRED_FPS = 75;	// Hz
 
 const bool SHOW_ENERGY_BALANCE = true;
 
@@ -172,6 +172,7 @@ int main(int argc, char** argv)
 		E_tot.reserve(ENERGY_MAX_LOG);
 		E_kin.reserve(ENERGY_MAX_LOG);
 		E_pot.reserve(ENERGY_MAX_LOG);
+		mrpt::math::CMatrixDouble Qs(ENERGY_MAX_LOG, 1 + aMBS->m_q.size());
 
 		const size_t ENERGY_DECIMATE = 100;
 		size_t ENERGY_DECIMATE_CNT = 0;
@@ -195,7 +196,7 @@ int main(int argc, char** argv)
 
 #if SIMUL_REALTIME
 			if (t_new >
-				t_old + dynSimul.params.time_step)  // Just in case the computer
+				t_old + dynSimul.params.time_step)	// Just in case the computer
 													// is *really fast*...
 			{
 				double t_new_simul =
@@ -223,6 +224,17 @@ int main(int argc, char** argv)
 				E_tot.push_back(energy.E_total);
 				E_kin.push_back(energy.E_kin);
 				E_pot.push_back(energy.E_pot);
+			}
+			// Save first part of
+			{
+				static int idx = 0;
+				if (idx < Qs.rows() - 1)
+				{
+					Qs(idx, 0) = t_old_simul;
+					for (int i = 0; i < dynSimul.get_model()->m_q.size(); i++)
+						Qs(idx, 1 + i) = dynSimul.get_model()->m_q[i];
+					idx++;
+				}
 			}
 
 			// Update 3D view:
@@ -301,7 +313,7 @@ int main(int argc, char** argv)
 				"Total energy variation", 600, 300);
 
 			vector<double> E_tot_variation = E_tot;
-			E_tot_variation += (-E_tot[0]);  // mrpt::math
+			E_tot_variation += (-E_tot[0]);	 // mrpt::math
 			winE2.plot(E_tot_variation, "k2");
 
 			double evMin, evMax;
@@ -310,6 +322,9 @@ int main(int argc, char** argv)
 			winE2.axis(0, E_tot.size(), evMin * 1.1, evMax * 1.1);
 			winE2.waitForKey();
 		}
+
+		std::cout << "Saving decimated trajectory to: Qs.txt...\n";
+		Qs.saveToTextFile("Qs.txt");
 
 		return 0;  // program ended OK.
 	}
