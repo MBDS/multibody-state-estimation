@@ -77,9 +77,9 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	timelog.enter("solver_ddotq.Phiq_kernel");
 	Eigen::FullPivLU<Eigen::MatrixXd> lu;
 	lu.compute(Phiq);
-	const Eigen::MatrixXd R = lu.kernel().transpose();
+	const Eigen::MatrixXd R = lu.kernel();
 
-	const size_t nDOFs = R.rows();
+	const size_t nDOFs = R.cols();
 
 	timelog.leave("solver_ddotq.Phiq_kernel");
 
@@ -88,7 +88,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	// Build the dense augmented matrix:
 	Eigen::MatrixXd A(nDepCoords, nDepCoords);
 	A.block(0, 0, nConstraints, nDepCoords) = Phiq;
-	A.block(nConstraints, 0, nDOFs, nDepCoords) = R;
+	A.block(nConstraints, 0, nDOFs, nDepCoords) = R.transpose() * m_mass;
 
 	// Build the RHS vector:
 	// --------------------------
@@ -97,7 +97,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	Eigen::VectorXd Q(nDepCoords);
 
 	this->build_RHS(&Q[0], &RHS[0] /* c => [0:nConstraints-1] */);
-	RHS.tail(nDOFs) = R * Q;
+	RHS.tail(nDOFs) = R.transpose() * Q;
 
 	timelog.leave("solver_ddotq.build_rhs");
 

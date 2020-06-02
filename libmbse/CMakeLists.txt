@@ -4,14 +4,6 @@ endif()
 
 project(mbse LANGUAGES CXX VERSION 0.1.0)
 
-# Tests
-set(BUILD_TESTING ON CACHE BOOL "Build unit tests")
-
-if(BUILD_TESTING)
-    enable_testing()
-    add_subdirectory(tests)
-endif()
-
 file(GLOB LIBHDRS "src/*.h")
 file(GLOB LIBSRCS "src/*.cpp")
 file(GLOB LIBHDRSPUB "include/mbse/*.h")
@@ -65,6 +57,14 @@ if(MSVC)
         /wd4275
         /wd4251
    )
+endif()
+
+# Tests ===========
+set(BUILD_TESTING ON CACHE BOOL "Build unit tests")
+
+if(BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
 
 # ==== Install & export target ========
