@@ -76,8 +76,8 @@ void mbse::buildParameterizedMBS(
 	}
 
 	// vertical bars
-	for (size_t row = 1; row <= ny;
-		 row++)  // from row 1 (0 belongs to fixed points) to ny
+	// from row 1 (0 belongs to fixed points) to ny
+	for (size_t row = 1; row <= ny; row++)
 	{
 		for (size_t j = 0; j <= nx; j++)  // from column 0 to nx
 		{
@@ -98,12 +98,14 @@ void mbse::buildParameterizedMBS(
 	// cout << "# bodies: " << model.getBodies().size() << endl;
 }
 
-void mbse::buildLongStringMBS(const size_t N, CModelDefinition& model)
+void mbse::buildLongStringMBS(
+	const size_t N, CModelDefinition& model, double segmentLength,
+	double segmentMassPerMeter)
 {
 	ASSERT_(N >= 1);
 
 	// Definition of constants
-	const double L = 0.5;  // Rod lengths
+	const double L = segmentLength;  // Rod lengths
 
 	model.setPointCount(N + 1);
 
@@ -118,7 +120,7 @@ void mbse::buildLongStringMBS(const size_t N, CModelDefinition& model)
 		b.points[0] = j;
 		b.points[1] = j + 1;
 		b.length() = L;
-		b.mass() = L * 0.1;
+		b.mass() = L * segmentMassPerMeter;
 		b.I0() = b.mass() * mrpt::square(b.length()) / 3.0;
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}

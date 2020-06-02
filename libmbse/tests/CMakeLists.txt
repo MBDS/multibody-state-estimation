@@ -55,6 +55,7 @@ endfunction()
 # List of tests:
 mbse_define_test(euler_integrator)
 mbse_define_test(trapezoidal_integrator)
+mbse_define_test(dynamics-solvers)
 mbse_define_test(fourbars)
 mbse_define_test(jacobian_dynamics)
 mbse_define_test(jacobian_gyroscope)

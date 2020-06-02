@@ -25,7 +25,9 @@ void buildParameterizedMBS(
 /** Builds a model of an N parts pendulum.
  * \todo Add picture!
  */
-void buildLongStringMBS(const size_t N, CModelDefinition& model);
+void buildLongStringMBS(
+	const size_t N, CModelDefinition& model, double segmentLength = 0.5,
+	double segmentMassPerMeter = 1.0);
 
 /** Builds a model of an 4-bar mechanism.
  * \todo Add picture!

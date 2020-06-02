@@ -28,7 +28,7 @@ using namespace mrpt::math;
 
 double REALTIME_FACTOR = 0.15;
 
-const double GUI_DESIRED_FPS = 75;	// Hz
+const double GUI_DESIRED_FPS = 75;  // Hz
 
 const bool SHOW_ENERGY_BALANCE = true;
 
@@ -44,11 +44,11 @@ int main(int argc, char** argv)
 
 		// Define a double pendulum mechanism:
 		// ------------------------------------------------
-		buildFourBarsMBS(model);
+		// buildFourBarsMBS(model);
 		// buildFourBarsMBS_JavierCuadrado(model);
 		// buildSliderCrankMBS(model);
 		// buildFollowerMBS(model);
-		// buildLongStringMBS( 15, model);
+		buildLongStringMBS(1, model);
 		// mbse::buildTwoSliderBlocks(model);
 
 		// const size_t Nx = 5, Ny = 4;
@@ -139,16 +139,17 @@ int main(int argc, char** argv)
 
 		// Executes a dynamic simulation:
 		// -----------------------------------------------
-		// CDynamicSimulator_Lagrange_LU_dense
-		// CDynamicSimulator_Lagrange_UMFPACK
-		// CDynamicSimulator_Lagrange_KLU
-		// CDynamicSimulator_Lagrange_CHOLMOD
-		// CDynamicSimulator_Indep_dense
-		// CDynamicSimulator_AugmentedLagrangian_KLU
-		// CDynamicSimulator_AugmentedLagrangian_Dense
-		// CDynamicSimulator_ALi3_Dense
+		using dynamics_t = CDynamicSimulator_Lagrange_LU_dense;
+		// using dynamics_t = CDynamicSimulator_Lagrange_UMFPACK;
+		// using dynamics_t = CDynamicSimulator_Lagrange_KLU;
+		// using dynamics_t = CDynamicSimulator_Lagrange_CHOLMOD;
+		// using dynamics_t = CDynamicSimulator_Indep_dense;
+		// using dynamics_t = CDynamicSimulator_AugmentedLagrangian_KLU;
+		// using dynamics_t = CDynamicSimulator_AugmentedLagrangian_Dense;
+		// using dynamics_t = CDynamicSimulator_ALi3_Dense;
+		// using dynamics_t = CDynamicSimulator_R_matrix_dense;
 
-		CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
+		dynamics_t dynSimul(aMBS);
 
 		// dynSimul.params_penalty.alpha = 1e7;
 		// dynSimul.params_penalty.xi = 1;
@@ -162,7 +163,8 @@ int main(int argc, char** argv)
 		// Set params:
 		// -----------------------------
 		dynSimul.params.time_step = 1e-3;
-		dynSimul.params.ode_solver = ODE_RK4;  // ODE_Trapezoidal; //ODE_RK4; //
+		dynSimul.params.ode_solver = ODE_RK4;
+		// dynSimul.params.ode_solver = ODE_Trapezoidal;
 		dynSimul.params.user_callback = simul_callback_t(my_callback);
 
 		// Energy stats:
@@ -196,7 +198,7 @@ int main(int argc, char** argv)
 
 #if SIMUL_REALTIME
 			if (t_new >
-				t_old + dynSimul.params.time_step)	// Just in case the computer
+				t_old + dynSimul.params.time_step)  // Just in case the computer
 													// is *really fast*...
 			{
 				double t_new_simul =
@@ -313,7 +315,7 @@ int main(int argc, char** argv)
 				"Total energy variation", 600, 300);
 
 			vector<double> E_tot_variation = E_tot;
-			E_tot_variation += (-E_tot[0]);	 // mrpt::math
+			E_tot_variation += (-E_tot[0]);  // mrpt::math
 			winE2.plot(E_tot_variation, "k2");
 
 			double evMin, evMax;

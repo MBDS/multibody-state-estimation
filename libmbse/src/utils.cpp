@@ -15,7 +15,7 @@
 using namespace mbse;
 using namespace Eigen;
 
-CTimeLogger mbse::timelog;
+CTimeLogger mbse::timelog("mbse_global");
 
 bool mbse::save_matrix(
 	cholmod_sparse* tri, const char* filename, cholmod_common* c)
