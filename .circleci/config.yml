@@ -7,12 +7,13 @@ jobs:
       - run:
           name: "Install dependencies"
           command: |
-            apt-get update
-            apt-get install software-properties-common -y
+            apt update
+            export DEBIAN_FRONTEND=noninteractive
+            apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
             add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
-            apt-get install libmrpt-dev -y
-            apt-get install libgtsam-dev -y
+            apt install build-essential g++ cmake -yq
+            apt install libmrpt-dev libgtsam-dev -yq
       - checkout
       - run:
           name: Generate cmake files
@@ -27,12 +28,13 @@ jobs:
       - run:
           name: "Install dependencies"
           command: |
-            apt-get update
-            apt-get install software-properties-common -y
+            apt update
+            export DEBIAN_FRONTEND=noninteractive
+            apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
             add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
-            apt-get install libmrpt-dev -y
-            apt-get install libgtsam-dev -y
+            apt install build-essential g++ cmake -yq
+            apt install libmrpt-dev libgtsam-dev -yq
       - checkout
       - run:
           name: Generate cmake files
@@ -47,13 +49,13 @@ jobs:
       - run:
           name: "Install dependencies"
           command: |
-            apt-get update
-            apt-get install software-properties-common -y
+            apt update
+            export DEBIAN_FRONTEND=noninteractive
+            apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
             add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
-            apt-get install clang -y
-            apt-get install libmrpt-dev -y
-            apt-get install libgtsam-dev -y
+            apt install build-essential clang cmake -yq
+            apt install cmake libmrpt-dev libgtsam-dev -yq
       - checkout
       - run:
           name: Generate cmake files
@@ -70,13 +72,13 @@ jobs:
       - run:
           name: "Install dependencies"
           command: |
-            apt-get update
-            apt-get install software-properties-common -y
+            apt update
+            export DEBIAN_FRONTEND=noninteractive
+            apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
             add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
-            apt-get install clang -y
-            apt-get install libmrpt-dev -y
-            apt-get install libgtsam-dev -y
+            apt install build-essential clang cmake -yq
+            apt install cmake libmrpt-dev libgtsam-dev -yq
       - checkout
       - run:
           name: Generate cmake files
