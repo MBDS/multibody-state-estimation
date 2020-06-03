@@ -1,4 +1,6 @@
-# The MultiBody State Estimation (MBSE) C++ library 
+[![MBSE](https://circleci.com/gh/MBDS/multibody-state-estimation.svg?style=svg)](https://circleci.com/gh/MBDS/multibody-state-estimation)
+
+# The MultiBody State Estimation (MBSE) C++ library
 This repository contains a C++ library for multibody dynamics estimation.
 
 ## Algorithm #1: Particle filter estimator
@@ -54,5 +56,5 @@ In your CMake project, add:
         # then in your target:
         target_link_libraries(${PROJECT_NAME} mbse::mbse)
 
-For CMake to find the library, in `cmake-gui` or `ccmake`, set the variable `mbse_DIR` to 
+For CMake to find the library, in `cmake-gui` or `ccmake`, set the variable `mbse_DIR` to
 `BUILD_DIR/cmake`, where `BUILD_DIR` is the compilation directory where you built MBSE.
