@@ -19,7 +19,6 @@ add_custom_target(tests_build_all)
 set_target_properties(test_legacy PROPERTIES FOLDER "unit tests")
 set_target_properties(tests_build_all PROPERTIES FOLDER "unit tests")
 
-enable_testing()
 
 # If using system library, add C++ flags:
 if (UNIX)

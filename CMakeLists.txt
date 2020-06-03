@@ -58,6 +58,8 @@ endif()
 # To generate DLLs:
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+enable_testing()
+
 # LIB : MBSE
 # --------------------------------
 add_subdirectory(libmbse)
