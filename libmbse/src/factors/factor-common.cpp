@@ -8,11 +8,13 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
-/** \file The main include file from user code
- */
-#pragma once
+#include <mbse/factors/factor-common.h>
+#include <cmath>
+#include <iostream>
 
-// Include the main classes/structs:
-#include <mbse/CModelDefinition.h>
-#include <mbse/CAssembledRigidModel.h>
-#include <mbse/dynamics/dynamic-simulators.h>
+using namespace mbse;
+
+void state_t::print(const std::string& prefix) const
+{
+	std::cout << prefix << this->transpose();
+}

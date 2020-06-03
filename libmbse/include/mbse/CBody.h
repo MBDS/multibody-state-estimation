@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "mbse-common.h"
+#include <mbse/mbse-common.h>
 #include <mrpt/opengl/CRenderizable.h>
 
 namespace mbse

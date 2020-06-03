@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "mbse-common.h"
+#include <mbse/mbse-common.h>
 #include "CBody.h"
 #include "constraints.h"
 #include <functional>

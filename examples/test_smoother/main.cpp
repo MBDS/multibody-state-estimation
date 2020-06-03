@@ -19,12 +19,12 @@
 #include <fstream>
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/CModelDefinition.h>
-#include <mbse/FactorDynamics.h>
-#include <mbse/FactorConstraints.h>
-#include <mbse/FactorConstraintsVel.h>
-#include <mbse/FactorEulerInt.h>
-#include <mbse/FactorTrapInt.h>
-#include <mbse/dynamic-simulators.h>
+#include <mbse/factors/FactorDynamics.h>
+#include <mbse/factors/FactorConstraints.h>
+#include <mbse/factors/FactorConstraintsVel.h>
+#include <mbse/factors/FactorEulerInt.h>
+#include <mbse/factors/FactorTrapInt.h>
+#include <mbse/dynamics/dynamic-simulators.h>
 #include <mbse/model-examples.h>
 
 void test_smoother()

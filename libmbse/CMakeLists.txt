@@ -4,9 +4,9 @@ endif()
 
 project(mbse LANGUAGES CXX VERSION 0.1.0)
 
-file(GLOB LIBHDRS "src/*.h")
-file(GLOB LIBSRCS "src/*.cpp")
-file(GLOB LIBHDRSPUB "include/mbse/*.h")
+file(GLOB_RECURSE LIBHDRS "src/*.h")
+file(GLOB_RECURSE LIBSRCS "src/*.cpp")
+file(GLOB_RECURSE LIBHDRSPUB "include/mbse/*.h")
 add_library(${PROJECT_NAME} SHARED
     ${LIBHDRS}
     ${LIBSRCS}

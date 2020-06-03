@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "mbse-common.h"
+#include <mbse/mbse-common.h>
 
 namespace mbse
 {
