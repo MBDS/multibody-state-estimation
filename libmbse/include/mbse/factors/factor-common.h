@@ -54,6 +54,12 @@ class state_t : public gtsam::Vector
 		a -= b;
 		return a;
 	}
+	state_t operator-() const
+	{
+		state_t a = *this;
+		a *= -1;
+		return a;
+	}
 	// --- End of interface expected by gtsam::VectorSpace ---
 };
 
