@@ -63,6 +63,41 @@ static void num_err_wrt_Q(
 	err = qpp_predicted - p.ddq;
 }
 
+static void num_err_wrt_q(
+	const gtsam::Vector& new_q, const NumericJacobParams& p, gtsam::Vector& err)
+{
+	// Set q & dq in the multibody model:
+	p.arm->m_q = new_q;
+	p.arm->m_dotq = p.dq;
+	p.arm->m_Q = p.Q;
+
+	// Predict accelerations:
+	Eigen::VectorXd qpp_predicted;
+	const double t = 0;  // wallclock time (useless?)
+	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
+
+	// Evaluate error:
+	err = qpp_predicted - p.ddq;
+}
+
+static void num_err_wrt_dq(
+	const gtsam::Vector& new_dq, const NumericJacobParams& p,
+	gtsam::Vector& err)
+{
+	// Set q & dq in the multibody model:
+	p.arm->m_q = p.q;
+	p.arm->m_dotq = new_dq;
+	p.arm->m_Q = p.Q;
+
+	// Predict accelerations:
+	Eigen::VectorXd qpp_predicted;
+	const double t = 0;  // wallclock time (useless?)
+	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
+
+	// Evaluate error:
+	err = qpp_predicted - p.ddq;
+}
+
 bool FactorInverseDynamics::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
 {
@@ -89,7 +124,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	CAssembledRigidModel& arm = *m_dynamic_solver->get_model_non_const();
 	arm.m_q = q_k.vector();
 	arm.m_dotq = dq_k.vector();
-	arm.m_Q = q_k.vector();
+	arm.m_Q = Q_k.vector();
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
@@ -104,13 +139,55 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	if (H1)
 	{
 		auto& Hv = H1.value();
+#if 0
 		Hv.setZero(n, n);
+#else
+		NumericJacobParams p;
+		p.arm = &arm;
+		p.dynamic_solver = m_dynamic_solver;
+		p.q = q_k.vector();
+		p.dq = dq_k.vector();
+		p.ddq = ddq_k.vector();
+
+		const gtsam::Vector x = p.q;
+		const gtsam::Vector x_incr =
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
+
+		mrpt::math::estimateJacobian(
+			x,
+			std::function<void(
+				const gtsam::Vector& new_q, const NumericJacobParams& p,
+				gtsam::Vector& err)>(&num_err_wrt_q),
+			x_incr, p, Hv);
+
+#endif
 	}
 	// d err / d dq_k
 	if (H2)
 	{
 		auto& Hv = H2.value();
+#if 0
 		Hv.setZero(n, n);
+#else
+		NumericJacobParams p;
+		p.arm = &arm;
+		p.dynamic_solver = m_dynamic_solver;
+		p.q = q_k.vector();
+		p.dq = dq_k.vector();
+		p.ddq = ddq_k.vector();
+
+		const gtsam::Vector x = p.dq;
+		const gtsam::Vector x_incr =
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
+
+		mrpt::math::estimateJacobian(
+			x,
+			std::function<void(
+				const gtsam::Vector& new_q, const NumericJacobParams& p,
+				gtsam::Vector& err)>(&num_err_wrt_dq),
+			x_incr, p, Hv);
+
+#endif
 	}
 	// d err / d ddq_k
 	if (H3)
