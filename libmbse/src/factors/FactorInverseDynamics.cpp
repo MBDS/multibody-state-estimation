@@ -56,7 +56,7 @@ static void num_err_wrt_Q(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
@@ -73,7 +73,7 @@ static void num_err_wrt_q(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
@@ -91,7 +91,7 @@ static void num_err_wrt_dq(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
@@ -128,7 +128,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 
 	m_dynamic_solver->solve_ddotq(t, qpp_predicted);
 
@@ -148,6 +148,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 		p.q = q_k.vector();
 		p.dq = dq_k.vector();
 		p.ddq = ddq_k.vector();
+		p.Q = Q_k.vector();
 
 		const gtsam::Vector x = p.q;
 		const gtsam::Vector x_incr =
@@ -175,6 +176,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 		p.q = q_k.vector();
 		p.dq = dq_k.vector();
 		p.ddq = ddq_k.vector();
+		p.Q = Q_k.vector();
 
 		const gtsam::Vector x = p.dq;
 		const gtsam::Vector x_incr =
@@ -195,6 +197,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 		auto& Hv = H3.value();
 		Hv = -Eigen::MatrixXd::Identity(n, n);
 	}
+
 	if (H4)
 	{
 		auto& Hv = H4.value();

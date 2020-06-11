@@ -10,6 +10,7 @@
 
 #include <mbse/CModelDefinition.h>
 #include <mbse/CAssembledRigidModel.h>
+#include <mrpt/core/exceptions.h>
 
 using namespace mbse;
 using namespace Eigen;
@@ -91,8 +92,8 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		// Force vector:
 		Eigen::Vector2d F;
 		// F = body.mass * m_gravity;
-		F[0] = body.mass() * m_gravity[0];  // x
-		F[1] = body.mass() * m_gravity[1];  // y
+		F[0] = body.mass() * m_gravity[0];	// x
+		F[1] = body.mass() * m_gravity[1];	// y
 
 		// Q = Cp^t * F
 		const Eigen::Vector4d Qi = Cp.transpose() * F;
@@ -102,7 +103,7 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		const bool p1_fixed = p1_info.fixed;
 
 		const size_t idx_x0 =
-			p0_dofs.dof_x;  // Will be INVALID_DOF if it's a fixed point
+			p0_dofs.dof_x;	// Will be INVALID_DOF if it's a fixed point
 		const size_t idx_x1 = p1_dofs.dof_x;
 
 		if (!p0_fixed) Q.segment<2>(idx_x0) += Qi.head<2>();
@@ -111,6 +112,8 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 
 	// External forces:
 	// --------------------------------
+	ASSERT_EQUAL_(Q.rows(), m_Q.rows());
+	ASSERT_EQUAL_(Q.cols(), m_Q.cols());
 	Q += m_Q;
 
 	timelog.leave("builGeneralizedForces");

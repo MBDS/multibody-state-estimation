@@ -110,6 +110,5 @@ std::shared_ptr<CAssembledRigidModel> CModelDefinition::assembleRigidMBS()
 	this->assembleRigidMBS(armi);
 
 	// 2) Actual assembly:
-	return std::shared_ptr<CAssembledRigidModel>(
-		new CAssembledRigidModel(armi));
+	return std::make_shared<CAssembledRigidModel>(armi);
 }
