@@ -15,7 +15,7 @@
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
 #include <mrpt/poses/CPosePDFParticles.h>
-#include <mrpt/system/vector_loadsave.h>
+#include <mrpt/io/vector_loadsave.h>
 #include <thread>  // for sleep()
 
 using namespace std;
@@ -507,10 +507,10 @@ int main(int argc, char** argv)
 		}
 
 #if SAVE_STATS
-		mrpt::system::vectorToTextFile(STATS_t, "t.txt");
-		mrpt::system::vectorToTextFile(GT_ang0, "GT_ang0.txt");
-		mrpt::system::vectorToTextFile(EST_ang0_mean, "EST_ang0_mean.txt");
-		mrpt::system::vectorToTextFile(EST_ang0_std, "EST_ang0_std.txt");
+		mrpt::io::vectorToTextFile(STATS_t, "t.txt");
+		mrpt::io::vectorToTextFile(GT_ang0, "GT_ang0.txt");
+		mrpt::io::vectorToTextFile(EST_ang0_mean, "EST_ang0_mean.txt");
+		mrpt::io::vectorToTextFile(EST_ang0_std, "EST_ang0_std.txt");
 #endif
 
 #if COMPUTE_RMSE
