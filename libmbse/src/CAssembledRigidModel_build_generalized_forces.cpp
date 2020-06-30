@@ -49,7 +49,6 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		// where the force is applied:
 		TPoint2D force_local_point;
 
-		MRPT_TODO("Get current coordinates, from m_q!")
 		const Point2& p0_info = m_parent.getPointInfo(body.points[0]);
 		const Point2& p1_info = m_parent.getPointInfo(body.points[1]);
 
@@ -59,7 +58,6 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		if (0)
 		{
 			// Get the current global coordinates of the body points:
-
 			const TPoint2D p0(
 				(p0_dofs.dof_x != INVALID_DOF) ? m_q[p0_dofs.dof_x]
 											   : p0_info.coords.x,
@@ -70,8 +68,6 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 											   : p1_info.coords.x,
 				(p1_dofs.dof_y != INVALID_DOF) ? m_q[p1_dofs.dof_y]
 											   : p1_info.coords.y);
-
-			// const TPoint2D p1...
 		}
 		else
 		{

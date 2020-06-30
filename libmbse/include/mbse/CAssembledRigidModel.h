@@ -19,12 +19,20 @@ namespace mbse
 struct TSymbolicAssembledModel
 {
 	const CModelDefinition& model;  //!< My "parent" model
-	/** Info on each DOF in the problem [SAME SIZE THAN m_q] */
+
+	/** Info on Natural Coordinate DOFs in the problem (same lenth than m_q) */
 	std::vector<NaturalCoordinateDOF> DOFs;
+
+	/** Additional relative coordinates */
+	std::vector<RelativeDOF> rDOFs;
 
 	TSymbolicAssembledModel(const CModelDefinition& model_) : model(model_) {}
 
-	void clear() { DOFs.clear(); }
+	void clear()
+	{
+		DOFs.clear();
+		rDOFs.clear();
+	}
 };
 
 class CAssembledRigidModel

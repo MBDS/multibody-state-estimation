@@ -32,7 +32,7 @@ const double GUI_DESIRED_FPS = 75;  // Hz
 
 const bool SHOW_ENERGY_BALANCE = true;
 
-void my_callback(const TSimulationStateRef simul_state) {}
+void my_callback(const TSimulationStateRef& simul_state) {}
 
 int main(int argc, char** argv)
 {
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 		win3D.repaint();
 
 		const double GUI_DESIRED_PERIOD = 1.0 / GUI_DESIRED_FPS;
-		CTicTac tictac_gui_refresh;
+		mrpt::system::CTicTac tictac_gui_refresh;
 
 		// Test initial position problem:
 		// ---------------------------------
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 		dynSimul.prepare();
 
 		// Run dynamic simulation:
-		CTicTac tictac;
+		mrpt::system::CTicTac tictac;
 		double t_old = tictac.Tac();
 		double t_old_simul = t_old;
 

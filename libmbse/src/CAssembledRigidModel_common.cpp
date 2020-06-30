@@ -25,8 +25,20 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 {
 	for (int i = 0; i < 3; i++) m_gravity[i] = DEFAULT_GRAVITY[i];
 
-	const auto nDOFs = armi.DOFs.size();
-	ASSERTMSG_(nDOFs > 0, "Trying to assemble model with 0 DOFs!?");
+	const auto nEuclideanDOFs = armi.DOFs.size();
+	const auto nRelativeDOFs = armi.rDOFs.size();
+
+	const auto nDOFs = nEuclideanDOFs + nRelativeDOFs;
+
+	ASSERTMSG_(
+		nEuclideanDOFs > 0,
+		"Trying to assemble model with 0 Natural Coordinate DOFs");
+
+	if (nRelativeDOFs > 0)
+	{
+		MRPT_TODO("handle rDOFs");
+		THROW_EXCEPTION("To-do relative coordinates!");
+	}
 
 	m_q.resize(nDOFs);
 	m_q.setConstant(0);

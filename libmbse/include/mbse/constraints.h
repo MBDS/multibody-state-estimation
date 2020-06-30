@@ -42,14 +42,16 @@ class CConstraintBase
 	/** Virtual destructor (required in any virtual base) */
 	virtual ~CConstraintBase();
 
-	virtual CConstraintBase* clone()
-		const = 0;  //!< Clone operator for smart pointers
+	/** Clone operator for smart pointers */
+	virtual CConstraintBase* clone() const = 0;
 
-	/** Creates a 3D representation of the constraint, if applicable (e.g. the
+	/** Creates a 3D representation of the constraint, if applicable (e.g.
+   the
 	 * line of a fixed slider) \return false if the constraint has no 3D
 	 * representation
 	 */
 	virtual bool get3DRepresentation(
+		[[maybe_unused]]  //
 		mrpt::opengl::CRenderizable::Ptr& inout_obj) const
 	{
 		return false;
@@ -77,8 +79,7 @@ class CConstraintConstantDistance : public CConstraintBase
 
 	virtual CConstraintBase* clone() const
 	{
-		return new CConstraintConstantDistance(
-			point_index0, point_index1, length);
+		return new CConstraintConstantDistance(*this);
 	}
 
    protected:
@@ -116,20 +117,16 @@ class CConstraintFixedSlider : public CConstraintBase
 		line_pt[1] = pt1;
 	}
 
-	virtual void buildSparseStructures(CAssembledRigidModel& arm) const;
-	virtual void update(CAssembledRigidModel& arm) const;
+	void buildSparseStructures(CAssembledRigidModel& arm) const override;
+	void update(CAssembledRigidModel& arm) const override;
 
-	virtual CConstraintBase* clone() const
+	CConstraintBase* clone() const override
 	{
-		return new CConstraintFixedSlider(point_index, line_pt[0], line_pt[1]);
+		return new CConstraintFixedSlider(*this);
 	}
 
-	/** Creates a 3D representation of the constraint, if applicable (e.g. the
-	 * line of a fixed slider) \return false if the constraint has no 3D
-	 * representation
-	 */
-	virtual bool get3DRepresentation(
-		mrpt::opengl::CRenderizable::Ptr& inout_obj) const;
+	bool get3DRepresentation(
+		mrpt::opengl::CRenderizable::Ptr& inout_obj) const override;
 
    protected:
 	mutable const Point2* m_point = nullptr;
@@ -171,12 +168,12 @@ class CConstraintMobileSlider : public CConstraintBase
 		}
 	}
 
-	virtual void buildSparseStructures(CAssembledRigidModel& arm) const;
-	virtual void update(CAssembledRigidModel& arm) const;
+	void buildSparseStructures(CAssembledRigidModel& arm) const override;
+	void update(CAssembledRigidModel& arm) const override;
 
-	virtual CConstraintBase* clone() const
+	CConstraintBase* clone() const override
 	{
-		return new CConstraintMobileSlider(point_index, ref_pts[0], ref_pts[1]);
+		return new CConstraintMobileSlider(*this);
 	}
 
    protected:

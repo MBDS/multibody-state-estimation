@@ -90,8 +90,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 {
 	MRPT_START
 
-	const auto n = q_k.size();
-	const auto m = m_arm->m_Phi.rows();
+	// const auto n = q_k.size();
+	// const auto m = m_arm->m_Phi.rows();
 
 	ASSERT_EQUAL_(dotq_k.size(), q_k.size());
 	ASSERT_(q_k.size() > 0);

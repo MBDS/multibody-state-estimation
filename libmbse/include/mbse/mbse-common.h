@@ -14,27 +14,33 @@
  * lib.
  */
 
+#include <variant>
 #include <memory>  // for auto_ptr
 #include <mrpt/poses/CPose3D.h>
 #include <mrpt/core/exceptions.h>
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
 
-// Eigen's include must occur AFTER MRPT's headers:
 #include <Eigen/Dense>  // provided by MRPT or standalone
-
 #if EIGEN_VERSION_AT_LEAST(3, 1, 0)
 #include <Eigen/Sparse>
 #include <Eigen/UmfPackSupport>
 #else
 #error "This library needs Eigen 3.1.0 or newer!"
 #endif
+// TODO: make this optional?
 #include <cholmod.h>
 #include <klu.h>
 
 namespace mbse
 {
 extern mrpt::system::CTimeLogger timelog;
+
+using dof_index_t = std::size_t;
+using point_index_t = std::size_t;
+
+constexpr dof_index_t INVALID_DOF = static_cast<dof_index_t>(-1);
+constexpr point_index_t INVALID_POINT_INDEX = static_cast<point_index_t>(-1);
 
 /** Each of the 2D points in a CModelDefinition */
 struct Point2
@@ -56,18 +62,42 @@ enum class PointDOF : uint8_t
 /** Degree of Freedom (DOF) info for Natural Coordinates DOFs */
 struct NaturalCoordinateDOF
 {
-	size_t point_index;  //!< Point index in the MBS model
-	PointDOF point_dof;  //!< 0:x, 1:y, 2:z
+	/** Point index in the MBS model */
+	point_index_t point_index = INVALID_POINT_INDEX;
 
-	NaturalCoordinateDOF(size_t _point_index, PointDOF _point_dof)
+	/** DOF, from those of the selected point (0:x, 1:y, 2:z) */
+	PointDOF point_dof;
+
+	NaturalCoordinateDOF(point_index_t _point_index, PointDOF _point_dof)
 		: point_index(_point_index), point_dof(_point_dof)
 	{
 	}
 };
 
-using dof_index_t = std::size_t;
+struct RelativeAngleDOF
+{
+	point_index_t point_idx0 = INVALID_POINT_INDEX;
+	point_index_t point_idx1 = INVALID_POINT_INDEX;
 
-constexpr dof_index_t INVALID_DOF = static_cast<size_t>(-1);
+	RelativeAngleDOF() = default;
+	RelativeAngleDOF(point_index_t i0, point_index_t i1)
+		: point_idx0(i0), point_idx1(i1)
+	{
+	}
+};
+struct RelativeDistanceDOF
+{
+	point_index_t point_idx0 = INVALID_POINT_INDEX;
+	point_index_t point_idx1 = INVALID_POINT_INDEX;
+
+	RelativeDistanceDOF() = default;
+	RelativeDistanceDOF(point_index_t i0, point_index_t i1)
+		: point_idx0(i0), point_idx1(i1)
+	{
+	}
+};
+
+using RelativeDOF = std::variant<std::monostate, RelativeAngleDOF>;
 
 struct Point2ToDOF
 {

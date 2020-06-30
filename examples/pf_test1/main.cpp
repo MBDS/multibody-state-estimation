@@ -11,11 +11,13 @@
 // Example of particle-filter for tracking a multibody model
 // ------------------------------------------------------------
 #include <mbse/mbse.h>
+#include <mbse/CMultiBodyParticleFilter.h>
 
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
 #include <mrpt/poses/CPosePDFParticles.h>
 #include <mrpt/io/vector_loadsave.h>
+
 #include <thread>  // for sleep()
 
 using namespace std;
@@ -172,11 +174,7 @@ void buildFollowerMBS(CModelDefinition& model)
 void pf_initialize_uniform_distribution(
 	CMultiBodyParticleFilter& pf, CModelDefinition& model);
 
-#if MRPT_VERSION >= 0x199
 auto& rnd = mrpt::random::getRandomGenerator();
-#else
-auto& rnd = mrpt::random::randomGenerator;
-#endif
 
 int main(int argc, char** argv)
 {
@@ -282,7 +280,7 @@ int main(int argc, char** argv)
 			gl_main->insert(gl_MBS);
 
 			mrpt::opengl::TFontParams fp;
-			fp.color = TColorf(0, 0, 1);
+			fp.color = mrpt::img::TColorf(0, 0, 1);
 			fp.vfont_scale = 20;  // pixels
 
 			win3D.addTextMessage(10, 0.95, "Ground truth", 1 /* txt ID */, fp);
@@ -316,12 +314,7 @@ int main(int argc, char** argv)
 		vector<double> STATS_t, GT_ang0, EST_ang0_mean, EST_ang0_std;
 		mrpt::poses::CPosePDFParticles orientation_averager;
 		orientation_averager.resetDeterministic(
-#if MRPT_VERSION >= 0x199
-			mrpt::math::TPose2D(),
-#else
-			mrpt::poses::CPose2D(),
-#endif
-			pf.m_particles.size());
+			mrpt::math::TPose2D(), pf.m_particles.size());
 #endif
 
 		// Prepare sensor descriptions:
@@ -394,11 +387,7 @@ int main(int argc, char** argv)
 					part->num_model
 						.m_q[part->num_model.m_points2DOFs[1].dof_x]);
 
-#if MRPT_VERSION >= 0x199
 				orientation_averager.m_particles[i].d.phi = val_phi;
-#else
-				orientation_averager.m_particles[i].d->phi(val_phi);
-#endif
 
 				orientation_averager.m_particles[i].log_w =
 					pf.m_particles[i].log_w;
@@ -406,14 +395,8 @@ int main(int argc, char** argv)
 
 			// Estimate a full (x,y,phi) pose just for easy reusing of MRPT
 			// implementation:
-#if MRPT_VERSION >= 0x199
 			const auto [parts_cov, parts_mean] =
 				orientation_averager.getCovarianceAndMean();
-#else
-			mrpt::poses::CPose2D parts_mean;
-			mrpt::math::CMatrixDouble33 parts_cov;
-			orientation_averager.getCovarianceAndMean(parts_cov, parts_mean);
-#endif
 
 			// and only keep the orientation:
 			EST_ang0_mean.push_back(parts_mean.phi());
@@ -489,7 +472,7 @@ int main(int argc, char** argv)
 				// Update 3D scene:
 
 				mrpt::opengl::TFontParams fp;
-				fp.color = TColorf(1, 1, 1);
+				fp.color = mrpt::img::TColorf(1, 1, 1);
 				fp.vfont_scale = 15;  // pixels
 
 				win3D.addTextMessage(

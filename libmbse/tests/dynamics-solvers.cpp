@@ -14,7 +14,7 @@
 #include <mbse/model-examples.h>
 
 template <class DYNAMIC_SOLVER_T>
-void testerPendulumDynamics()
+void testerPendulumDynamics(bool addRelativeAngle = false)
 {
 	const double L = 0.5;  // [m]
 	const double massPerL = 1.0;  // [kg/m]
@@ -24,7 +24,17 @@ void testerPendulumDynamics()
 	mbse::CModelDefinition model;
 	mbse::buildLongStringMBS(1, model, L, massPerL);
 
-	std::shared_ptr<mbse::CAssembledRigidModel> aMBS = model.assembleRigidMBS();
+	// optional relative DOFs:
+	std::vector<mbse::RelativeDOF> rDOFs;
+	if (addRelativeAngle)
+	{
+		// Add angle between points #0 and #1:
+		rDOFs.emplace_back(mbse::RelativeAngleDOF(0, 1));
+	}
+
+	std::shared_ptr<mbse::CAssembledRigidModel> aMBS =
+		model.assembleRigidMBS(rDOFs);
+
 	aMBS->setGravityVector(0, -9.81, 0);
 
 	DYNAMIC_SOLVER_T dynSimul(aMBS);
@@ -76,4 +86,14 @@ TEST(PendulumDynamics, CDynamicSimulator_ALi3_Dense)
 TEST(PendulumDynamics, CDynamicSimulator_R_matrix_dense)
 {
 	testerPendulumDynamics<mbse::CDynamicSimulator_R_matrix_dense>();
+}
+
+// ---------
+TEST(PendulumDynamicsWithRelCoord, CDynamicSimulator_Lagrange_LU_dense)
+{
+	testerPendulumDynamics<mbse::CDynamicSimulator_Lagrange_LU_dense>(true);
+}
+TEST(PendulumDynamicsWithRelCoord, CDynamicSimulator_R_matrix_dense)
+{
+	testerPendulumDynamics<mbse::CDynamicSimulator_R_matrix_dense>(true);
 }

@@ -11,18 +11,16 @@
 #pragma once
 
 #include <mbse/mbse-common.h>
-#include "CBody.h"
-#include "constraints.h"
-#include <functional>
-#include "mbse-utils.h"
+#include <mbse/CBody.h>
+#include <mbse/constraints.h>
+#include <mbse/mbse-utils.h>
 #include <Eigen/UmfPackSupport>
 #include <mrpt/opengl/CSetOfObjects.h>
+#include <functional>
+#include <mrpt/core/optional_ref.h>
 
 namespace mbse
 {
-using namespace Eigen;
-using namespace mrpt::math;
-
 struct TSymbolicAssembledModel;  // Frwd. decl.
 
 class CAssembledRigidModel;  //!< A MBS preprocessed and ready for
@@ -95,8 +93,11 @@ class CModelDefinition
 	/** Process the MBS definitions and assemble all the required symbolic
 	 * structures to enable kinematic/dynamic simulations of the MBS. Invoke
 	 * methods of the returned object.
+	 * Optionally, relative coordinates may be added.
 	 */
-	std::shared_ptr<CAssembledRigidModel> assembleRigidMBS();
+	std::shared_ptr<CAssembledRigidModel> assembleRigidMBS(
+		mrpt::optional_ref<const std::vector<RelativeDOF>> relativeCoordinates =
+			std::nullopt);
 
 	const std::vector<CConstraintBase::Ptr>& getConstraints() const
 	{

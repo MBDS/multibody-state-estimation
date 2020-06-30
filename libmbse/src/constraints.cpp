@@ -190,7 +190,10 @@ void CConstraintFixedSlider::buildSparseStructures(
 	dot_dPhi_dx0 = &arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF.dof_x];
 	dot_dPhi_dy0 = &arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF.dof_y];
 
-	MRPT_TODO("Fill dPhiqdq_dx0");
+	// Add columns to sparse row in d(Phiq*dq)_dq
+	// --------------------------------------------
+	dPhiqdq_dx0 = &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOF.dof_x];
+	dPhiqdq_dy0 = &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOF.dof_y];
 }
 
 void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
