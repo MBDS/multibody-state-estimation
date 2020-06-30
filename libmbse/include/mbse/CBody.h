@@ -99,7 +99,7 @@ struct CBody
 	mrpt::opengl::CRenderizable::Ptr get3DRepresentation() const;
 
 	/** Type of 3D object in which the body will be converted */
-	enum render_style_t
+	enum render_style_t : uint8_t
 	{
 		reLine = 0,  //<! A simple line
 		reCylinder  //<! A cylinder
@@ -107,22 +107,22 @@ struct CBody
 
 	struct TRenderParams
 	{
-		TRenderParams();  // Default ctor
+		TRenderParams() = default;
 
-		render_style_t render_style;  //!< Kind of object
+		render_style_t render_style = reCylinder;  //!< Kind of object
 
 		/* ==== Common options  ==== */
-		bool show_grounds;  //!< Draws ground points as independent "ground
-							//!< solids"
-		double z_layer;  //!< Emulates links in "layers": an increment to be
-						 //!< added to the Z coordinate of the object.
+		bool show_grounds = true;  //!< Draws ground points as independent
+								   //!< "ground solids"
+		double z_layer = 0;  //!< Emulates links in "layers": an increment to be
+							 //!< added to the Z coordinate of the object.
 
 		/* ==== Render as lines ==== */
-		uint8_t line_alpha;  //!< Transparency (0x00 - 0xff)
-		float line_width;  //!< Line width (in pixels)
+		uint8_t line_alpha = 0x8f;  //!< Transparency (0x00 - 0xff)
+		float line_width = 1.0f;  //!< Line width (in pixels)
 
 		/* ====  Render as cylinder ====  */
-		double cyl_diameter;
+		double cyl_diameter = 0.05;
 	};
 
 	TRenderParams render_params;

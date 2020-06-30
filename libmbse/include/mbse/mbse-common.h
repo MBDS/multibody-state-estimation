@@ -17,15 +17,8 @@
 #include <memory>  // for auto_ptr
 #include <mrpt/poses/CPose3D.h>
 #include <mrpt/core/exceptions.h>
-
-#include <mrpt/version.h>
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
-using mrpt::img::TColor;
-using mrpt::img::TColorf;
-using mrpt::system::CTicTac;
-using mrpt::system::CTimeLogger;
-using mrpt::system::CTimeLoggerEntry;
 
 // Eigen's include must occur AFTER MRPT's headers:
 #include <Eigen/Dense>  // provided by MRPT or standalone
@@ -41,45 +34,51 @@ using mrpt::system::CTimeLoggerEntry;
 
 namespace mbse
 {
-using namespace Eigen;
-using namespace mrpt::math;
+extern mrpt::system::CTimeLogger timelog;
 
-extern CTimeLogger timelog;
-
-/** Each of the points in a CModelDefinition */
-struct TMBSPoint
+/** Each of the 2D points in a CModelDefinition */
+struct Point2
 {
-	TMBSPoint() : coords(0, 0), fixed(false) {}
+	Point2() = default;
 
-	TPoint2D coords;
-	bool fixed;  //!< true: a fixed point, false: variables
+	mrpt::math::TPoint2D coords{0, 0};
+	/** true: a fixed point, false: generalized coordinates in `q` */
+	bool fixed = false;
 };
 
-/** Degree of Freedom (DOF) info */
-struct TDOF
+enum class PointDOF : uint8_t
 {
-	size_t point_index;
-	size_t point_dof;  //!< 0:x, 1:y, 2:z
+	X = 0,
+	Y = 1,
+	Z = 2
+};
 
-	TDOF(size_t _point_index, size_t _point_dof)
+/** Degree of Freedom (DOF) info for Natural Coordinates DOFs */
+struct NaturalCoordinateDOF
+{
+	size_t point_index;  //!< Point index in the MBS model
+	PointDOF point_dof;  //!< 0:x, 1:y, 2:z
+
+	NaturalCoordinateDOF(size_t _point_index, PointDOF _point_dof)
 		: point_index(_point_index), point_dof(_point_dof)
 	{
 	}
 };
 
-#define INVALID_DOF static_cast<size_t>(-1)
+using dof_index_t = std::size_t;
 
-struct TPoint2DOF
+constexpr dof_index_t INVALID_DOF = static_cast<size_t>(-1);
+
+struct Point2ToDOF
 {
-	size_t dof_x;  //!< The 0-based index in vector q of the "x" coordinate of
-				   //!< this point (-1 if it's a fixed point)
-	size_t dof_y;  //!< The 0-based index in vector q of the "y" coordinate of
-				   //!< this point (-1 if it's a fixed point)
+	/** The 0-based index in vector q of the `x` and `y` coordinate of this
+	 * point (INVALID_DOF if it's a fixed point) */
+	dof_index_t dof_x = INVALID_DOF, dof_y = INVALID_DOF;
 
-	TPoint2DOF() : dof_x(INVALID_DOF), dof_y(INVALID_DOF) {}
+	Point2ToDOF() = default;
 };
 
-struct TCompressedRowSparseMatrix
+struct CompressedRowSparseMatrix
 {
 	using row_t = std::map<size_t, double>;
 

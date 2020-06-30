@@ -56,9 +56,9 @@ void CDynamicSimulator_Lagrange_KLU::internal_prepare()
 	for (size_t i = 0; i < nConstraints; i++)
 	{
 		// Constraint "i" goes to column "nDOFs+i" in the augmented matrix:
-		const TCompressedRowSparseMatrix::row_t row_i =
+		const CompressedRowSparseMatrix::row_t row_i =
 			m_arm->m_Phi_q.matrix[i];
-		for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 				 row_i.begin();
 			 itCol != row_i.end(); ++itCol)
 		{
@@ -146,9 +146,9 @@ void CDynamicSimulator_Lagrange_KLU::internal_solve_ddotq(
 		for (size_t i = 0; i < nConstraints; i++)
 		{
 			// Constraint "i" goes to column "nDOFs+i" in the augmented matrix:
-			const TCompressedRowSparseMatrix::row_t row_i =
+			const CompressedRowSparseMatrix::row_t row_i =
 				m_arm->m_Phi_q.matrix[i];
-			for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+			for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 					 row_i.begin();
 				 itCol != row_i.end(); ++itCol)
 			{

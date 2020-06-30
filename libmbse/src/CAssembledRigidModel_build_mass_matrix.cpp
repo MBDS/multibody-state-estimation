@@ -55,10 +55,10 @@ cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 		const bool p0_fixed = m_parent.getPointInfo(b.points[0]).fixed;
 		const bool p1_fixed = m_parent.getPointInfo(b.points[1]).fixed;
 
-		const size_t idx_x0 =
+		const dof_index_t idx_x0 =
 			this->m_points2DOFs[b.points[0]]
 				.dof_x;  // Will be INVALID_DOF if it's a fixed point
-		const size_t idx_x1 = this->m_points2DOFs[b.points[1]].dof_x;
+		const dof_index_t idx_x1 = this->m_points2DOFs[b.points[1]].dof_x;
 
 		if (!p0_fixed)
 			insert_submatrix_in_triplet(triplet_M, idx_x0, idx_x0, M00);
@@ -111,10 +111,10 @@ void CAssembledRigidModel::buildMassMatrix_dense(Eigen::MatrixXd& M) const
 		const bool p0_fixed = m_parent.getPointInfo(b.points[0]).fixed;
 		const bool p1_fixed = m_parent.getPointInfo(b.points[1]).fixed;
 
-		const size_t idx_x0 =
+		const dof_index_t idx_x0 =
 			this->m_points2DOFs[b.points[0]]
 				.dof_x;  // Will be INVALID_DOF if it's a fixed point
-		const size_t idx_x1 = this->m_points2DOFs[b.points[1]].dof_x;
+		const dof_index_t idx_x1 = this->m_points2DOFs[b.points[1]].dof_x;
 
 		if (!p0_fixed) M.block<2, 2>(idx_x0, idx_x0) += M00;
 		if (!p1_fixed) M.block<2, 2>(idx_x1, idx_x1) += M11;
@@ -157,10 +157,10 @@ void CAssembledRigidModel::buildMassMatrix_sparse(
 		const bool p0_fixed = m_parent.getPointInfo(b.points[0]).fixed;
 		const bool p1_fixed = m_parent.getPointInfo(b.points[1]).fixed;
 
-		const size_t idx_x0 =
+		const dof_index_t idx_x0 =
 			this->m_points2DOFs[b.points[0]]
 				.dof_x;  // Will be INVALID_DOF if it's a fixed point
-		const size_t idx_x1 = this->m_points2DOFs[b.points[1]].dof_x;
+		const dof_index_t idx_x1 = this->m_points2DOFs[b.points[1]].dof_x;
 
 		if (!p0_fixed) insert_submatrix(tri, idx_x0, idx_x0, M00);
 		if (!p1_fixed) insert_submatrix(tri, idx_x1, idx_x1, M11);

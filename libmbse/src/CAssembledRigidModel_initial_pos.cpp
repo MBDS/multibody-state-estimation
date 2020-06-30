@@ -305,9 +305,9 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 				r -= Phiq(i, z_indices[j]) * ddotz[j];
 
 			// Part 2: - dot{Phi_q} * dotq)
-			const TCompressedRowSparseMatrix::row_t& row_i =
+			const CompressedRowSparseMatrix::row_t& row_i =
 				m_dotPhi_q.matrix[i];
-			for (TCompressedRowSparseMatrix::row_t::const_iterator it =
+			for (CompressedRowSparseMatrix::row_t::const_iterator it =
 					 row_i.begin();
 				 it != row_i.end(); ++it)
 			{

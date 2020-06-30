@@ -78,12 +78,12 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 
 			for (size_t row = 0; row < nConstraints; row++)
 			{
-				const TCompressedRowSparseMatrix::row_t& row_r =
+				const CompressedRowSparseMatrix::row_t& row_r =
 					m_arm->m_Phi_q.matrix[row];
 
 				const double *Phi_r_i = NULL, *Phi_r_j = NULL;
 
-				for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+				for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 						 row_r.begin();
 					 itCol != row_r.end(); ++itCol)
 				{
@@ -263,10 +263,10 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	// \dot{Phi}_q * \dot{q}
 	for (size_t r = 0; r < nConstraints; r++)
 	{
-		const TCompressedRowSparseMatrix::row_t& row_r =
+		const CompressedRowSparseMatrix::row_t& row_r =
 			m_arm->m_dotPhi_q.matrix[r];
 		double res = 0;
-		for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 				 row_r.begin();
 			 itCol != row_r.end(); ++itCol)
 			res += itCol->second * m_arm->m_dotq[itCol->first];
@@ -289,9 +289,9 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	b *= params_penalty.alpha;
 	for (size_t r = 0; r < nConstraints; r++)
 	{
-		const TCompressedRowSparseMatrix::row_t& row_r =
+		const CompressedRowSparseMatrix::row_t& row_r =
 			m_arm->m_Phi_q.matrix[r];
-		for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 				 row_r.begin();
 			 itCol != row_r.end(); ++itCol)
 		{

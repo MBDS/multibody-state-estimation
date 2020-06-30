@@ -50,11 +50,11 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		TPoint2D force_local_point;
 
 		MRPT_TODO("Get current coordinates, from m_q!")
-		const TMBSPoint& p0_info = m_parent.getPointInfo(body.points[0]);
-		const TMBSPoint& p1_info = m_parent.getPointInfo(body.points[1]);
+		const Point2& p0_info = m_parent.getPointInfo(body.points[0]);
+		const Point2& p1_info = m_parent.getPointInfo(body.points[1]);
 
-		const TPoint2DOF& p0_dofs = m_points2DOFs[body.points[0]];
-		const TPoint2DOF& p1_dofs = m_points2DOFs[body.points[1]];
+		const Point2ToDOF& p0_dofs = m_points2DOFs[body.points[0]];
+		const Point2ToDOF& p1_dofs = m_points2DOFs[body.points[1]];
 
 		if (0)
 		{
@@ -92,8 +92,8 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		// Force vector:
 		Eigen::Vector2d F;
 		// F = body.mass * m_gravity;
-		F[0] = body.mass() * m_gravity[0];	// x
-		F[1] = body.mass() * m_gravity[1];	// y
+		F[0] = body.mass() * m_gravity[0];  // x
+		F[1] = body.mass() * m_gravity[1];  // y
 
 		// Q = Cp^t * F
 		const Eigen::Vector4d Qi = Cp.transpose() * F;
@@ -102,9 +102,9 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		const bool p0_fixed = p0_info.fixed;
 		const bool p1_fixed = p1_info.fixed;
 
-		const size_t idx_x0 =
-			p0_dofs.dof_x;	// Will be INVALID_DOF if it's a fixed point
-		const size_t idx_x1 = p1_dofs.dof_x;
+		const dof_index_t idx_x0 =
+			p0_dofs.dof_x;  // Will be INVALID_DOF if it's a fixed point
+		const dof_index_t idx_x1 = p1_dofs.dof_x;
 
 		if (!p0_fixed) Q.segment<2>(idx_x0) += Qi.head<2>();
 		if (!p1_fixed) Q.segment<2>(idx_x1) += Qi.tail<2>();

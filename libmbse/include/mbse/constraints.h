@@ -82,9 +82,9 @@ class CConstraintConstantDistance : public CConstraintBase
 	}
 
    protected:
-	mutable const TMBSPoint* m_points[2] = {nullptr, nullptr};
+	mutable const Point2* m_points[2] = {nullptr, nullptr};
 	/** The indices of each point in the state vector "q" */
-	mutable TPoint2DOF m_pointDOFs[2];
+	mutable Point2ToDOF m_pointDOFs[2];
 	mutable size_t m_idx_constr = static_cast<size_t>(-1);
 
 	/** Pointers to entries in the sparse Jacobian dPhi_dq */
@@ -132,9 +132,9 @@ class CConstraintFixedSlider : public CConstraintBase
 		mrpt::opengl::CRenderizable::Ptr& inout_obj) const;
 
    protected:
-	mutable const TMBSPoint* m_point = nullptr;
+	mutable const Point2* m_point = nullptr;
 	// The indices of each point in the state vector "q"
-	mutable TPoint2DOF m_pointDOF;
+	mutable Point2ToDOF m_pointDOF;
 	mutable size_t m_idx_constr = static_cast<size_t>(-1);
 	mutable TPoint2D m_Delta;  //!< pt[1]-pt[0], precomputed only once
 
@@ -180,9 +180,9 @@ class CConstraintMobileSlider : public CConstraintBase
 	}
 
    protected:
-	mutable const TMBSPoint* m_points[3];
+	mutable const Point2* m_points[3];
 	// The indices of each point in the state vector "q"
-	mutable TPoint2DOF m_pointDOF[3];
+	mutable Point2ToDOF m_pointDOF[3];
 	mutable size_t m_idx_constr;
 	/** Pointers to entries in the sparse Jacobian dPhi_dq */
 	mutable double *dPhi_dx[3], *dPhi_dy[3];

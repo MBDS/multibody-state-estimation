@@ -25,7 +25,7 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 {
 	for (int i = 0; i < 3; i++) m_gravity[i] = DEFAULT_GRAVITY[i];
 
-	const size_t nDOFs = armi.DOFs.size();
+	const auto nDOFs = armi.DOFs.size();
 	ASSERTMSG_(nDOFs > 0, "Trying to assemble model with 0 DOFs!?");
 
 	m_q.resize(nDOFs);
@@ -43,17 +43,17 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 	m_DOFs = armi.DOFs;
 	m_points2DOFs.resize(armi.model.getPointCount());
 
-	for (size_t i = 0; i < nDOFs; i++)
+	for (dof_index_t i = 0; i < nDOFs; i++)
 	{
 		const size_t pt_idx = m_DOFs[i].point_index;
-		const TMBSPoint& pt = m_parent.getPointInfo(pt_idx);
+		const Point2& pt = m_parent.getPointInfo(pt_idx);
 		switch (m_DOFs[i].point_dof)
 		{
-			case 0:  // x
+			case PointDOF::X:
 				m_q[i] = pt.coords.x;
 				m_points2DOFs[pt_idx].dof_x = i;
 				break;
-			case 1:  // y
+			case PointDOF::Y:  // y
 				m_q[i] = pt.coords.y;
 				m_points2DOFs[pt_idx].dof_y = i;
 				break;
@@ -151,7 +151,7 @@ void CAssembledRigidModel::getAs3DRepresentation(
 		const size_t nPts = m_parent.getPointCount();
 		for (size_t i = 0; i < nPts; i++)
 		{
-			const TMBSPoint& pt = m_parent.getPointInfo(i);
+			const Point2& pt = m_parent.getPointInfo(i);
 			if (!pt.fixed) continue;
 			// This is a fixed point:
 			outObj->insert(this->internal_render_ground_point(pt, rp));
@@ -207,11 +207,11 @@ void CAssembledRigidModel::update3DRepresentation(
 		const size_t i0 = b.points[0];
 		const size_t i1 = b.points[1];
 
-		const TMBSPoint& pnt0 = m_parent.getPointInfo(i0);
-		const TMBSPoint& pnt1 = m_parent.getPointInfo(i1);
+		const Point2& pnt0 = m_parent.getPointInfo(i0);
+		const Point2& pnt1 = m_parent.getPointInfo(i1);
 
-		const TPoint2DOF dof0 = m_points2DOFs[i0];
-		const TPoint2DOF dof1 = m_points2DOFs[i1];
+		const Point2ToDOF dof0 = m_points2DOFs[i0];
+		const Point2ToDOF dof1 = m_points2DOFs[i1];
 
 		const double& p0x =
 			(dof0.dof_x != INVALID_DOF) ? m_q[dof0.dof_x] : pnt0.coords.x;
@@ -296,8 +296,8 @@ void CAssembledRigidModel::copyOpenGLRepresentationFrom(
 void CAssembledRigidModel::getPointCurrentCoords(
 	const size_t pt_idx, mrpt::math::TPoint2D& pt) const
 {
-	const TMBSPoint& pt_info = m_parent.getPointInfo(pt_idx);
-	const TPoint2DOF& pt_dofs = m_points2DOFs[pt_idx];
+	const Point2& pt_info = m_parent.getPointInfo(pt_idx);
+	const Point2ToDOF& pt_dofs = m_points2DOFs[pt_idx];
 
 	pt.x =
 		(pt_dofs.dof_x != INVALID_DOF) ? m_q[pt_dofs.dof_x] : pt_info.coords.x;
@@ -310,7 +310,7 @@ void CAssembledRigidModel::getPointCurrentCoords(
 void CAssembledRigidModel::getPointCurrentVelocity(
 	const size_t pt_idx, mrpt::math::TPoint2D& vel) const
 {
-	const TPoint2DOF& pt_dofs = m_points2DOFs[pt_idx];
+	const Point2ToDOF& pt_dofs = m_points2DOFs[pt_idx];
 
 	vel.x = (pt_dofs.dof_x != INVALID_DOF) ? m_dotq[pt_dofs.dof_x] : 0;
 	vel.y = (pt_dofs.dof_y != INVALID_DOF) ? m_dotq[pt_dofs.dof_y] : 0;
@@ -347,7 +347,7 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 /* Render a ground point */
 mrpt::opengl::CSetOfObjects::Ptr
 	CAssembledRigidModel::internal_render_ground_point(
-		const TMBSPoint& pt, const CBody::TRenderParams& rp) const
+		const Point2& pt, const CBody::TRenderParams& rp) const
 {
 	mrpt::opengl::CSetOfObjects::Ptr obj =
 		mrpt::opengl::CSetOfObjects::Create();

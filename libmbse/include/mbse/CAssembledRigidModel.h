@@ -19,8 +19,8 @@ namespace mbse
 struct TSymbolicAssembledModel
 {
 	const CModelDefinition& model;  //!< My "parent" model
-	std::vector<TDOF>
-		DOFs;  //!< Info on each DOF in the problem [SAME SIZE THAN m_q]
+	/** Info on each DOF in the problem [SAME SIZE THAN m_q] */
+	std::vector<NaturalCoordinateDOF> DOFs;
 
 	TSymbolicAssembledModel(const CModelDefinition& model_) : model(model_) {}
 
@@ -46,7 +46,7 @@ class CAssembledRigidModel
 	 */
 	size_t addNewRowToConstraints();
 
-	inline const std::vector<TPoint2DOF>& getPoints2DOFs() const
+	inline const std::vector<Point2ToDOF>& getPoints2DOFs() const
 	{
 		return m_points2DOFs;
 	}
@@ -190,23 +190,23 @@ class CAssembledRigidModel
 	const CModelDefinition& m_parent;  //!< A reference to the parent MBS. Use
 									   //!< to access the data of bodies, etc.
 
-	std::vector<TDOF>
+	std::vector<NaturalCoordinateDOF>
 		m_DOFs;  //!< Info on each DOF in the problem [SAME SIZE THAN m_q]
-	std::vector<TPoint2DOF> m_points2DOFs;  //!< Reverse look-up list of points
-											//!< -> DOFs in the q vector
+	std::vector<Point2ToDOF> m_points2DOFs;  //!< Reverse look-up list of points
+											 //!< -> DOFs in the q vector
 
 	VectorXd m_Phi;  //!< The vector of numerical values of Phi, the vector of
 					 //!< constraint functions Phi=0
 	VectorXd m_dotPhi;  //!< The vector of numerical values of \dot{\Phi}
 
 	/** Jacobian dPhi_dq (as a sparse matrix) */
-	TCompressedRowSparseMatrix m_Phi_q;
+	CompressedRowSparseMatrix m_Phi_q;
 
 	/** Jacobian d(dPhi_dq)_dt (as a sparse matrix) */
-	TCompressedRowSparseMatrix m_dotPhi_q;
+	CompressedRowSparseMatrix m_dotPhi_q;
 
 	/** Jacobian d(Phiq*dq)_dq (as a sparse matrix) */
-	TCompressedRowSparseMatrix m_dPhiqdq_dq;
+	CompressedRowSparseMatrix m_dPhiqdq_dq;
 
 	/** The list of all constraints (of different kinds/classes).
 	 * \note This list DOES include constant-distance constraints (not like
@@ -266,7 +266,7 @@ class CAssembledRigidModel
 
    private:
 	mrpt::opengl::CSetOfObjects::Ptr internal_render_ground_point(
-		const TMBSPoint& pt, const CBody::TRenderParams& rp) const;
+		const Point2& pt, const CBody::TRenderParams& rp) const;
 
    public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // Required for aligned mem allocator (only

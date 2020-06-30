@@ -53,7 +53,7 @@ void CModelDefinition::setPointCoords(
 {
 	ASSERT_(i < m_points.size());
 
-	TMBSPoint& pt = m_points[i];
+	Point2& pt = m_points[i];
 	pt.coords = coords;
 	pt.fixed = is_fixed;
 }
@@ -71,12 +71,12 @@ void CModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 	const size_t nPts = m_points.size();
 	for (size_t i = 0; i < nPts; i++)
 	{
-		const TMBSPoint& pt = m_points[i];
+		const Point2& pt = m_points[i];
 		// If it's not fixed, add to the list of DOFs
 		if (!pt.fixed)
 		{
-			armi.DOFs.push_back(TDOF(i, 0));  // x
-			armi.DOFs.push_back(TDOF(i, 1));  // y
+			armi.DOFs.emplace_back(i, PointDOF::X);
+			armi.DOFs.emplace_back(i, PointDOF::Y);
 		}
 	}
 

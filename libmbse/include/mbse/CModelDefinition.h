@@ -56,7 +56,7 @@ class CModelDefinition
 	void setPointCoords(
 		const size_t i, const TPoint2D& coords, const bool is_fixed = false);
 
-	const TMBSPoint& getPointInfo(const size_t i) const
+	const Point2& getPointInfo(const size_t i) const
 	{
 		ASSERTDEB_(i < m_points.size());
 		return m_points[i];
@@ -113,7 +113,7 @@ class CModelDefinition
    protected:
 	/** @name Data
 		@{ */
-	std::vector<TMBSPoint> m_points;  //!< ALL points (fixed and variables)
+	std::vector<Point2> m_points;  //!< ALL points (fixed and variables)
 	std::vector<CBody> m_bodies;  //!< Bodies
 
 	/** The list of all constraints (of different kinds/classes).

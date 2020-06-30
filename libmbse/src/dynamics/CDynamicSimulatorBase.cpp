@@ -280,9 +280,9 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 		{
 			// c[i] = sum_k( -dot{Phi_q}[i,k] * dot_q[k] )
 			double ci = 0;
-			const TCompressedRowSparseMatrix::row_t row_i =
+			const CompressedRowSparseMatrix::row_t row_i =
 				m_arm->m_dotPhi_q.matrix[i];
-			for (TCompressedRowSparseMatrix::row_t::const_iterator itCol =
+			for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 					 row_i.begin();
 				 itCol != row_i.end(); ++itCol)
 			{
@@ -320,8 +320,8 @@ void CDynamicSimulatorBase::addPointSensor(const size_t pnt_index)
 	// Init pointers, etc:
 	sd.pnt_index = pnt_index;
 
-	const TMBSPoint* mbs_point = &m_arm->m_parent.getPointInfo(pnt_index);
-	const TPoint2DOF& point_dof = m_arm->getPoints2DOFs()[pnt_index];
+	const Point2* mbs_point = &m_arm->m_parent.getPointInfo(pnt_index);
+	const Point2ToDOF& point_dof = m_arm->getPoints2DOFs()[pnt_index];
 
 	// Get references to the point coordinates (either fixed or variables in q):
 	sd.pos[0] =

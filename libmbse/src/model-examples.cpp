@@ -20,11 +20,7 @@ void mbse::buildParameterizedMBS(
 {
 	ASSERT_(nx >= 1 && ny >= 1);
 
-#if MRPT_VERSION >= 0x199
 	auto randomGenerator = mrpt::random::getRandomGenerator();
-#else
-	auto& randomGenerator = mrpt::random::randomGenerator;
-#endif
 
 	// Definition of constants
 	const size_t npoints = (nx + 1) * (ny + 1);  // number of points

@@ -106,7 +106,7 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 			auto obj = mrpt::opengl::CCylinder::Create();
 
 			obj->setRadius(render_params.cyl_diameter);
-			obj->setColor_u8(TColor(0xFF, 0x00, 0x00));
+			obj->setColor_u8(mrpt::img::TColor(0xFF, 0x00, 0x00));
 
 			obj->setHeight(this->m_length);
 
@@ -126,7 +126,7 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 			obj->setLineWidth(render_params.line_width);
 			obj->enableAntiAliasing(true);
 			obj->setColor_u8(
-				TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
+				mrpt::img::TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
 
 			obj->setLineCoords(
 				0, 0, render_params.z_layer, this->m_length, 0,
@@ -141,17 +141,4 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 	}
 
 	return objs;
-}
-
-CBody::TRenderParams::TRenderParams()
-	: render_style(reCylinder),
-	  show_grounds(true),
-	  /* ==== Common options  ==== */
-	  z_layer(0),
-	  /* ==== Render as lines ==== */
-	  line_alpha(0x8f),
-	  line_width(0.8f),
-	  /* ====  Render as cylinder ====  */
-	  cyl_diameter(0.05)
-{
 }
