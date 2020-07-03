@@ -9,6 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/CAssembledRigidModel.h>
+#include <mbse/CConstraintRelativeAngle.h>
 #include <mrpt/opengl.h>
 
 using namespace mbse;
@@ -34,40 +35,31 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 		nEuclideanDOFs > 0,
 		"Trying to assemble model with 0 Natural Coordinate DOFs");
 
-	if (nRelativeDOFs > 0)
-	{
-		MRPT_TODO("handle rDOFs");
-		THROW_EXCEPTION("To-do relative coordinates!");
-	}
+	q_.setZero(nDOFs);
+	dotq_.setZero(nDOFs);
+	ddotq_.setZero(nDOFs);
+	Q_.setZero(nDOFs);
 
-	q_.resize(nDOFs);
-	q_.setConstant(0);
-
-	dotq_.resize(nDOFs);
-	dotq_.setConstant(0);
-
-	ddotq_.resize(nDOFs);
-	ddotq_.setConstant(0);
-
-	Q_.resize(nDOFs);
-	Q_.setConstant(0);
-
+	// Keep a copy of DOF info:
 	DOFs_ = armi.DOFs;
+	rDOFs_ = armi.rDOFs;
+
+	// Build reverse-lookup table & initialize initial values for "q":
 	points2DOFs_.resize(armi.model.getPointCount());
 
-	for (dof_index_t i = 0; i < nDOFs; i++)
+	for (dof_index_t i = 0; i < nEuclideanDOFs; i++)
 	{
-		const size_t pt_idx = DOFs_[i].point_index;
+		const size_t pt_idx = DOFs_.at(i).point_index;
 		const Point2& pt = parent_.getPointInfo(pt_idx);
-		switch (DOFs_[i].point_dof)
+		switch (DOFs_.at(i).point_dof)
 		{
 			case PointDOF::X:
 				q_[i] = pt.coords.x;
-				points2DOFs_[pt_idx].dof_x = i;
+				points2DOFs_.at(pt_idx).dof_x = i;
 				break;
-			case PointDOF::Y:  // y
+			case PointDOF::Y:
 				q_[i] = pt.coords.y;
-				points2DOFs_[pt_idx].dof_y = i;
+				points2DOFs_.at(pt_idx).dof_y = i;
 				break;
 			// case 2: //z
 			//	q_[i] = pt.coords.z;
@@ -83,27 +75,45 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 	dPhiqdq_dq_.ncols = nDOFs;
 
 	// Generate constraint equations & create structure of sparse Jacobians:
-	// ---------------------------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------
 	const std::vector<CConstraintBase::Ptr>& parent_constraints =
 		parent_.getConstraints();
+
+	// 1/2: Constraints
 	const size_t nConst = parent_constraints.size();
-
 	constraints_.resize(nConst);
-
 	for (size_t i = 0; i < nConst; i++)
 	{
-		constraints_[i] = parent_constraints[i];  // Copy smart pointer, and
-		// clone object:
-		constraints_[i] = CConstraintBase::Ptr(constraints_[i]->clone());
+		constraints_[i] = parent_constraints[i]->clone();
+		constraints_[i]->buildSparseStructures(*this);
+	}
 
-		const CConstraintBase* c = constraints_[i].get();
-		ASSERT_(c != NULL);
-		c->buildSparseStructures(*this);
+	// 2/2: Constraints from relative coordinates:
+	relCoordinate2Index_.resize(rDOFs_.size());
+	for (size_t i = 0; i < rDOFs_.size(); i++)
+	{
+		const auto& relConstr = rDOFs_[i];
+		const dof_index_t idxInQ = nEuclideanDOFs + i;
+
+		if (std::holds_alternative<RelativeAngleDOF>(relConstr))
+		{
+			const auto& c = std::get<RelativeAngleDOF>(relConstr);
+
+			// Add constraint:
+			auto co = std::make_shared<CConstraintRelativeAngle>(
+				c.point_idx0, c.point_idx1, c.point_idx2, idxInQ);
+			constraints_.push_back(co);
+
+			// reverse look up table:
+			relCoordinate2Index_[i] = idxInQ;
+		}
+		else
+		{
+			THROW_EXCEPTION("Unknown type of relative coordinate");
+		}
 	}
 }
 
-/** Returns the current gravity aceleration vector, used for the bodies weights
- * (default: [0 -9.81 0]) */
 void CAssembledRigidModel::getGravityVector(
 	double& gx, double& gy, double& gz) const
 {
@@ -112,8 +122,6 @@ void CAssembledRigidModel::getGravityVector(
 	gz = gravity_[2];
 }
 
-/** Changes the gravity aceleration vector, used for the bodies weights
- * (default: [0 -9.81 0]) */
 void CAssembledRigidModel::setGravityVector(
 	const double gx, const double gy, const double gz)
 {
@@ -288,11 +296,11 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 #ifdef _DEBUG
 	ASSERT_(
 		ptr_q0 == &q_[0]);  // make sure the vectors didn't suffer mem
-							 // reallocation, since we save pointers to these!
+							// reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
 		&dotq_[0]);  // make sure the vectors didn't suffer mem reallocation,
-					  // since we save pointers to these!
+					 // since we save pointers to these!
 #endif
 }
 

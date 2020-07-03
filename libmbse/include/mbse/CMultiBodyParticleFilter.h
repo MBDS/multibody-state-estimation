@@ -13,7 +13,6 @@
 #include <mbse/mbse-common.h>
 #include <mbse/mbse-utils.h>
 #include <mbse/CBody.h>
-#include <mbse/constraints.h>
 #include <mbse/CModelDefinition.h>
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/dynamics/dynamic-simulators.h>

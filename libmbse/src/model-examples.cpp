@@ -9,6 +9,8 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/model-examples.h>
+#include <mbse/CConstraintFixedSlider.h>
+#include <mbse/CConstraintMobileSlider.h>
 #include <mrpt/random.h>
 
 using namespace mbse;

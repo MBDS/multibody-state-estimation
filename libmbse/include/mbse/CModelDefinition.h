@@ -12,7 +12,7 @@
 
 #include <mbse/mbse-common.h>
 #include <mbse/CBody.h>
-#include <mbse/constraints.h>
+#include <mbse/CConstraintBase.h>
 #include <mbse/mbse-utils.h>
 #include <Eigen/UmfPackSupport>
 #include <mrpt/opengl/CSetOfObjects.h>
@@ -52,11 +52,12 @@ class CModelDefinition
 	 *  TODO: Initial position problem will refine these positions if needed.
 	 */
 	void setPointCoords(
-		const size_t i, const mrpt::math::TPoint2D& coords, const bool is_fixed = false);
+		const size_t i, const mrpt::math::TPoint2D& coords,
+		const bool is_fixed = false);
 
 	const Point2& getPointInfo(const size_t i) const
 	{
-		ASSERTDEB_(i < points_.size());
+		ASSERT_(i < points_.size());
 		return points_[i];
 	}
 
@@ -105,10 +106,7 @@ class CModelDefinition
 	}
 	const std::vector<CBody>& getBodies() const { return bodies_; }
 
-	std::vector<CConstraintBase::Ptr>& getConstraints()
-	{
-		return constraints_;
-	}
+	std::vector<CConstraintBase::Ptr>& getConstraints() { return constraints_; }
 	std::vector<CBody>& getBodies() { return bodies_; }
 
    protected:

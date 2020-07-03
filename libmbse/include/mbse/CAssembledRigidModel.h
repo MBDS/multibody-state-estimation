@@ -187,7 +187,7 @@ class CAssembledRigidModel
 	Eigen::VectorXd q_;  //!< State vector q with all the unknowns
 	Eigen::VectorXd dotq_;  //!< Velocity vector \dot{q} for all the unknowns
 	Eigen::VectorXd ddotq_;  //!< The previously computed acceleration vector
-							  //!< \ddot{q} for all the unknowns
+							 //!< \ddot{q} for all the unknowns
 
 	/** External generalized forces (gravity NOT to be included) */
 	Eigen::VectorXd Q_;
@@ -197,13 +197,21 @@ class CAssembledRigidModel
 	   vector.
 		@{ */
 	const CModelDefinition& parent_;  //!< A reference to the parent MBS. Use
-									   //!< to access the data of bodies, etc.
+									  //!< to access the data of bodies, etc.
 
-	/** Info on each DOF in the problem [SAME SIZE THAN q_] */
+	/** Info on each Euclidean coordinate DOF in the problem
+	 * Note: m_DOFs.size() + m_rDOFs.size() == m_q.size() */
 	std::vector<NaturalCoordinateDOF> DOFs_;
 
-	/** Reverse look-up list of points < -> DOFs in the q vector */
+	/** Reverse look-up list of Euclidean points <-> DOFs in the q vector */
 	std::vector<Point2ToDOF> points2DOFs_;
+
+	/** Info on each Relative coordinate DOF in the problem
+	 * Note: m_DOFs.size() + m_rDOFs.size() == m_q.size() */
+	std::vector<RelativeDOF> rDOFs_;
+
+	/** Maps: indices in rDOFs_ ==> indices in "q_" */
+	std::vector<dof_index_t> relCoordinate2Index_;
 
 	/** The vector of numerical values of Phi, the vector of constraint
 	 * functions Phi=0 */

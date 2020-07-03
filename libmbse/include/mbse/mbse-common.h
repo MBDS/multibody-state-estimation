@@ -74,14 +74,24 @@ struct NaturalCoordinateDOF
 	}
 };
 
+/**
+ * \code
+ *        pt2
+ *       /
+ *      /
+ *     / ) angle
+ * pt0 ----------- pt1
+ * \endcode
+ */
 struct RelativeAngleDOF
 {
 	point_index_t point_idx0 = INVALID_POINT_INDEX;
 	point_index_t point_idx1 = INVALID_POINT_INDEX;
+	point_index_t point_idx2 = INVALID_POINT_INDEX;
 
 	RelativeAngleDOF() = default;
-	RelativeAngleDOF(point_index_t i0, point_index_t i1)
-		: point_idx0(i0), point_idx1(i1)
+	RelativeAngleDOF(point_index_t i0, point_index_t i1, point_index_t i2)
+		: point_idx0(i0), point_idx1(i1), point_idx2(i2)
 	{
 	}
 };
