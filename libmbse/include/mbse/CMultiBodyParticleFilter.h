@@ -25,9 +25,6 @@
 
 namespace mbse
 {
-using namespace Eigen;
-using namespace mrpt::math;
-
 /** A "particle" holding a MultiBody assembly + its state */
 template <class DYN_SIMUL>
 struct TMBState_Particle

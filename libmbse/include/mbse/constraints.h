@@ -16,8 +16,6 @@
 namespace mbse
 {
 class CAssembledRigidModel;
-using namespace Eigen;
-using namespace mrpt::math;
 
 /** The virtual base class of all constraint types. */
 class CConstraintBase
@@ -106,11 +104,13 @@ class CConstraintFixedSlider : public CConstraintBase
 {
    public:
 	size_t point_index;
-	TPoint2D line_pt[2];  //!< The point is forced to lie on the line defined by
-						  //!< these two fixed points (x0,y0)-(x1,y1)
+	mrpt::math::TPoint2D
+		line_pt[2];  //!< The point is forced to lie on the line defined by
+					 //!< these two fixed points (x0,y0)-(x1,y1)
 
 	CConstraintFixedSlider(
-		const size_t _point_index, const TPoint2D& pt0, const TPoint2D& pt1)
+		const size_t _point_index, const mrpt::math::TPoint2D& pt0,
+		const mrpt::math::TPoint2D& pt1)
 		: point_index(_point_index)
 	{
 		line_pt[0] = pt0;
@@ -133,7 +133,8 @@ class CConstraintFixedSlider : public CConstraintBase
 	// The indices of each point in the state vector "q"
 	mutable Point2ToDOF m_pointDOF;
 	mutable size_t m_idx_constr = static_cast<size_t>(-1);
-	mutable TPoint2D m_Delta;  //!< pt[1]-pt[0], precomputed only once
+	mutable mrpt::math::TPoint2D
+		m_Delta;  //!< pt[1]-pt[0], precomputed only once
 
 	/** Pointers to entries in the sparse Jacobian dPhi_dq */
 	mutable double *dPhi_dx0 = nullptr, *dPhi_dy0 = nullptr;

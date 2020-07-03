@@ -13,6 +13,7 @@
 
 using namespace mbse;
 using namespace mrpt::random;
+using namespace mrpt::math;
 
 void mbse::buildParameterizedMBS(
 	const size_t nx, const size_t ny, CModelDefinition& model,

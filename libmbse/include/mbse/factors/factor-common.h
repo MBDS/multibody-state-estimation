@@ -38,7 +38,7 @@ class state_t : public gtsam::Vector
 	int dim() const { return gtsam::Vector::size(); }
 	/// identity for group operation
 	inline static state_t identity() { return state_t(0.0); }
-	/// return as Vector
+	/// return as Eigen::Vector
 	const gtsam::Vector& vector() const { return *this; }
 
 	template <typename vector_like_t>

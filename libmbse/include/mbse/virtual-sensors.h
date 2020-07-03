@@ -16,9 +16,6 @@
 
 namespace mbse
 {
-using namespace Eigen;
-using namespace mrpt::math;
-
 /** Base of all types of virtual sensors */
 class CVirtualSensor
 {

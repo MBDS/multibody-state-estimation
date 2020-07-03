@@ -18,6 +18,7 @@
 #endif */
 
 using namespace mbse;
+using namespace mrpt::math;
 
 gtsam::NonlinearFactor::shared_ptr FactorGyroscope::clone() const
 {
@@ -103,7 +104,7 @@ gtsam::Vector FactorGyroscope::evaluateError(
 
 		// point0 & point1:
 		const Point2ToDOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
-										m_arm->m_points2DOFs[pt1_idx]};
+										 m_arm->m_points2DOFs[pt1_idx]};
 
 		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{
@@ -155,7 +156,7 @@ gtsam::Vector FactorGyroscope::evaluateError(
 
 		// point0 & point1:
 		const Point2ToDOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
-										m_arm->m_points2DOFs[pt1_idx]};
+										 m_arm->m_points2DOFs[pt1_idx]};
 
 		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{

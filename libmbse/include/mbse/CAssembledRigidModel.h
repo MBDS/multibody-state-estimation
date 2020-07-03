@@ -184,12 +184,13 @@ class CAssembledRigidModel
    public:
 	/** @name State vector itself
 		@{ */
-	VectorXd m_q;  //!< State vector q with all the unknowns
-	VectorXd m_dotq;  //!< Velocity vector \dot{q} for all the unknowns
-	VectorXd m_ddotq;  //!< The previously computed acceleration vector \ddot{q}
-					   //!< for all the unknowns
+	Eigen::VectorXd m_q;  //!< State vector q with all the unknowns
+	Eigen::VectorXd m_dotq;  //!< Velocity vector \dot{q} for all the unknowns
+	Eigen::VectorXd m_ddotq;  //!< The previously computed acceleration vector
+							  //!< \ddot{q} for all the unknowns
 
-	VectorXd m_Q;  //!< External generalized forces (gravity NOT to be included)
+	/** External generalized forces (gravity NOT to be included) */
+	Eigen::VectorXd m_Q;
 	/**  @} */
 
 	/** @name Other main data, and values computed as a function of the state
@@ -198,14 +199,16 @@ class CAssembledRigidModel
 	const CModelDefinition& m_parent;  //!< A reference to the parent MBS. Use
 									   //!< to access the data of bodies, etc.
 
-	std::vector<NaturalCoordinateDOF>
-		m_DOFs;  //!< Info on each DOF in the problem [SAME SIZE THAN m_q]
-	std::vector<Point2ToDOF> m_points2DOFs;  //!< Reverse look-up list of points
-											 //!< -> DOFs in the q vector
+	/** Info on each DOF in the problem [SAME SIZE THAN m_q] */
+	std::vector<NaturalCoordinateDOF> m_DOFs;
 
-	VectorXd m_Phi;  //!< The vector of numerical values of Phi, the vector of
-					 //!< constraint functions Phi=0
-	VectorXd m_dotPhi;  //!< The vector of numerical values of \dot{\Phi}
+	/** Reverse look-up list of points < -> DOFs in the q vector */
+	std::vector<Point2ToDOF> m_points2DOFs;
+
+	/** The vector of numerical values of Phi, the vector of constraint
+	 * functions Phi=0 */
+	Eigen::VectorXd m_Phi;
+	Eigen::VectorXd m_dotPhi;  //!< numerical values of \dot{\Phi}
 
 	/** Jacobian dPhi_dq (as a sparse matrix) */
 	CompressedRowSparseMatrix m_Phi_q;

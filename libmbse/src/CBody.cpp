@@ -29,11 +29,6 @@ CBody::CBody()
 	points[0] = points[1] = static_cast<size_t>(-1);
 }
 
-/* Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
- * planar rigid element: [ M00   |  M01  ] M = [ ------+------ ] [ M01^t |  M11
- * ] In fact it's enough to fill the upper-triangular parts of M00 and M11. M01
- * is not symmetric so it must be filled-in entirely.
- */
 void CBody::evaluateMassMatrix(
 	Matrix2d& M00, Matrix2d& M11, Matrix2d& M01) const
 {

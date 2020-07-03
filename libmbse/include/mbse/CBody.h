@@ -15,9 +15,6 @@
 
 namespace mbse
 {
-using namespace Eigen;
-using namespace mrpt::math;
-
 /** 2D generic body */
 struct CBody
 {
@@ -40,8 +37,8 @@ struct CBody
 	}
 
 	/** Center of gravity (in local coordinates, origin=first point) */
-	inline TPoint2D cog() const { return m_cog; }
-	inline TPoint2D& cog()
+	inline mrpt::math::TPoint2D cog() const { return m_cog; }
+	inline mrpt::math::TPoint2D& cog()
 	{
 		m_mass_matrices_cached = false;
 		return m_cog;
@@ -65,22 +62,27 @@ struct CBody
 	}
 
 	/** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
-	 * planar rigid element: \code [ M00   |  M01  ] M = [ ------+------ ] [
-	 * M01^t |  M11  ] \endcode
+	 * planar rigid element:
+	 * \code
+	 *     [ M00   |  M01  ]
+	 * M = [ ------+------ ]
+	 *     [ M01^t |  M11  ]
+	 * \endcode
 	 */
-	void evaluateMassMatrix(Matrix2d& M00, Matrix2d& M11, Matrix2d& M01) const;
+	void evaluateMassMatrix(
+		Eigen::Matrix2d& M00, Eigen::Matrix2d& M11, Eigen::Matrix2d& M01) const;
 
-	const Matrix2d& getM00() const;  //!< Computes (or gets the cached versions)
-									 //!< of the mass submatrices
-	const Matrix2d& getM11() const;  //!< Computes (or gets the cached versions)
-									 //!< of the mass submatrices
-	const Matrix2d& getM01() const;  //!< Computes (or gets the cached versions)
-									 //!< of the mass submatrices
+	/** Computes (or gets cached) mass mat. */
+	const Eigen::Matrix2d& getM00() const;
+	/** Computes (or gets cached) mass mat. */
+	const Eigen::Matrix2d& getM11() const;
+	/** Computes (or gets cached) mass mat. */
+	const Eigen::Matrix2d& getM01() const;
 
    private:
 	/** Cached versions of mass submatrices, stored here after calling
 	 * evaluateMassMatrix() */
-	mutable Matrix2d m_M00, m_M11, m_M01;
+	mutable Eigen::Matrix2d m_M00, m_M11, m_M01;
 	mutable bool m_mass_matrices_cached;
 
 	/** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
@@ -88,8 +90,8 @@ struct CBody
 	void internal_update_mass_submatrices() const;
 
 	double m_mass;  //!< In (kg)
-	TPoint2D m_cog;  //!< Center of gravity (in local coordinates, origin=first
-					 //!< point)
+	mrpt::math::TPoint2D m_cog;  //!< Center of gravity (in local coordinates,
+								 //!< origin=first point)
 	double m_length;  //!< Fixed length (distance) between points 0-1 (constant
 					  //!< since this is a rigid body)
 	double m_I0;  //!< Moment of inertia wrt point 0

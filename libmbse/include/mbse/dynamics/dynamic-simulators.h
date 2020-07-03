@@ -15,8 +15,6 @@
 
 namespace mbse
 {
-using namespace Eigen;
-
 struct TPointState
 {
 	TPointState(
@@ -119,7 +117,7 @@ class CDynamicSimulatorBase
 	 *  You MUST call prepare() before this method.
 	 */
 	virtual void solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	/** Integrators will call this before solve_ddotq() once per time step */
 	virtual void pre_iteration(double t) {}
@@ -175,7 +173,8 @@ class CDynamicSimulatorBase
 
 	/** Solve for the current accelerations */
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL) = 0;
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = NULL) = 0;
 
 	/** Implement a especific combination of dynamic formulation + integrator.
 	 *  \return false if it's not implemented, so it should fallback to generic
@@ -225,7 +224,8 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
 	/** Solve for the current independent accelerations
 	 *  You MUST call prepare() before this method.
 	 */
-	void solve_ddotz(double t, VectorXd& ddot_z, bool can_choose_indep_coords);
+	void solve_ddotz(
+		double t, Eigen::VectorXd& ddot_z, bool can_choose_indep_coords);
 
 	/** Performs the addition of velocities: out_dq = dq +
 	 * independent2dependent(dz) */
@@ -239,11 +239,11 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
    protected:
 	/** Wrapper for ddotq computation, from ddotz */
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	/** Solve for the current accelerations of independent coords */
 	virtual void internal_solve_ddotz(
-		double t, VectorXd& ddot_z, bool can_choose_indep_coords) = 0;
+		double t, Eigen::VectorXd& ddot_z, bool can_choose_indep_coords) = 0;
 
 	// Auxiliary variables of the ODE integrators (declared here to avoid
 	// reallocating mem)
@@ -259,7 +259,7 @@ class CDynamicSimulator_Lagrange_LU_dense : public CDynamicSimulatorBase
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	Eigen::MatrixXd m_mass;  //!< The MBS constant mass matrix
 };
@@ -273,7 +273,7 @@ class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	Eigen::MatrixXd m_mass;  //!< The MBS constant mass matrix
 };
@@ -295,7 +295,7 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotz(
-		double t, VectorXd& ddot_z, bool can_choose_indep_coords);
+		double t, Eigen::VectorXd& ddot_z, bool can_choose_indep_coords);
 
 	Eigen::MatrixXd m_mass;  //!< The MBS constant mass matrix
 	std::vector<size_t>
@@ -317,7 +317,7 @@ class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	cholmod_common m_cholmod_common;
 	cholmod_triplet* m_mass_tri;
@@ -343,7 +343,7 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	std::vector<Eigen::Triplet<double>> m_mass_tri;
 	std::vector<Eigen::Triplet<double>>
@@ -371,7 +371,7 @@ class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	std::vector<Eigen::Triplet<double>> m_mass_tri;
 	std::vector<Eigen::Triplet<double>>
@@ -423,7 +423,7 @@ class CDynamicSimulator_AugmentedLagrangian_KLU
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	struct TSparseDotProduct
 	{
@@ -459,7 +459,7 @@ class CDynamicSimulator_AugmentedLagrangian_Dense
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	Eigen::MatrixXd m_M;  //!< The MBS constant mass matrix
 	Eigen::LDLT<Eigen::MatrixXd> m_M_ldlt;
@@ -482,7 +482,7 @@ class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
    private:
 	virtual void internal_prepare();
 	virtual void internal_solve_ddotq(
-		double t, VectorXd& ddot_q, VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
 	/** Implement a especific combination of dynamic formulation + integrator.
 	 *  \return false if it's not implemented, so it should fallback to generic

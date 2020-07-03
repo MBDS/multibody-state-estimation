@@ -52,7 +52,7 @@ class CModelDefinition
 	 *  TODO: Initial position problem will refine these positions if needed.
 	 */
 	void setPointCoords(
-		const size_t i, const TPoint2D& coords, const bool is_fixed = false);
+		const size_t i, const mrpt::math::TPoint2D& coords, const bool is_fixed = false);
 
 	const Point2& getPointInfo(const size_t i) const
 	{

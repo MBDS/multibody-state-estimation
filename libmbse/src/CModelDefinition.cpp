@@ -49,7 +49,7 @@ void CModelDefinition::clear() { *this = CModelDefinition(); }
 MRPT_TODO("Initial position problem should refine these positions if needed.")
 
 void CModelDefinition::setPointCoords(
-	const size_t i, const TPoint2D& coords, const bool is_fixed)
+	const size_t i, const mrpt::math::TPoint2D& coords, const bool is_fixed)
 {
 	ASSERT_(i < m_points.size());
 
