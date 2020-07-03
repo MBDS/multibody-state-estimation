@@ -31,8 +31,8 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_prepare()
 {
 	timelog.enter("solver_prepare");
 
-	m_arm->buildMassMatrix_dense(m_M);
-	m_M_ldlt.compute(m_M);
+	arm_->buildMassMatrix_dense(M_);
+	M_ldlt_.compute(M_);
 
 	timelog.leave("solver_prepare");
 }
@@ -45,7 +45,7 @@ CDynamicSimulator_AugmentedLagrangian_Dense::
 void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	const size_t nDepCoords = m_arm->m_q.size();
+	const size_t nDepCoords = arm_->q_.size();
 
 	if (lagrangre)
 		throw std::runtime_error(
@@ -63,7 +63,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	Eigen::VectorXd ddotq_prev(nDepCoords), ddotq_next(nDepCoords);
 	this->build_RHS(&ddotq_prev[0] /* Q */, NULL /* we don't need "c" */);
 
-	ddotq_prev = m_M_ldlt.solve(ddotq_prev);
+	ddotq_prev = M_ldlt_.solve(ddotq_prev);
 
 	// 2) Iterate:
 	// ---------------------------
@@ -78,12 +78,12 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	//
 
 	// Update numeric values of the constraint Jacobians:
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
-	m_arm->getPhi_q_dense(m_Phi_q);
-	m_A = m_M + params_penalty.alpha * m_Phi_q.transpose() * m_Phi_q;
+	arm_->getPhi_q_dense(Phi_q_);
+	A_ = M_ + params_penalty.alpha * Phi_q_.transpose() * Phi_q_;
 
-	m_A_lu.compute(m_A);
+	A_lu_.compute(A_);
 
 	// Build the RHS vector:
 	// RHS = M*\ddot{q}_i -  Phi_q^t* alpha * [ \dot{Phi}_q * \dot{q} + 2 * xi *
@@ -93,13 +93,13 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	//                                                                    = b
 	timelog.enter("solver_ddotq.build_rhs");
 
-	m_arm->m_dotPhi_q.asDense(m_dotPhi_q);
+	arm_->dotPhi_q_.asDense(dotPhi_q_);
 
 	const Eigen::MatrixXd RHS2 =
-		params_penalty.alpha * m_Phi_q.transpose() *
-		(m_dotPhi_q * m_arm->m_dotq +
-		 2 * params_penalty.xi * params_penalty.w * m_arm->m_dotPhi +
-		 params_penalty.w * params_penalty.w * m_arm->m_Phi);
+		params_penalty.alpha * Phi_q_.transpose() *
+		(dotPhi_q_ * arm_->dotq_ +
+		 2 * params_penalty.xi * params_penalty.w * arm_->dotPhi_ +
+		 params_penalty.w * params_penalty.w * arm_->Phi_);
 
 	timelog.leave("solver_ddotq.build_rhs");
 
@@ -117,8 +117,8 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	do
 	{
 		// RHS = M*\ddot{q}_i - RHS2
-		RHS = (m_M * ddotq_prev) - RHS2;
-		ddotq_next = m_A_lu.solve(RHS);
+		RHS = (M_ * ddotq_prev) - RHS2;
+		ddotq_next = A_lu_.solve(RHS);
 
 		ddot_incr_norm = (ddotq_next - ddotq_prev).norm();
 		// cout << "iter: " << iter<< endl << "prev: " << ddotq_prev.transpose()
@@ -143,12 +143,12 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 {
 #if 0
 
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nConstraints = arm_->Phi_.size();
 
 	// ---------------------------
 	// Projection in q
 	// ---------------------------
-	const Eigen::VectorXd q0 = m_arm->m_q;
+	const Eigen::VectorXd q0 = arm_->q_;
 	Eigen::VectorXd Lambda(nConstraints);
 	Lambda.setZero();
 
@@ -157,19 +157,19 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 	for (int i=0;i<3;i++)
 	{
 		// Update numeric values of the constraint Jacobians:
-		m_arm->update_numeric_Phi_and_Jacobians();
-		m_arm->getPhi_q_dense(m_Phi_q);
+		arm_->update_numeric_Phi_and_Jacobians();
+		arm_->getPhi_q_dense(Phi_q_);
 
-		Lambda += params_penalty.alpha * m_arm->m_Phi;
+		Lambda += params_penalty.alpha * arm_->Phi_;
 
 		// Solve for increments Aq:
 		//
 		// -> Lambda = Lambda + alpha * Phi
 		// -> [M+alpha * Phi_q^t * Phi_q] Aq = -[ M (qi-q0) + Phi_q^t * Lambda ]
-		rhs = m_M *( q0 - m_arm->m_q ) - m_Phi_q.transpose() * Lambda;
+		rhs = M_ *( q0 - arm_->q_ ) - Phi_q_.transpose() * Lambda;
 
-		Aq = m_A_lu.solve(rhs);
-		m_arm->m_q += Aq;
+		Aq = A_lu_.solve(rhs);
+		arm_->q_ += Aq;
 
 		cout << "iter: " << i << " |Aq|=" << Aq.norm() << endl;
 	}
@@ -179,9 +179,9 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 	// Projection in dot{q}
 	// ---------------------------
 //	Eigen::FullPivLU<Eigen::MatrixXd> lu;
-//	lu.compute(m_Phi_q);
+//	lu.compute(Phi_q_);
 //	const Eigen::MatrixXd V = lu.kernel();
-//	m_arm->m_dotq = (V*V.transpose()) * m_arm->m_dotq;
+//	arm_->dotq_ = (V*V.transpose()) * arm_->dotq_;
 
 	timelog.leave("solver.post_iteration");
 #endif  // 0	timelog.enter("solver.post_iteration");

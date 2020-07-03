@@ -29,36 +29,36 @@ struct CBody
 	size_t points[2];
 
 	/** In (kg) */
-	inline double mass() const { return m_mass; }
+	inline double mass() const { return mass_; }
 	inline double& mass()
 	{
-		m_mass_matrices_cached = false;
-		return m_mass;
+		mass_matrices_cached_ = false;
+		return mass_;
 	}
 
 	/** Center of gravity (in local coordinates, origin=first point) */
-	inline mrpt::math::TPoint2D cog() const { return m_cog; }
+	inline mrpt::math::TPoint2D cog() const { return cog_; }
 	inline mrpt::math::TPoint2D& cog()
 	{
-		m_mass_matrices_cached = false;
-		return m_cog;
+		mass_matrices_cached_ = false;
+		return cog_;
 	}
 
 	/** Fixed length (distance) between points 0-1 (constant since this is a
 	 * rigid body) */
-	inline double length() const { return m_length; }
+	inline double length() const { return length_; }
 	inline double& length()
 	{
-		m_mass_matrices_cached = false;
-		return m_length;
+		mass_matrices_cached_ = false;
+		return length_;
 	}
 
 	/** Moment of inertia wrt point 0 */
-	inline double I0() const { return m_I0; }
+	inline double I0() const { return I0_; }
 	inline double& I0()
 	{
-		m_mass_matrices_cached = false;
-		return m_I0;
+		mass_matrices_cached_ = false;
+		return I0_;
 	}
 
 	/** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
@@ -82,19 +82,19 @@ struct CBody
    private:
 	/** Cached versions of mass submatrices, stored here after calling
 	 * evaluateMassMatrix() */
-	mutable Eigen::Matrix2d m_M00, m_M11, m_M01;
-	mutable bool m_mass_matrices_cached;
+	mutable Eigen::Matrix2d M00_, M11_, M01_;
+	mutable bool mass_matrices_cached_;
 
 	/** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
 	 * planar rigid element */
 	void internal_update_mass_submatrices() const;
 
-	double m_mass;  //!< In (kg)
-	mrpt::math::TPoint2D m_cog;  //!< Center of gravity (in local coordinates,
+	double mass_;  //!< In (kg)
+	mrpt::math::TPoint2D cog_;  //!< Center of gravity (in local coordinates,
 								 //!< origin=first point)
-	double m_length;  //!< Fixed length (distance) between points 0-1 (constant
+	double length_;  //!< Fixed length (distance) between points 0-1 (constant
 					  //!< since this is a rigid body)
-	double m_I0;  //!< Moment of inertia wrt point 0
+	double I0_;  //!< Moment of inertia wrt point 0
 
    public:
 	/**  Creates a 3D representation of the body */

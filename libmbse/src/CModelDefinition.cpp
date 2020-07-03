@@ -16,27 +16,27 @@ using namespace mbse;
 using namespace std;
 
 CModelDefinition::CModelDefinition()
-	: m_already_added_fixed_len_constraints(false)
+	: already_added_fixed_len_constraints_(false)
 {
 }
 
 CBody& CModelDefinition::addBody(const std::string& name)
 {
 	ASSERTMSG_(
-		!m_already_added_fixed_len_constraints,
+		!already_added_fixed_len_constraints_,
 		"Can't modify model after assembling!");
 
 	// Build name if none provided:
 	const std::string nam =
 		name.empty()
-			? mrpt::format("body%u", static_cast<unsigned int>(m_bodies.size()))
+			? mrpt::format("body%u", static_cast<unsigned int>(bodies_.size()))
 			: name;
 
 	// Create:
-	m_bodies.resize(m_bodies.size() + 1);
+	bodies_.resize(bodies_.size() + 1);
 
 	// Set name & return:
-	CBody& new_body = *m_bodies.rbegin();
+	CBody& new_body = *bodies_.rbegin();
 	new_body.name = nam;
 
 	return new_body;
@@ -51,9 +51,9 @@ MRPT_TODO("Initial position problem should refine these positions if needed.")
 void CModelDefinition::setPointCoords(
 	const size_t i, const mrpt::math::TPoint2D& coords, const bool is_fixed)
 {
-	ASSERT_(i < m_points.size());
+	ASSERT_(i < points_.size());
 
-	Point2& pt = m_points[i];
+	Point2& pt = points_[i];
 	pt.coords = coords;
 	pt.fixed = is_fixed;
 }
@@ -68,10 +68,10 @@ void CModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 	// 1) Count number of natural coordinates which are unknowns ==> # of scalar
 	// unknowns in vector q
 	// ---------------------------------------------------------------------------------------------------
-	const size_t nPts = m_points.size();
+	const size_t nPts = points_.size();
 	for (size_t i = 0; i < nPts; i++)
 	{
-		const Point2& pt = m_points[i];
+		const Point2& pt = points_[i];
 		// If it's not fixed, add to the list of DOFs
 		if (!pt.fixed)
 		{
@@ -83,20 +83,20 @@ void CModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 	// 2) For each rigid body, automatically add one constant-distance
 	// constraint:
 	// ---------------------------------------------------------------------------------------------------
-	if (!m_already_added_fixed_len_constraints)
+	if (!already_added_fixed_len_constraints_)
 	{
-		for (size_t i = 0; i < m_bodies.size(); i++)
+		for (size_t i = 0; i < bodies_.size(); i++)
 		{
-			const CBody& b = m_bodies[i];
-			ASSERT_(b.points[0] < m_points.size());
-			ASSERT_(b.points[1] < m_points.size());
+			const CBody& b = bodies_[i];
+			ASSERT_(b.points[0] < points_.size());
+			ASSERT_(b.points[1] < points_.size());
 
 			const_cast<CModelDefinition*>(this)->addConstraint(
 				CConstraintConstantDistance(
 					b.points[0], b.points[1], b.length()));
 		}
 		// Mark these constraints as added:
-		m_already_added_fixed_len_constraints = true;
+		already_added_fixed_len_constraints_ = true;
 	}
 }
 

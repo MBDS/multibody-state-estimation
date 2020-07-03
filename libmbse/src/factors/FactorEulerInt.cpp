@@ -28,7 +28,7 @@ void FactorEulerInt::print(
 			  << keyFormatter(this->key2()) << "," << keyFormatter(this->key3())
 			  << ")\n";
 	gtsam::traits<double>::Print(timestep_, "  timestep: ");
-	this->noiseModel_->print("  noise model: ");
+	noiseModel_->print("  noise model: ");
 }
 
 bool FactorEulerInt::equals(
@@ -36,7 +36,7 @@ bool FactorEulerInt::equals(
 {
 	const This* e = dynamic_cast<const This*>(&expected);
 	return e != nullptr && Base::equals(*e, tol) &&
-		   gtsam::traits<double>::Equals(this->timestep_, e->timestep_, tol);
+		   gtsam::traits<double>::Equals(timestep_, e->timestep_, tol);
 }
 
 gtsam::Vector FactorEulerInt::evaluateError(

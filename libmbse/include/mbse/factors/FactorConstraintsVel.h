@@ -27,7 +27,7 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 	using Base = gtsam::NoiseModelFactor2<state_t, state_t>;
 
 	// Class parameters (pointer to type "CConstraintBase")
-	CAssembledRigidModel::Ptr m_arm;
+	CAssembledRigidModel::Ptr arm_;
 
    public:
 	// shorthand for a smart pointer to a factor
@@ -41,7 +41,7 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 		const CAssembledRigidModel::Ptr& arm,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 		gtsam::Key key_dotq_k)
-		: Base(noiseModel, key_q_k, key_dotq_k), m_arm(arm)
+		: Base(noiseModel, key_q_k, key_dotq_k), arm_(arm)
 	{
 	}
 

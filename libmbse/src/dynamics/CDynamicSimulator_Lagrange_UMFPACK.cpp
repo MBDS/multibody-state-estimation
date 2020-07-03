@@ -23,8 +23,8 @@ CDynamicSimulator_Lagrange_UMFPACK::CDynamicSimulator_Lagrange_UMFPACK(
 	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering(orderAMD),
-	  m_numeric(NULL),
-	  m_symbolic(NULL)
+	  numeric_(NULL),
+	  symbolic_(NULL)
 {
 }
 
@@ -34,21 +34,21 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_prepare()
 {
 	timelog.enter("solver_prepare");
 
-	const size_t nDOFs = m_arm->m_q.size();
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nDOFs = arm_->q_.size();
+	const size_t nConstraints = arm_->Phi_.size();
 	const size_t nTot = nDOFs + nConstraints;
 
 	// Build mass matrix now and don't touch it anymore, since it's constant
 	// with this formulation:
-	m_arm->buildMassMatrix_sparse(m_mass_tri);
+	arm_->buildMassMatrix_sparse(mass_tri_);
 
 	// Start augmented matrix:
-	m_A_tri = m_mass_tri;
+	A_tri_ = mass_tri_;
 
 	//  Add entries in the triplet form for the sparse Phi_q Jacobian.
 	// -----------------------------------------------------------
-	m_A_tri.reserve(
-		m_A_tri.size() +
+	A_tri_.reserve(
+		A_tri_.size() +
 		2 * nConstraints *
 			nDOFs);  // *IMPORTANT* Reserve mem at once to avoid reallocations,
 					 // since we store pointers to places...
@@ -56,61 +56,60 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_prepare()
 	for (size_t i = 0; i < nConstraints; i++)
 	{
 		// Constraint "i" goes to column "nDOFs+i" in the augmented matrix:
-		const CompressedRowSparseMatrix::row_t row_i =
-			m_arm->m_Phi_q.matrix[i];
+		const CompressedRowSparseMatrix::row_t row_i = arm_->Phi_q_.matrix[i];
 		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 				 row_i.begin();
 			 itCol != row_i.end(); ++itCol)
 		{
 			// We have precomputed the order in which we find the numeric
 			// values, just insert at their correct place:
-			const size_t idx0 = m_A_tri.size();
+			const size_t idx0 = A_tri_.size();
 
-			m_A_tri.push_back(
+			A_tri_.push_back(
 				Eigen::Triplet<double>(itCol->first, nDOFs + i, 1.0));
-			m_A_tri.push_back(
+			A_tri_.push_back(
 				Eigen::Triplet<double>(nDOFs + i, itCol->first, 1.0));
 
-			m_A_tri_ptrs_Phi_q.push_back(
-				const_cast<double*>(&m_A_tri[idx0].value()));
-			m_A_tri_ptrs_Phi_q.push_back(
-				const_cast<double*>(&m_A_tri[idx0 + 1].value()));
+			A_tri_ptrs_Phi_q_.push_back(
+				const_cast<double*>(&A_tri_[idx0].value()));
+			A_tri_ptrs_Phi_q_.push_back(
+				const_cast<double*>(&A_tri_[idx0 + 1].value()));
 		}
 	}
 
 	// Analyze the pattern once:
-	m_A.resize(nTot, nTot);
-	m_A.setFromTriplets(m_A_tri.begin(), m_A_tri.end());
+	A_.resize(nTot, nTot);
+	A_.setFromTriplets(A_tri_.begin(), A_tri_.end());
 
 	// Set defaults:
-	umfpack_di_defaults(m_umf_control);
+	umfpack_di_defaults(umf_control_);
 
 	/* Control [UMFPACK_ORDERING] and Info [UMFPACK_ORDERING_USED] are one of:
 	 */
 	switch (this->ordering)
 	{
 		case orderNatural:
-			m_umf_control[UMFPACK_ORDERING] = UMFPACK_ORDERING_NONE;
+			umf_control_[UMFPACK_ORDERING] = UMFPACK_ORDERING_NONE;
 			break;
 		case orderAMD:
-			m_umf_control[UMFPACK_ORDERING] = UMFPACK_ORDERING_AMD;
+			umf_control_[UMFPACK_ORDERING] = UMFPACK_ORDERING_AMD;
 			break;
 		case orderMETIS:
-			m_umf_control[UMFPACK_ORDERING] = UMFPACK_ORDERING_METIS;
+			umf_control_[UMFPACK_ORDERING] = UMFPACK_ORDERING_METIS;
 			break;
 		case orderCHOLMOD:
-			m_umf_control[UMFPACK_ORDERING] = UMFPACK_ORDERING_CHOLMOD;
+			umf_control_[UMFPACK_ORDERING] = UMFPACK_ORDERING_CHOLMOD;
 			break;
 		case orderTryKeepBest:
-			m_umf_control[UMFPACK_ORDERING] = UMFPACK_ORDERING_BEST;
+			umf_control_[UMFPACK_ORDERING] = UMFPACK_ORDERING_BEST;
 			break;
 		default:
 			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
 	int errorCode = umfpack_symbolic(
-		m_A.rows(), m_A.cols(), m_A.outerIndexPtr(), m_A.innerIndexPtr(),
-		m_A.valuePtr(), &m_symbolic, m_umf_control, m_umf_info);
+		A_.rows(), A_.cols(), A_.outerIndexPtr(), A_.innerIndexPtr(),
+		A_.valuePtr(), &symbolic_, umf_control_, umf_info_);
 
 	if (errorCode < 0)
 		THROW_EXCEPTION(
@@ -121,15 +120,15 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_prepare()
 
 CDynamicSimulator_Lagrange_UMFPACK::~CDynamicSimulator_Lagrange_UMFPACK()
 {
-	if (m_symbolic)
+	if (symbolic_)
 	{
-		umfpack_di_free_symbolic(&m_symbolic);
-		m_symbolic = NULL;
+		umfpack_di_free_symbolic(&symbolic_);
+		symbolic_ = NULL;
 	}
-	if (m_numeric)
+	if (numeric_)
 	{
-		umfpack_di_free_numeric(&m_numeric);
-		m_numeric = NULL;
+		umfpack_di_free_numeric(&numeric_);
+		numeric_ = NULL;
 	}
 }
 
@@ -144,13 +143,13 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 	// c = - \dot{Phi_t} - \dot{Phi_q} * \dot{q}
 	//  normally =>  c = - \dot{Phi_q} * \dot{q}
 	//
-	const size_t nDOFs = m_arm->m_q.size();
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nDOFs = arm_->q_.size();
+	const size_t nConstraints = arm_->Phi_.size();
 	const size_t nTot = nDOFs + nConstraints;
 
 	// Update numeric values of the constraint Jacobians:
 	timelog.enter("solver_ddotq.update_jacob");
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Move the updated Jacobian values to their places in the triplet form:
 	{
@@ -159,13 +158,13 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 		{
 			// Constraint "i" goes to column "nDOFs+i" in the augmented matrix:
 			const CompressedRowSparseMatrix::row_t row_i =
-				m_arm->m_Phi_q.matrix[i];
+				arm_->Phi_q_.matrix[i];
 			for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 					 row_i.begin();
 				 itCol != row_i.end(); ++itCol)
 			{
-				*m_A_tri_ptrs_Phi_q[idx++] = itCol->second;
-				*m_A_tri_ptrs_Phi_q[idx++] = itCol->second;
+				*A_tri_ptrs_Phi_q_[idx++] = itCol->second;
+				*A_tri_ptrs_Phi_q_[idx++] = itCol->second;
 			}
 		}
 	}
@@ -174,19 +173,19 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 	// Solve numeric sparse LU:
 	// -----------------------------------
 	timelog.enter("solver_ddotq.ccs");
-	m_A.setFromTriplets(m_A_tri.begin(), m_A_tri.end());
+	A_.setFromTriplets(A_tri_.begin(), A_tri_.end());
 	timelog.leave("solver_ddotq.ccs");
 
 	timelog.enter("solver_ddotq.numeric_factor");
 
-	if (m_numeric)
+	if (numeric_)
 	{
-		umfpack_di_free_numeric(&m_numeric);
-		m_numeric = NULL;
+		umfpack_di_free_numeric(&numeric_);
+		numeric_ = NULL;
 	}
 	int errorCode = umfpack_di_numeric(
-		m_A.outerIndexPtr(), m_A.innerIndexPtr(), m_A.valuePtr(), m_symbolic,
-		&m_numeric, m_umf_control, m_umf_info);
+		A_.outerIndexPtr(), A_.innerIndexPtr(), A_.valuePtr(), symbolic_,
+		&numeric_, umf_control_, umf_info_);
 
 	if (errorCode < 0)
 		THROW_EXCEPTION(
@@ -208,13 +207,13 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 	Eigen::VectorXd solution(nTot);
 
 	errorCode = umfpack_di_solve(
-		UMFPACK_A, m_A.outerIndexPtr(), m_A.innerIndexPtr(), m_A.valuePtr(),
-		&solution[0], &RHS[0], m_numeric, m_umf_control, m_umf_info);
+		UMFPACK_A, A_.outerIndexPtr(), A_.innerIndexPtr(), A_.valuePtr(),
+		&solution[0], &RHS[0], numeric_, umf_control_, umf_info_);
 
 	if (errorCode != 0)
 	{
 		mrpt::math::saveEigenSparseTripletsToFile(
-			"DUMP_UMFPACK_ERROR_A.txt", m_A_tri);
+			"DUMP_UMFPACK_ERROR_A.txt", A_tri_);
 		// RHS.saveToTextFile("DUMP_UMFPACK_ERROR_RHS.txt");
 		THROW_EXCEPTION("Error: UMFPACK couldn't solve the linear system.");
 	}
@@ -225,8 +224,8 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 	if (lagrangre) *lagrangre = solution.tail(nConstraints);
 
 #if 0
-	cout << "q: " << m_arm->m_q.transpose() << endl;
-	cout << "qdot: " << m_arm->m_dotq.transpose() << endl;
+	cout << "q: " << arm_->q_.transpose() << endl;
+	cout << "qdot: " << arm_->dotq_.transpose() << endl;
 	cout << "RHS:\n" << RHS << endl;
 	cout << "solved ddotq: " << ddot_q.transpose() << endl;
 	mrpt::system::pause();

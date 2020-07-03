@@ -133,13 +133,10 @@ class CDynamicSimulatorBase
 
 	const std::shared_ptr<CAssembledRigidModel>& get_model() const
 	{
-		return m_arm_ptr;
+		return arm_ptr_;
 	}
 
-	CAssembledRigidModel* get_model_non_const() const
-	{
-		return m_arm_ptr.get();
-	}
+	CAssembledRigidModel* get_model_non_const() const { return arm_ptr_.get(); }
 
 	/** \name Sensors
 		 @{ */
@@ -157,9 +154,9 @@ class CDynamicSimulatorBase
 	/** @} */
 
    protected:
-	//!< The smart pointer. Normally use m_arm which is faster
-	const std::shared_ptr<CAssembledRigidModel> m_arm_ptr;
-	CAssembledRigidModel* const m_arm;  //!< The prepared MBS model.
+	//!< The smart pointer. Normally use arm_ which is faster
+	const std::shared_ptr<CAssembledRigidModel> arm_ptr_;
+	CAssembledRigidModel* const arm_;  //!< The prepared MBS model.
 
 	/** Build the two subvectors of the RHS of the motion equation, with the
 	 * generalized forces "Q" and the Jacobian-based term "c". "Q" must have
@@ -195,12 +192,12 @@ class CDynamicSimulatorBase
 	Eigen::VectorXd ddotq1, ddotq2, ddotq3, ddotq4;  // \ddot{q}
 
    protected:
-	bool m_init;  //!< Used to indicate if user has called prepare()
+	bool init_;  //!< Used to indicate if user has called prepare()
 
 	/** List of "sensed point_index" -> list of logged data.
 	 * Updated by addPointSensor()
 	 */
-	std::list<TSensorData> m_sensors;
+	std::list<TSensorData> sensors_;
 };
 
 class CDynamicSimulatorIndepBase;
@@ -261,7 +258,7 @@ class CDynamicSimulator_Lagrange_LU_dense : public CDynamicSimulatorBase
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
-	Eigen::MatrixXd m_mass;  //!< The MBS constant mass matrix
+	Eigen::MatrixXd mass_;  //!< The MBS constant mass matrix
 };
 
 class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
@@ -275,7 +272,7 @@ class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
-	Eigen::MatrixXd m_mass;  //!< The MBS constant mass matrix
+	Eigen::MatrixXd mass_;  //!< The MBS constant mass matrix
 };
 
 /** R matrix projection method (as in section 5.2.3 of "J. García De Jalon &
@@ -297,10 +294,10 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
 	virtual void internal_solve_ddotz(
 		double t, Eigen::VectorXd& ddot_z, bool can_choose_indep_coords);
 
-	Eigen::MatrixXd m_mass;  //!< The MBS constant mass matrix
+	Eigen::MatrixXd mass_;  //!< The MBS constant mass matrix
 	std::vector<size_t>
-		m_indep_idxs;  //!< The indices in "q" of those coordinates to be used
-					   //!< as "independent" (z)
+		indep_idxs_;  //!< The indices in "q" of those coordinates to be used
+					  //!< as "independent" (z)
 };
 
 class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
@@ -319,16 +316,16 @@ class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
-	cholmod_common m_cholmod_common;
-	cholmod_triplet* m_mass_tri;
-	cholmod_sparse* m_mass;
-	cholmod_factor* m_Lm;  //!< Mass = Lm * Lm'
-	cholmod_factor* m_Lt;  //!< E*E' = Lt*Lt'
-	cholmod_triplet* m_Phi_q_t_tri;
+	cholmod_common cholmod_common_;
+	cholmod_triplet* mass_tri_;
+	cholmod_sparse* mass_;
+	cholmod_factor* Lm_;  //!< Mass = Lm * Lm'
+	cholmod_factor* Lt_;  //!< E*E' = Lt*Lt'
+	cholmod_triplet* Phi_q_t_tri_;
 	std::vector<double*>
-		m_ptrs_Phi_q_t_tri;  //!< Pointers to elements in m_Phi_q_t_tri in the
-							 //!< same order than in the sparse Jacobian.
-	cholmod_dense *m_Q, *m_c, *m_z;  //!< RHS & auxiliary vectors
+		ptrs_Phi_q_t_tri_;  //!< Pointers to elements in Phi_q_t_tri_ in the
+							//!< same order than in the sparse Jacobian.
+	cholmod_dense *Q_, *c_, *z_;  //!< RHS & auxiliary vectors
 };
 
 class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
@@ -345,18 +342,18 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
-	std::vector<Eigen::Triplet<double>> m_mass_tri;
+	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>
-		m_A_tri;  //!< Augmented matrix (triplet form)
-	std::vector<double*> m_A_tri_ptrs_Phi_q;  //!< Placeholders for the non-zero
-											  //!< entries of the Jacobian.
-	Eigen::SparseMatrix<double> m_A;  //!< Augmented matrix (CCS)
+		A_tri_;  //!< Augmented matrix (triplet form)
+	std::vector<double*> A_tri_ptrs_Phi_q_;  //!< Placeholders for the non-zero
+											 //!< entries of the Jacobian.
+	Eigen::SparseMatrix<double> A_;  //!< Augmented matrix (CCS)
 
-	void* m_numeric;
-	void* m_symbolic;
+	void* numeric_;
+	void* symbolic_;
 
-	double m_umf_control[UMFPACK_CONTROL];
-	double m_umf_info[UMFPACK_INFO];
+	double umf_control_[UMFPACK_CONTROL];
+	double umf_info_[UMFPACK_INFO];
 };
 
 class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
@@ -373,16 +370,16 @@ class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
-	std::vector<Eigen::Triplet<double>> m_mass_tri;
+	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>
-		m_A_tri;  //!< Augmented matrix (triplet form)
-	std::vector<double*> m_A_tri_ptrs_Phi_q;  //!< Placeholders for the non-zero
-											  //!< entries of the Jacobian.
-	Eigen::SparseMatrix<double> m_A;  //!< Augmented matrix (CCS)
+		A_tri_;  //!< Augmented matrix (triplet form)
+	std::vector<double*> A_tri_ptrs_Phi_q_;  //!< Placeholders for the non-zero
+											 //!< entries of the Jacobian.
+	Eigen::SparseMatrix<double> A_;  //!< Augmented matrix (CCS)
 
-	klu_common m_common;
-	klu_numeric* m_numeric;
-	klu_symbolic* m_symbolic;
+	klu_common common_;
+	klu_numeric* numeric_;
+	klu_symbolic* symbolic_;
 };
 
 class CDynamicSimulatorBasePenalty : public CDynamicSimulatorBase
@@ -418,7 +415,7 @@ class CDynamicSimulator_AugmentedLagrangian_KLU
 
 	TOrderingMethods ordering;
 
-	const Eigen::SparseMatrix<double>& getA() const { return m_A; }
+	const Eigen::SparseMatrix<double>& getA() const { return A_; }
 
    private:
 	virtual void internal_prepare();
@@ -433,16 +430,16 @@ class CDynamicSimulator_AugmentedLagrangian_KLU
 						//!< pointers, if they are not NULL.
 	};
 
-	std::vector<Eigen::Triplet<double>> m_A_tri,
-		m_M_tri;  //!< Augmented matrix (triplet form)
+	std::vector<Eigen::Triplet<double>> A_tri_,
+		M_tri_;  //!< Augmented matrix (triplet form)
 	std::vector<TSparseDotProduct>
-		m_PhiqtPhi;  //!< Quick list of operations needed to update the product
-					 //!< Phi_q^t * Phi_q and store it into m_A_tri.
-	Eigen::SparseMatrix<double> m_A, m_M;  //!< Augmented matrix (CCS)
+		PhiqtPhi_;  //!< Quick list of operations needed to update the product
+					//!< Phi_q^t * Phi_q and store it into A_tri_.
+	Eigen::SparseMatrix<double> A_, M_;  //!< Augmented matrix (CCS)
 
-	klu_common m_common;
-	klu_numeric *m_numeric, *m_numeric_M;
-	klu_symbolic *m_symbolic, *m_symbolic_M;
+	klu_common common_;
+	klu_numeric *numeric_ = nullptr, *numeric_M_ = nullptr;
+	klu_symbolic *symbolic_ = nullptr, *symbolic_M_ = nullptr;
 };
 
 class CDynamicSimulator_AugmentedLagrangian_Dense
@@ -461,12 +458,12 @@ class CDynamicSimulator_AugmentedLagrangian_Dense
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
 
-	Eigen::MatrixXd m_M;  //!< The MBS constant mass matrix
-	Eigen::LDLT<Eigen::MatrixXd> m_M_ldlt;
+	Eigen::MatrixXd M_;  //!< The MBS constant mass matrix
+	Eigen::LDLT<Eigen::MatrixXd> M_ldlt_;
 
 	// Data updated during solve(), then reused during post_iteration():
-	Eigen::MatrixXd m_A, m_Phi_q, m_dotPhi_q;
-	Eigen::FullPivLU<Eigen::MatrixXd> m_A_lu;
+	Eigen::MatrixXd A_, Phi_q_, dotPhi_q_;
+	Eigen::FullPivLU<Eigen::MatrixXd> A_lu_;
 };
 
 class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
@@ -491,14 +488,14 @@ class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
 	virtual bool internal_integrate(
 		double t, double dt, const ODE_integrator_t integr);
 
-	Eigen::MatrixXd m_M;  //!< The MBS constant mass matrix
-	Eigen::LDLT<Eigen::MatrixXd> m_M_ldlt;
+	Eigen::MatrixXd M_;  //!< The MBS constant mass matrix
+	Eigen::LDLT<Eigen::MatrixXd> M_ldlt_;
 
 	// Data updated during solve(), then reused during post_iteration():
-	Eigen::MatrixXd m_A, m_Phi_q, m_dotPhi_q;
-	Eigen::FullPivLU<Eigen::MatrixXd> m_A_lu;
+	Eigen::MatrixXd A_, Phi_q_, dotPhi_q_;
+	Eigen::FullPivLU<Eigen::MatrixXd> A_lu_;
 
-	Eigen::VectorXd m_Lambda;
+	Eigen::VectorXd Lambda_;
 };
 
 }  // namespace mbse

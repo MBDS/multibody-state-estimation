@@ -20,7 +20,7 @@ using namespace std;
 
 void CAssembledRigidModel::builGeneralizedForces(Eigen::VectorXd& Q) const
 {
-	const size_t nDOFs = m_q.size();
+	const size_t nDOFs = q_.size();
 	Q.resize(nDOFs);
 	builGeneralizedForces(&Q[0]);
 }
@@ -32,11 +32,11 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 {
 	timelog.enter("builGeneralizedForces");
 
-	const size_t nDOFs = m_q.size();
+	const size_t nDOFs = q_.size();
 	Eigen::Map<Eigen::VectorXd> Q(q, nDOFs);
 	Q.setZero();
 
-	const std::vector<CBody>& parent_bodies = m_parent.getBodies();
+	const std::vector<CBody>& parent_bodies = parent_.getBodies();
 
 	// Gravity force:
 	// --------------------------------
@@ -49,24 +49,24 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 		// where the force is applied:
 		TPoint2D force_local_point;
 
-		const Point2& p0_info = m_parent.getPointInfo(body.points[0]);
-		const Point2& p1_info = m_parent.getPointInfo(body.points[1]);
+		const Point2& p0_info = parent_.getPointInfo(body.points[0]);
+		const Point2& p1_info = parent_.getPointInfo(body.points[1]);
 
-		const Point2ToDOF& p0_dofs = m_points2DOFs[body.points[0]];
-		const Point2ToDOF& p1_dofs = m_points2DOFs[body.points[1]];
+		const Point2ToDOF& p0_dofs = points2DOFs_[body.points[0]];
+		const Point2ToDOF& p1_dofs = points2DOFs_[body.points[1]];
 
 		if (0)
 		{
 			// Get the current global coordinates of the body points:
 			const TPoint2D p0(
-				(p0_dofs.dof_x != INVALID_DOF) ? m_q[p0_dofs.dof_x]
+				(p0_dofs.dof_x != INVALID_DOF) ? q_[p0_dofs.dof_x]
 											   : p0_info.coords.x,
-				(p0_dofs.dof_y != INVALID_DOF) ? m_q[p0_dofs.dof_y]
+				(p0_dofs.dof_y != INVALID_DOF) ? q_[p0_dofs.dof_y]
 											   : p0_info.coords.y);
 			const TPoint2D p1(
-				(p1_dofs.dof_x != INVALID_DOF) ? m_q[p1_dofs.dof_x]
+				(p1_dofs.dof_x != INVALID_DOF) ? q_[p1_dofs.dof_x]
 											   : p1_info.coords.x,
-				(p1_dofs.dof_y != INVALID_DOF) ? m_q[p1_dofs.dof_y]
+				(p1_dofs.dof_y != INVALID_DOF) ? q_[p1_dofs.dof_y]
 											   : p1_info.coords.y);
 		}
 		else
@@ -87,9 +87,9 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 
 		// Force vector:
 		Eigen::Vector2d F;
-		// F = body.mass * m_gravity;
-		F[0] = body.mass() * m_gravity[0];  // x
-		F[1] = body.mass() * m_gravity[1];  // y
+		// F = body.mass * gravity_;
+		F[0] = body.mass() * gravity_[0];  // x
+		F[1] = body.mass() * gravity_[1];  // y
 
 		// Q = Cp^t * F
 		const Eigen::Vector4d Qi = Cp.transpose() * F;
@@ -108,9 +108,9 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 
 	// External forces:
 	// --------------------------------
-	ASSERT_EQUAL_(Q.rows(), m_Q.rows());
-	ASSERT_EQUAL_(Q.cols(), m_Q.cols());
-	Q += m_Q;
+	ASSERT_EQUAL_(Q.rows(), Q_.rows());
+	ASSERT_EQUAL_(Q.cols(), Q_.cols());
+	Q += Q_;
 
 	timelog.leave("builGeneralizedForces");
 }

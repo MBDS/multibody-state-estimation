@@ -56,10 +56,10 @@ class CVirtualSensor_Gyro : public CVirtualSensor
 	virtual double simulate_reading(
 		const CAssembledRigidModel& mb_state) const override;
 
-	CVirtualSensor_Gyro(const size_t body_idx) : m_body_idx(body_idx) {}
+	CVirtualSensor_Gyro(const size_t body_idx) : body_idx_(body_idx) {}
 
    protected:
-	size_t m_body_idx;
+	size_t body_idx_;
 };
 
 }  // namespace mbse

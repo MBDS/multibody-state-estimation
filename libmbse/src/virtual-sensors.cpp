@@ -24,10 +24,10 @@ double CVirtualSensor_Gyro::simulate_reading(
 	const CAssembledRigidModel& arm) const
 {
 	// Estimate the current angular velocity of the i'th body:
-	const std::vector<CBody>& bodies = arm.m_parent.getBodies();
-	ASSERTDEB_(m_body_idx < bodies.size());
+	const std::vector<CBody>& bodies = arm.parent_.getBodies();
+	ASSERTDEB_(body_idx_ < bodies.size());
 
-	const CBody& body = bodies[m_body_idx];
+	const CBody& body = bodies[body_idx_];
 
 	const size_t pt0_idx = body.points[0];
 	const size_t pt1_idx = body.points[1];

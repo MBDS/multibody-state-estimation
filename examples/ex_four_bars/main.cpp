@@ -61,12 +61,12 @@ int main(int argc, char** argv)
 
 		// Set initial velocities (Only for the buildParameterizedMBS model)
 		// for (size_t i=0;i<=Nx;i++)
-		//	aMBS->m_dotq[2*i+0]=1;
+		//	aMBS->dotq_[2*i+0]=1;
 
 #if 0
 		// prueba del ejercicio de clase (model: buildTwoSliderBlocks)
 		{
-			aMBS->m_dotq[1]=-10;
+			aMBS->dotq_[1]=-10;
 
 			std::vector<size_t> z_indices;
 			Eigen::VectorXd out_ddq, ddot_z;
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 		E_tot.reserve(ENERGY_MAX_LOG);
 		E_kin.reserve(ENERGY_MAX_LOG);
 		E_pot.reserve(ENERGY_MAX_LOG);
-		mrpt::math::CMatrixDouble Qs(ENERGY_MAX_LOG, 1 + aMBS->m_q.size());
+		mrpt::math::CMatrixDouble Qs(ENERGY_MAX_LOG, 1 + aMBS->q_.size());
 
 		const size_t ENERGY_DECIMATE = 100;
 		size_t ENERGY_DECIMATE_CNT = 0;
@@ -233,8 +233,8 @@ int main(int argc, char** argv)
 				if (idx < Qs.rows() - 1)
 				{
 					Qs(idx, 0) = t_old_simul;
-					for (int i = 0; i < dynSimul.get_model()->m_q.size(); i++)
-						Qs(idx, 1 + i) = dynSimul.get_model()->m_q[i];
+					for (int i = 0; i < dynSimul.get_model()->q_.size(); i++)
+						Qs(idx, 1 + i) = dynSimul.get_model()->q_[i];
 					idx++;
 				}
 			}
@@ -256,7 +256,7 @@ int main(int argc, char** argv)
 					10, 10,
 					mrpt::format(
 						"Time: %.03fs (x%.02f) |Phi|=%e", t_old,
-						REALTIME_FACTOR, aMBS->m_Phi.norm()),
+						REALTIME_FACTOR, aMBS->Phi_.norm()),
 					0 /* txt ID */, fp);
 
 				const double simul_t =

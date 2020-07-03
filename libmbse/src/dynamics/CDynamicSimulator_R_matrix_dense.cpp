@@ -34,7 +34,7 @@ void CDynamicSimulator_R_matrix_dense::internal_prepare()
 
 	// Build mass matrix now and don't touch it anymore, since it's constant
 	// with this formulation:
-	m_arm->buildMassMatrix_dense(m_mass);
+	arm_->buildMassMatrix_dense(mass_);
 
 	timelog.leave("solver_prepare");
 }
@@ -55,13 +55,13 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	// c = - \dot{Phi_t} - \dot{Phi_q} * \dot{q}
 	//  normally =>  c = - \dot{Phi_q} * \dot{q}
 	//
-	const size_t nDepCoords = m_arm->m_q.size();
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nDepCoords = arm_->q_.size();
+	const size_t nConstraints = arm_->Phi_.size();
 
 	// Update numeric values of the constraint Jacobians:
 	timelog.enter("solver_ddotq.update_jacob");
 
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
 	timelog.leave("solver_ddotq.update_jacob");
 
@@ -69,7 +69,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	timelog.enter("solver_ddotq.get_dense_jacob");
 
 	Eigen::MatrixXd Phiq(nConstraints, nDepCoords);
-	m_arm->getPhi_q_dense(Phiq);
+	arm_->getPhi_q_dense(Phiq);
 
 	timelog.leave("solver_ddotq.get_dense_jacob");
 
@@ -88,7 +88,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	// Build the dense augmented matrix:
 	Eigen::MatrixXd A(nDepCoords, nDepCoords);
 	A.block(0, 0, nConstraints, nDepCoords) = Phiq;
-	A.block(nConstraints, 0, nDOFs, nDepCoords) = R.transpose() * m_mass;
+	A.block(nConstraints, 0, nDOFs, nDepCoords) = R.transpose() * mass_;
 
 	// Build the RHS vector:
 	// --------------------------
@@ -111,8 +111,8 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	//A.saveToTextFile("A.txt");
 	//RHS.saveToTextFile("RHS.txt");
 
-	cout << "q: " << m_arm->m_q.transpose() << endl;
-	cout << "qdot: " << m_arm->m_dotq.transpose() << endl;
+	cout << "q: " << arm_->q_.transpose() << endl;
+	cout << "qdot: " << arm_->dotq_.transpose() << endl;
 	cout << "A:\n" << A << endl;
 	cout << "RHS:\n" << RHS << endl;
 	cout << "solved ddotq: " << ddot_q.transpose() << endl;

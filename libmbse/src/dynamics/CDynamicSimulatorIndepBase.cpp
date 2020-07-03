@@ -33,7 +33,7 @@ CDynamicSimulatorIndepBase::~CDynamicSimulatorIndepBase() {}
 void CDynamicSimulatorIndepBase::solve_ddotz(
 	double t, VectorXd& ddot_z, bool can_choose_indep_coords)
 {
-	ASSERT_(m_init);
+	ASSERT_(init_);
 	this->internal_solve_ddotz(t, ddot_z, can_choose_indep_coords);
 }
 
@@ -41,12 +41,12 @@ void CDynamicSimulatorIndepBase::solve_ddotz(
 double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 {
 	ASSERT_(t_end >= t_ini);
-	ASSERT_(m_init);
+	ASSERT_(init_);
 
 	if (t_ini == t_end) return t_end;  // Nothing to do.
 
 	// Fill constant data
-	TSimulationState sim_state(m_arm);
+	TSimulationState sim_state(arm_);
 
 	const double t_step = std::min(t_end - t_ini, params.time_step);
 	const double t_step2 = t_step * 0.5;
@@ -57,8 +57,8 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 	{
 		// Log sensor points:
 		// ------------------------------
-		for (std::list<TSensorData>::iterator it = m_sensors.begin();
-			 it != m_sensors.end(); ++it)
+		for (std::list<TSensorData>::iterator it = sensors_.begin();
+			 it != sensors_.end(); ++it)
 		{
 			TSensorData& sd = *it;
 			sd.log.push_back(timestamped_point_t(
@@ -77,9 +77,9 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 			{
 				this->internal_solve_ddotz(
 					t, ddotz1, true /* can choose indep. coords */);
-				m_arm->m_q += t_step * m_arm->m_dotq;
-				// m_arm->m_dotq += t_step * ddotz1;
-				this->dq_plus_dz(m_arm->m_dotq, t_step * ddotz1, m_arm->m_dotq);
+				arm_->q_ += t_step * arm_->dotq_;
+				// arm_->dotq_ += t_step * ddotz1;
+				this->dq_plus_dz(arm_->dotq_, t_step * ddotz1, arm_->dotq_);
 
 				this->correct_dependent_q_dq();
 			}
@@ -87,13 +87,13 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 
 			case ODE_RK4:
 			{
-				q0 = m_arm->m_q;  // Make backup copy of state (velocities will
+				q0 = arm_->q_;  // Make backup copy of state (velocities will
 								  // be in "v1")
 
 				// k1 = f(t,y);
 				// cur_time = t;
-				v1 = m_arm->m_dotq;
-				// No change needed: m_arm->m_q = q0;
+				v1 = arm_->dotq_;
+				// No change needed: arm_->q_ = q0;
 				this->internal_solve_ddotz(
 					t, ddotz1, true /* can choose indep. coords */);
 
@@ -101,46 +101,46 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				// cur_time = t + t_step2;
 				this->dq_plus_dz(
 					v1, t_step2 * ddotz1,
-					m_arm->m_dotq);  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
-				m_arm->m_q = q0 + t_step2 * v1;
+					arm_->dotq_);  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
+				arm_->q_ = q0 + t_step2 * v1;
 				this->correct_dependent_q_dq();
 
-				v2 = m_arm->m_dotq;
+				v2 = arm_->dotq_;
 				this->internal_solve_ddotz(
 					t + t_step2, ddotz2,
 					false /* don't change again the indep. coords */);
 
 				// k3 = f(t+At/2,y+At/2*k2)
 				// cur_time = t + t_step2;
-				// m_arm->m_dotq = v1 + t_step2*ddotq2;  // \dot{q}= \dot{q}_0 +
+				// arm_->dotq_ = v1 + t_step2*ddotq2;  // \dot{q}= \dot{q}_0 +
 				// At/2 * \ddot{q}_2
-				this->dq_plus_dz(v1, t_step2 * ddotz2, m_arm->m_dotq);
+				this->dq_plus_dz(v1, t_step2 * ddotz2, arm_->dotq_);
 
-				m_arm->m_q = q0 + t_step2 * v2;
+				arm_->q_ = q0 + t_step2 * v2;
 				this->correct_dependent_q_dq();
 
-				v3 = m_arm->m_dotq;
+				v3 = arm_->dotq_;
 				this->internal_solve_ddotz(
 					t + t_step2, ddotz3,
 					false /* don't change again the indep. coords */);
 
 				// k4 = f(t+At  ,y+At*k3)
 				// cur_time = t + t_step;
-				// m_arm->m_dotq = v1 + t_step*ddotq3;
-				this->dq_plus_dz(v1, t_step * ddotz3, m_arm->m_dotq);
-				m_arm->m_q = q0 + t_step * v3;
+				// arm_->dotq_ = v1 + t_step*ddotq3;
+				this->dq_plus_dz(v1, t_step * ddotz3, arm_->dotq_);
+				arm_->q_ = q0 + t_step * v3;
 				this->correct_dependent_q_dq();
 
-				v4 = m_arm->m_dotq;
+				v4 = arm_->dotq_;
 				this->internal_solve_ddotz(
 					t + t_step, ddotz4,
 					false /* don't change again the indep. coords */);
 
 				// Runge-Kutta 4th order formula:
-				m_arm->m_q = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
+				arm_->q_ = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
 				this->dq_plus_dz(
 					v1, t_step6 * (ddotz1 + 2 * ddotz2 + 2 * ddotz3 + ddotz4),
-					m_arm->m_dotq);
+					arm_->dotq_);
 				this->correct_dependent_q_dq();
 			}
 			break;
@@ -157,8 +157,8 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				double qdiff=10*QDIFF_MAX;
 
 				// Keep the initial state:
-				const Eigen::VectorXd q0  = m_arm->m_q;
-				const Eigen::VectorXd dq0 = m_arm->m_dotq;
+				const Eigen::VectorXd q0  = arm_->q_;
+				const Eigen::VectorXd dq0 = arm_->dotq_;
 
 				// First attempt:
 				Eigen::VectorXd ddz0;
@@ -169,8 +169,8 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				this->dq_plus_dz(dq0, t_step*ddq0, dq_new );
 
 				// Solve at the new predicted state "t=k+1":
-				m_arm->m_q    =  q_new;
-				m_arm->m_dotq = dq_new;
+				arm_->q_    =  q_new;
+				arm_->dotq_ = dq_new;
 				this->correct_dependent_q_dq();
 				Eigen::VectorXd q_old = q_new;
 
@@ -195,8 +195,8 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 					qdiff = (q_old-q_new).norm();
 
 					// Solve at the new predicted state "t=k+1":
-					m_arm->m_q    =  q_new;
-					m_arm->m_dotq = dq_new;
+					arm_->q_    =  q_new;
+					arm_->dotq_ = dq_new;
 				}
 				ASSERTMSG_(iter<MAX_ITERS,"Trapezoidal convergence failed!")
 

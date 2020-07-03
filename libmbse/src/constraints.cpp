@@ -25,100 +25,92 @@ CConstraintBase::~CConstraintBase() {}
 void CConstraintConstantDistance::buildSparseStructures(
 	CAssembledRigidModel& arm) const
 {
-	m_points[0] = &arm.m_parent.getPointInfo(this->point_index0);
-	m_points[1] = &arm.m_parent.getPointInfo(this->point_index1);
+	points_[0] = &arm.parent_.getPointInfo(this->point_index0);
+	points_[1] = &arm.parent_.getPointInfo(this->point_index1);
 
 	ASSERTMSG_(
-		!(m_points[0]->fixed && m_points[1]->fixed),
+		!(points_[0]->fixed && points_[1]->fixed),
 		"Useless constraint added between two fixed points!");
 
-	m_pointDOFs[0] = arm.getPoints2DOFs()[this->point_index0];
-	m_pointDOFs[1] = arm.getPoints2DOFs()[this->point_index1];
+	pointDOFs_[0] = arm.getPoints2DOFs()[this->point_index0];
+	pointDOFs_[1] = arm.getPoints2DOFs()[this->point_index1];
 
 	// Alloc a new row in the list of constraints:
-	m_idx_constr = arm.addNewRowToConstraints();
+	idx_constr_ = arm.addNewRowToConstraints();
 
 	// Add columns to sparse row in Phi_q:
 	// --------------------------------------------
-	if (!m_points[0]->fixed)  // Only for the variables, not fixed points:
+	if (!points_[0]->fixed)  // Only for the variables, not fixed points:
 	{
-		dPhi_dx0 = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOFs[0].dof_x];
-		dPhi_dy0 = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOFs[0].dof_y];
+		dPhi_dx0 = &arm.Phi_q_.matrix[idx_constr_][pointDOFs_[0].dof_x];
+		dPhi_dy0 = &arm.Phi_q_.matrix[idx_constr_][pointDOFs_[0].dof_y];
 	}
-	if (!m_points[1]->fixed)
+	if (!points_[1]->fixed)
 	{
-		dPhi_dx1 = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOFs[1].dof_x];
-		dPhi_dy1 = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOFs[1].dof_y];
+		dPhi_dx1 = &arm.Phi_q_.matrix[idx_constr_][pointDOFs_[1].dof_x];
+		dPhi_dy1 = &arm.Phi_q_.matrix[idx_constr_][pointDOFs_[1].dof_y];
 	}
 
 	// Add columns to sparse row in \dot{Phi_q}:
 	// --------------------------------------------
-	if (!m_points[0]->fixed)  // Only for the variables, not fixed points:
+	if (!points_[0]->fixed)  // Only for the variables, not fixed points:
 	{
-		dot_dPhi_dx0 =
-			&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOFs[0].dof_x];
-		dot_dPhi_dy0 =
-			&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOFs[0].dof_y];
+		dot_dPhi_dx0 = &arm.dotPhi_q_.matrix[idx_constr_][pointDOFs_[0].dof_x];
+		dot_dPhi_dy0 = &arm.dotPhi_q_.matrix[idx_constr_][pointDOFs_[0].dof_y];
 	}
-	if (!m_points[1]->fixed)
+	if (!points_[1]->fixed)
 	{
-		dot_dPhi_dx1 =
-			&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOFs[1].dof_x];
-		dot_dPhi_dy1 =
-			&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOFs[1].dof_y];
+		dot_dPhi_dx1 = &arm.dotPhi_q_.matrix[idx_constr_][pointDOFs_[1].dof_x];
+		dot_dPhi_dy1 = &arm.dotPhi_q_.matrix[idx_constr_][pointDOFs_[1].dof_y];
 	}
 
 	// Add columns to sparse row in d(Phiq*dq)_dq
 	// --------------------------------------------
-	if (!m_points[0]->fixed)  // Only for the variables, not fixed points:
+	if (!points_[0]->fixed)  // Only for the variables, not fixed points:
 	{
-		dPhiqdq_dx0 =
-			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[0].dof_x];
-		dPhiqdq_dy0 =
-			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[0].dof_y];
+		dPhiqdq_dx0 = &arm.dPhiqdq_dq_.matrix[idx_constr_][pointDOFs_[0].dof_x];
+		dPhiqdq_dy0 = &arm.dPhiqdq_dq_.matrix[idx_constr_][pointDOFs_[0].dof_y];
 	}
-	if (!m_points[1]->fixed)
+	if (!points_[1]->fixed)
 	{
-		dPhiqdq_dx1 =
-			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[1].dof_x];
-		dPhiqdq_dy1 =
-			&arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOFs[1].dof_y];
+		dPhiqdq_dx1 = &arm.dPhiqdq_dq_.matrix[idx_constr_][pointDOFs_[1].dof_x];
+		dPhiqdq_dy1 = &arm.dPhiqdq_dq_.matrix[idx_constr_][pointDOFs_[1].dof_y];
 	}
 }
 
 void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 {
 	// Get references to the point coordinates (either fixed or variables in q):
-	const double& p0x = (m_pointDOFs[0].dof_x != INVALID_DOF)
-							? arm.m_q[m_pointDOFs[0].dof_x]
-							: m_points[0]->coords.x;
-	const double& p0y = (m_pointDOFs[0].dof_y != INVALID_DOF)
-							? arm.m_q[m_pointDOFs[0].dof_y]
-							: m_points[0]->coords.y;
+	const double& p0x = (pointDOFs_[0].dof_x != INVALID_DOF)
+							? arm.q_[pointDOFs_[0].dof_x]
+							: points_[0]->coords.x;
+	const double& p0y = (pointDOFs_[0].dof_y != INVALID_DOF)
+							? arm.q_[pointDOFs_[0].dof_y]
+							: points_[0]->coords.y;
 
-	const double& p1x = (m_pointDOFs[1].dof_x != INVALID_DOF)
-							? arm.m_q[m_pointDOFs[1].dof_x]
-							: m_points[1]->coords.x;
-	const double& p1y = (m_pointDOFs[1].dof_y != INVALID_DOF)
-							? arm.m_q[m_pointDOFs[1].dof_y]
-							: m_points[1]->coords.y;
+	const double& p1x = (pointDOFs_[1].dof_x != INVALID_DOF)
+							? arm.q_[pointDOFs_[1].dof_x]
+							: points_[1]->coords.x;
+	const double& p1y = (pointDOFs_[1].dof_y != INVALID_DOF)
+							? arm.q_[pointDOFs_[1].dof_y]
+							: points_[1]->coords.y;
 
 	// Get references to point velocities (fixed=>Zero, variables=>their actual
-	// members in m_dotq):
+	// members in dotq_):
 	const double dummy_zero = 0;
 
-	const double& p0dotx = (m_pointDOFs[0].dof_x != INVALID_DOF)
-							   ? arm.m_dotq[m_pointDOFs[0].dof_x]
+	const double& p0dotx = (pointDOFs_[0].dof_x != INVALID_DOF)
+							   ? arm.dotq_[pointDOFs_[0].dof_x]
 							   : dummy_zero;
-	const double& p0doty = (m_pointDOFs[0].dof_y != INVALID_DOF)
-							   ? arm.m_dotq[m_pointDOFs[0].dof_y]
+	const double& p0doty = (pointDOFs_[0].dof_y != INVALID_DOF)
+							   ? arm.dotq_[pointDOFs_[0].dof_y]
 							   : dummy_zero;
 
-	const double& p1dotx = (m_pointDOFs[1].dof_x != INVALID_DOF)
-							   ? arm.m_dotq[m_pointDOFs[1].dof_x]
+	const double& p1dotx = (pointDOFs_[1].dof_x != INVALID_DOF)
+							   ? arm.dotq_[pointDOFs_[1].dof_x]
 							   : dummy_zero;
-	const double& p1doty = (m_pointDOFs[1].dof_y != INVALID_DOF)
-							   ? arm.m_dotq[m_pointDOFs[1].dof_y]
+	const double& p1doty = (pointDOFs_[1].dof_y != INVALID_DOF)
+							   ? arm.dotq_[pointDOFs_[1].dof_y]
 							   : dummy_zero;
 
 	const double Ax = p1x - p0x;
@@ -131,11 +123,11 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	const double dist2 = square(Ax) + square(Ay);
 	const double PhiVal = dist2 - square(length);
-	arm.m_Phi[m_idx_constr] = PhiVal;
+	arm.Phi_[idx_constr_] = PhiVal;
 
 	// Update dotPhi[i]
 	// ----------------------------------
-	arm.m_dotPhi[m_idx_constr] = 2 * Ax * Adotx + 2 * Ay * Adoty;
+	arm.dotPhi_[idx_constr_] = 2 * Ax * Adotx + 2 * Ay * Adoty;
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -165,61 +157,61 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 void CConstraintFixedSlider::buildSparseStructures(
 	CAssembledRigidModel& arm) const
 {
-	m_Delta = line_pt[1] - line_pt[0];
+	Delta_ = line_pt[1] - line_pt[0];
 	ASSERTMSG_(
-		m_Delta.norm() > 0,
+		Delta_.norm() > 0,
 		"Error: the two constraint points must define a line but they "
 		"coincide");
 
-	m_point = &arm.m_parent.getPointInfo(this->point_index);
+	point_ = &arm.parent_.getPointInfo(this->point_index);
 
-	ASSERTMSG_(!m_point->fixed, "Useless constraint added to a fixed point!");
+	ASSERTMSG_(!point_->fixed, "Useless constraint added to a fixed point!");
 
-	m_pointDOF = arm.getPoints2DOFs()[this->point_index];
+	pointDOF_ = arm.getPoints2DOFs()[this->point_index];
 
 	// Alloc a new row in the list of constraints:
-	m_idx_constr = arm.addNewRowToConstraints();
+	idx_constr_ = arm.addNewRowToConstraints();
 
 	// Add columns to sparse row in Phi_q:
 	// --------------------------------------------
-	dPhi_dx0 = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOF.dof_x];
-	dPhi_dy0 = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOF.dof_y];
+	dPhi_dx0 = &arm.Phi_q_.matrix[idx_constr_][pointDOF_.dof_x];
+	dPhi_dy0 = &arm.Phi_q_.matrix[idx_constr_][pointDOF_.dof_y];
 
 	// Add columns to sparse row in \dot{Phi_q}:
 	// --------------------------------------------
-	dot_dPhi_dx0 = &arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF.dof_x];
-	dot_dPhi_dy0 = &arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF.dof_y];
+	dot_dPhi_dx0 = &arm.dotPhi_q_.matrix[idx_constr_][pointDOF_.dof_x];
+	dot_dPhi_dy0 = &arm.dotPhi_q_.matrix[idx_constr_][pointDOF_.dof_y];
 
 	// Add columns to sparse row in d(Phiq*dq)_dq
 	// --------------------------------------------
-	dPhiqdq_dx0 = &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOF.dof_x];
-	dPhiqdq_dy0 = &arm.m_dPhiqdq_dq.matrix[m_idx_constr][m_pointDOF.dof_y];
+	dPhiqdq_dx0 = &arm.dPhiqdq_dq_.matrix[idx_constr_][pointDOF_.dof_x];
+	dPhiqdq_dy0 = &arm.dPhiqdq_dq_.matrix[idx_constr_][pointDOF_.dof_y];
 }
 
 void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 {
 	// Get references to the point coordinates (either fixed or variables in q):
-	const double& px = arm.m_q[m_pointDOF.dof_x];
-	const double& py = arm.m_q[m_pointDOF.dof_y];
+	const double& px = arm.q_[pointDOF_.dof_x];
+	const double& py = arm.q_[pointDOF_.dof_y];
 
-	// Get references to point velocities (members in m_dotq):
-	const double& pdotx = arm.m_dotq[m_pointDOF.dof_x];
-	const double& pdoty = arm.m_dotq[m_pointDOF.dof_y];
+	// Get references to point velocities (members in dotq_):
+	const double& pdotx = arm.dotq_[pointDOF_.dof_x];
+	const double& pdoty = arm.dotq_[pointDOF_.dof_y];
 
 	// Update Phi[i] = Ax * (py-y0) - Ay * (px-x0)
 	// --------------------------------------------
 	const double py_y0 = py - line_pt[0].y;
 	const double px_x0 = px - line_pt[0].x;
-	arm.m_Phi[m_idx_constr] = m_Delta.x * py_y0 - m_Delta.y * px_x0;
+	arm.Phi_[idx_constr_] = Delta_.x * py_y0 - Delta_.y * px_x0;
 
 	// Update dotPhi[i]
 	// ----------------------------------
-	arm.m_dotPhi[m_idx_constr] = m_Delta.x * pdoty - m_Delta.y * pdotx;
+	arm.dotPhi_[idx_constr_] = Delta_.x * pdoty - Delta_.y * pdotx;
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
-	if (dPhi_dx0) *dPhi_dx0 = -m_Delta.y;
-	if (dPhi_dy0) *dPhi_dy0 = m_Delta.x;
+	if (dPhi_dx0) *dPhi_dx0 = -Delta_.y;
+	if (dPhi_dy0) *dPhi_dy0 = Delta_.x;
 
 	// Update Jacobian \dot{dPhi_dq}(i,:)
 	// ----------------------------------
@@ -228,8 +220,8 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 
 	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
 	// -------------------------------------
-	if (dPhiqdq_dx0) *dPhiqdq_dx0 = -m_Delta.y;
-	if (dPhiqdq_dy0) *dPhiqdq_dy0 = m_Delta.x;
+	if (dPhiqdq_dx0) *dPhiqdq_dx0 = -Delta_.y;
+	if (dPhiqdq_dy0) *dPhiqdq_dy0 = Delta_.x;
 }
 
 /** Creates a 3D representation of the constraint, if applicable (e.g. the line
@@ -251,28 +243,28 @@ bool CConstraintFixedSlider::get3DRepresentation(
 void CConstraintMobileSlider::buildSparseStructures(
 	CAssembledRigidModel& arm) const
 {
-	m_points[0] = &arm.m_parent.getPointInfo(this->point_index);
-	m_points[1] = &arm.m_parent.getPointInfo(this->ref_pts[0]);
-	m_points[2] = &arm.m_parent.getPointInfo(this->ref_pts[1]);
+	points_[0] = &arm.parent_.getPointInfo(this->point_index);
+	points_[1] = &arm.parent_.getPointInfo(this->ref_pts[0]);
+	points_[2] = &arm.parent_.getPointInfo(this->ref_pts[1]);
 
 	ASSERTMSG_(
-		!m_points[0]->fixed, "Useless constraint added to a fixed point!");
+		!points_[0]->fixed, "Useless constraint added to a fixed point!");
 
-	m_pointDOF[0] = arm.getPoints2DOFs()[this->point_index];
-	m_pointDOF[1] = arm.getPoints2DOFs()[this->ref_pts[0]];
-	m_pointDOF[2] = arm.getPoints2DOFs()[this->ref_pts[1]];
+	pointDOF_[0] = arm.getPoints2DOFs()[this->point_index];
+	pointDOF_[1] = arm.getPoints2DOFs()[this->ref_pts[0]];
+	pointDOF_[2] = arm.getPoints2DOFs()[this->ref_pts[1]];
 
 	// Alloc a new row in the list of constraints:
-	m_idx_constr = arm.addNewRowToConstraints();
+	idx_constr_ = arm.addNewRowToConstraints();
 
 	// Add columns to sparse row in Phi_q:
 	// --------------------------------------------
 	for (int i = 0; i < 3; i++)
 	{
-		if (!m_points[i]->fixed)  // Only for the variables, not fixed points:
+		if (!points_[i]->fixed)  // Only for the variables, not fixed points:
 		{
-			dPhi_dx[i] = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOF[i].dof_x];
-			dPhi_dy[i] = &arm.m_Phi_q.matrix[m_idx_constr][m_pointDOF[i].dof_y];
+			dPhi_dx[i] = &arm.Phi_q_.matrix[idx_constr_][pointDOF_[i].dof_x];
+			dPhi_dy[i] = &arm.Phi_q_.matrix[idx_constr_][pointDOF_[i].dof_y];
 		}
 	}
 
@@ -280,12 +272,12 @@ void CConstraintMobileSlider::buildSparseStructures(
 	// --------------------------------------------
 	for (int i = 0; i < 3; i++)
 	{
-		if (!m_points[i]->fixed)  // Only for the variables, not fixed points:
+		if (!points_[i]->fixed)  // Only for the variables, not fixed points:
 		{
 			dot_dPhi_dx[i] =
-				&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF[i].dof_x];
+				&arm.dotPhi_q_.matrix[idx_constr_][pointDOF_[i].dof_x];
 			dot_dPhi_dy[i] =
-				&arm.m_dotPhi_q.matrix[m_idx_constr][m_pointDOF[i].dof_y];
+				&arm.dotPhi_q_.matrix[idx_constr_][pointDOF_[i].dof_y];
 		}
 	}
 }
@@ -293,60 +285,60 @@ void CConstraintMobileSlider::buildSparseStructures(
 void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 {
 	// Get references to the point coordinates (either fixed or variables in q):
-	const double& px = (m_pointDOF[0].dof_x != INVALID_DOF)
-						   ? arm.m_q[m_pointDOF[0].dof_x]
-						   : m_points[0]->coords.x;
-	const double& py = (m_pointDOF[0].dof_y != INVALID_DOF)
-						   ? arm.m_q[m_pointDOF[0].dof_y]
-						   : m_points[0]->coords.y;
+	const double& px = (pointDOF_[0].dof_x != INVALID_DOF)
+						   ? arm.q_[pointDOF_[0].dof_x]
+						   : points_[0]->coords.x;
+	const double& py = (pointDOF_[0].dof_y != INVALID_DOF)
+						   ? arm.q_[pointDOF_[0].dof_y]
+						   : points_[0]->coords.y;
 
-	const double& pxr0 = (m_pointDOF[1].dof_x != INVALID_DOF)
-							 ? arm.m_q[m_pointDOF[1].dof_x]
-							 : m_points[1]->coords.x;
-	const double& pyr0 = (m_pointDOF[1].dof_y != INVALID_DOF)
-							 ? arm.m_q[m_pointDOF[1].dof_y]
-							 : m_points[1]->coords.y;
+	const double& pxr0 = (pointDOF_[1].dof_x != INVALID_DOF)
+							 ? arm.q_[pointDOF_[1].dof_x]
+							 : points_[1]->coords.x;
+	const double& pyr0 = (pointDOF_[1].dof_y != INVALID_DOF)
+							 ? arm.q_[pointDOF_[1].dof_y]
+							 : points_[1]->coords.y;
 
-	const double& pxr1 = (m_pointDOF[2].dof_x != INVALID_DOF)
-							 ? arm.m_q[m_pointDOF[2].dof_x]
-							 : m_points[2]->coords.x;
-	const double& pyr1 = (m_pointDOF[2].dof_y != INVALID_DOF)
-							 ? arm.m_q[m_pointDOF[2].dof_y]
-							 : m_points[2]->coords.y;
+	const double& pxr1 = (pointDOF_[2].dof_x != INVALID_DOF)
+							 ? arm.q_[pointDOF_[2].dof_x]
+							 : points_[2]->coords.x;
+	const double& pyr1 = (pointDOF_[2].dof_y != INVALID_DOF)
+							 ? arm.q_[pointDOF_[2].dof_y]
+							 : points_[2]->coords.y;
 
 	// Get references to point velocities (fixed=>Zero, variables=>their actual
-	// members in m_dotq):
+	// members in dotq_):
 	const double dummy_zero = 0;
 
-	const double& vx = (m_pointDOF[0].dof_x != INVALID_DOF)
-						   ? arm.m_dotq[m_pointDOF[0].dof_x]
+	const double& vx = (pointDOF_[0].dof_x != INVALID_DOF)
+						   ? arm.dotq_[pointDOF_[0].dof_x]
 						   : dummy_zero;
-	const double& vy = (m_pointDOF[0].dof_y != INVALID_DOF)
-						   ? arm.m_dotq[m_pointDOF[0].dof_y]
+	const double& vy = (pointDOF_[0].dof_y != INVALID_DOF)
+						   ? arm.dotq_[pointDOF_[0].dof_y]
 						   : dummy_zero;
 
-	const double& vxr0 = (m_pointDOF[1].dof_x != INVALID_DOF)
-							 ? arm.m_dotq[m_pointDOF[1].dof_x]
+	const double& vxr0 = (pointDOF_[1].dof_x != INVALID_DOF)
+							 ? arm.dotq_[pointDOF_[1].dof_x]
 							 : dummy_zero;
-	const double& vyr0 = (m_pointDOF[1].dof_y != INVALID_DOF)
-							 ? arm.m_dotq[m_pointDOF[1].dof_y]
+	const double& vyr0 = (pointDOF_[1].dof_y != INVALID_DOF)
+							 ? arm.dotq_[pointDOF_[1].dof_y]
 							 : dummy_zero;
 
-	const double& vxr1 = (m_pointDOF[2].dof_x != INVALID_DOF)
-							 ? arm.m_dotq[m_pointDOF[2].dof_x]
+	const double& vxr1 = (pointDOF_[2].dof_x != INVALID_DOF)
+							 ? arm.dotq_[pointDOF_[2].dof_x]
 							 : dummy_zero;
-	const double& vyr1 = (m_pointDOF[2].dof_y != INVALID_DOF)
-							 ? arm.m_dotq[m_pointDOF[2].dof_y]
+	const double& vyr1 = (pointDOF_[2].dof_y != INVALID_DOF)
+							 ? arm.dotq_[pointDOF_[2].dof_y]
 							 : dummy_zero;
 
 	// Update Phi[i]
 	// ----------------------------------
-	arm.m_Phi[m_idx_constr] =
+	arm.Phi_[idx_constr_] =
 		(pxr1 - pxr0) * (py - pyr0) - (pyr1 - pyr0) * (px - pxr0);
 
 	// Update dotPhi[i] (partial-Phi[i]_partial-t)
 	// ----------------------------------
-	arm.m_dotPhi[m_idx_constr] =
+	arm.dotPhi_[idx_constr_] =
 		(vxr1 - vxr0) * (py - pyr0) + (pxr1 - pxr0) * (vy - vyr0) -
 		(vyr1 - vyr0) * (px - pxr0) - (pyr1 - pyr0) * (vx - vxr0);
 

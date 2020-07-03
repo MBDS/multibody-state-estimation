@@ -52,8 +52,8 @@ void test_smoother()
 
 	// Add factors:
 	// Create factor noises:
-	const auto n = aMBS->m_q.size();
-	const auto m = aMBS->m_Phi_q.getNumRows();
+	const auto n = aMBS->q_.size();
+	const auto m = aMBS->Phi_q_.getNumRows();
 
 	const double noise_vel_sigma = 0.01, noise_acc_sigma = 0.01;
 
@@ -87,24 +87,24 @@ void test_smoother()
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
 
 	// Create a feasible Q(0):
-	aMBS->m_q.setZero();
-	aMBS->m_dotq.setZero();
-	aMBS->m_ddotq.setZero();
+	aMBS->q_.setZero();
+	aMBS->dotq_.setZero();
+	aMBS->ddotq_.setZero();
 
 	CAssembledRigidModel::TComputeDependentParams cdp;  // default params
 	CAssembledRigidModel::TComputeDependentResults cdr;
 	// Solve the position problem:
-	aMBS->m_q[0] = 1;
-	aMBS->m_q[1] = 0.1;
-	aMBS->m_q[3] = 5;
+	aMBS->q_[0] = 1;
+	aMBS->q_[1] = 0.1;
+	aMBS->q_[3] = 5;
 
 	aMBS->computeDependentPosVelAcc(indep_coord_indices, true, true, cdp, cdr);
 	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
 			  << "\n";
 	ASSERT_BELOW_(cdr.pos_final_phi, 1e-4);
 
-	// Extract m_q from the assembled multibody problem:
-	state_t q_0 = gtsam::Vector(aMBS->m_q);
+	// Extract q_ from the assembled multibody problem:
+	state_t q_0 = gtsam::Vector(aMBS->q_);
 	std::cout << "q0: " << q_0.transpose() << "\n";
 	state_t last_q = q_0, last_dq = zeros, last_ddq = zeros;
 

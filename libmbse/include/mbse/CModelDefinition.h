@@ -42,11 +42,11 @@ class CModelDefinition
 
 	/** Set the number of points (all, fixed and variables) in the MBS problem
 	 */
-	void setPointCount(const size_t n) { m_points.resize(n); }
+	void setPointCount(const size_t n) { points_.resize(n); }
 
 	/** Get the number of points (all, fixed and variables) in the MBS problem
 	 */
-	size_t getPointCount() const { return m_points.size(); }
+	size_t getPointCount() const { return points_.size(); }
 
 	/** Set the (0-based) i'th point's coordinates and its type (fixed/variable)
 	 *  TODO: Initial position problem will refine these positions if needed.
@@ -56,11 +56,11 @@ class CModelDefinition
 
 	const Point2& getPointInfo(const size_t i) const
 	{
-		ASSERTDEB_(i < m_points.size());
-		return m_points[i];
+		ASSERTDEB_(i < points_.size());
+		return points_[i];
 	}
 
-	/** Appends a new empty body to the end of m_bodies and returns a reference
+	/** Appends a new empty body to the end of bodies_ and returns a reference
 	 * for further fill-in. If no name is provided, an automatic numbered name
 	 * will be generated. The user must fill in the returned object with the
 	 * desired values.
@@ -77,7 +77,7 @@ class CModelDefinition
 	template <class CONSTRAINT_CLASS>
 	void addConstraint(const CONSTRAINT_CLASS& c)
 	{
-		m_constraints.push_back(CConstraintBase::Ptr(new CONSTRAINT_CLASS(
+		constraints_.push_back(CConstraintBase::Ptr(new CONSTRAINT_CLASS(
 			c)));  // Make a copy as dynamic memory and save as a smart pointer
 				   // of the base class.
 	}
@@ -101,31 +101,31 @@ class CModelDefinition
 
 	const std::vector<CConstraintBase::Ptr>& getConstraints() const
 	{
-		return m_constraints;
+		return constraints_;
 	}
-	const std::vector<CBody>& getBodies() const { return m_bodies; }
+	const std::vector<CBody>& getBodies() const { return bodies_; }
 
 	std::vector<CConstraintBase::Ptr>& getConstraints()
 	{
-		return m_constraints;
+		return constraints_;
 	}
-	std::vector<CBody>& getBodies() { return m_bodies; }
+	std::vector<CBody>& getBodies() { return bodies_; }
 
    protected:
 	/** @name Data
 		@{ */
-	std::vector<Point2> m_points;  //!< ALL points (fixed and variables)
-	std::vector<CBody> m_bodies;  //!< Bodies
+	std::vector<Point2> points_;  //!< ALL points (fixed and variables)
+	std::vector<CBody> bodies_;  //!< Bodies
 
 	/** The list of all constraints (of different kinds/classes).
 	 * \note Constant-distance constraints for rigid bodies are NOT included in
 	 * this list, but are automatically added to constraints list in ARM.
 	 */
-	std::vector<CConstraintBase::Ptr> m_constraints;
+	std::vector<CConstraintBase::Ptr> constraints_;
 
 	/** @} */  // end data --------------
 
-	mutable bool m_already_added_fixed_len_constraints;  //!< Self-explanatory
+	mutable bool already_added_fixed_len_constraints_;  //!< Self-explanatory
 
 };  // end class CModelDefinition
 

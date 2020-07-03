@@ -56,7 +56,7 @@ CDynamicSimulatorBase::Ptr CDynamicSimulatorBase::Create(
 // ---------------------------------------------------------------------------------------------
 CDynamicSimulatorBase::CDynamicSimulatorBase(
 	std::shared_ptr<CAssembledRigidModel> arm_ptr)
-	: m_arm_ptr(arm_ptr), m_arm(arm_ptr.get()), m_init(false)
+	: arm_ptr_(arm_ptr), arm_(arm_ptr.get()), init_(false)
 {
 	ASSERT_(arm_ptr);
 }
@@ -65,7 +65,7 @@ CDynamicSimulatorBase::CDynamicSimulatorBase(
 void CDynamicSimulatorBase::solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	ASSERT_(m_init);
+	ASSERT_(init_);
 	this->internal_solve_ddotq(t, ddot_q, lagrangre);
 }
 
@@ -74,7 +74,7 @@ void CDynamicSimulatorBase::solve_ddotq(
 void CDynamicSimulatorBase::prepare()
 {
 	this->internal_prepare();
-	m_init = true;
+	init_ = true;
 }
 
 static void do_nothing(TSimulationStateRef st) {}
@@ -90,12 +90,12 @@ CDynamicSimulatorBase::TParameters::TParameters()
 double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 {
 	ASSERT_(t_end >= t_ini);
-	ASSERT_(m_init);
+	ASSERT_(init_);
 
 	if (t_ini == t_end) return t_end;  // Nothing to do.
 
 	// Fill constant data
-	TSimulationState sim_state(m_arm);
+	TSimulationState sim_state(arm_);
 
 	const double t_step = std::min(t_end - t_ini, params.time_step);
 	const double t_step2 = t_step * 0.5;
@@ -106,8 +106,8 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 	{
 		// Log sensor points:
 		// ------------------------------
-		for (std::list<TSensorData>::iterator it = m_sensors.begin();
-			 it != m_sensors.end(); ++it)
+		for (std::list<TSensorData>::iterator it = sensors_.begin();
+			 it != sensors_.end(); ++it)
 		{
 			TSensorData& sd = *it;
 			sd.log.push_back(timestamped_point_t(
@@ -135,53 +135,53 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 				case ODE_Euler:
 				{
 					this->internal_solve_ddotq(t, ddotq1);
-					m_arm->m_q += t_step * m_arm->m_dotq;
-					m_arm->m_dotq += t_step * ddotq1;
+					arm_->q_ += t_step * arm_->dotq_;
+					arm_->dotq_ += t_step * ddotq1;
 				}
 				break;
 
 				// -------------------------------------------
 				case ODE_RK4:
 				{
-					q0 = m_arm->m_q;  // Make backup copy of state (velocities
+					q0 = arm_->q_;  // Make backup copy of state (velocities
 									  // will be in "v1")
 
 					// k1 = f(t,y);
 					// cur_time = t;
-					v1 = m_arm->m_dotq;
-					// No change needed: m_arm->m_q = q0;
+					v1 = arm_->dotq_;
+					// No change needed: arm_->q_ = q0;
 					this->internal_solve_ddotq(t, ddotq1);
 
 					// k2 = f(t+At/2,y+At/2*k1)
 					// cur_time = t + t_step2;
-					m_arm->m_dotq =
+					arm_->dotq_ =
 						v1 +
 						t_step2 *
 							ddotq1;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
-					m_arm->m_q = q0 + t_step2 * v1;
-					v2 = m_arm->m_dotq;
+					arm_->q_ = q0 + t_step2 * v1;
+					v2 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq2);
 
 					// k3 = f(t+At/2,y+At/2*k2)
 					// cur_time = t + t_step2;
-					m_arm->m_dotq =
+					arm_->dotq_ =
 						v1 +
 						t_step2 *
 							ddotq2;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
-					m_arm->m_q = q0 + t_step2 * v2;
-					v3 = m_arm->m_dotq;
+					arm_->q_ = q0 + t_step2 * v2;
+					v3 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq3);
 
 					// k4 = f(t+At  ,y+At*k3)
 					// cur_time = t + t_step;
-					m_arm->m_dotq = v1 + t_step * ddotq3;
-					m_arm->m_q = q0 + t_step * v3;
-					v4 = m_arm->m_dotq;
+					arm_->dotq_ = v1 + t_step * ddotq3;
+					arm_->q_ = q0 + t_step * v3;
+					v4 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step, ddotq4);
 
 					// Runge-Kutta 4th order formula:
-					m_arm->m_q = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
-					m_arm->m_dotq = v1 + t_step6 * (ddotq1 + 2 * ddotq2 +
+					arm_->q_ = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
+					arm_->dotq_ = v1 + t_step6 * (ddotq1 + 2 * ddotq2 +
 													2 * ddotq3 + ddotq4);
 				}
 				break;
@@ -197,8 +197,8 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					double qdiff = 10 * QDIFF_MAX;
 
 					// Keep the initial state:
-					const Eigen::VectorXd q0 = m_arm->m_q;
-					const Eigen::VectorXd dq0 = m_arm->m_dotq;
+					const Eigen::VectorXd q0 = arm_->q_;
+					const Eigen::VectorXd dq0 = arm_->dotq_;
 
 					// First attempt:
 					Eigen::VectorXd ddq0;
@@ -210,8 +210,8 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 
 					Eigen::VectorXd q_old = q_new;
 					// Solve at the new predicted state "t=k+1":
-					m_arm->m_q = q_new;
-					m_arm->m_dotq = dq_new;
+					arm_->q_ = q_new;
+					arm_->dotq_ = dq_new;
 
 					Eigen::VectorXd ddq_mid;
 					size_t iter;
@@ -235,8 +235,8 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 						qdiff = (q_old - q_new).norm();
 
 						// Solve at the new predicted state "t=k+1":
-						m_arm->m_q = q_new;
-						m_arm->m_dotq = dq_new;
+						arm_->q_ = q_new;
+						arm_->dotq_ = dq_new;
 					}
 
 					ASSERTMSG_(
@@ -267,10 +267,10 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 /** Runs a dynamic simulation for a given time span */
 void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 {
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nConstraints = arm_->Phi_.size();
 
 	// Q part:
-	m_arm->builGeneralizedForces(Q);
+	arm_->builGeneralizedForces(Q);
 
 	// "c" part:
 	if (c)
@@ -281,13 +281,13 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 			// c[i] = sum_k( -dot{Phi_q}[i,k] * dot_q[k] )
 			double ci = 0;
 			const CompressedRowSparseMatrix::row_t row_i =
-				m_arm->m_dotPhi_q.matrix[i];
+				arm_->dotPhi_q_.matrix[i];
 			for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 					 row_i.begin();
 				 itCol != row_i.end(); ++itCol)
 			{
 				const size_t col = itCol->first;
-				ci -= itCol->second * m_arm->m_dotq[col];
+				ci -= itCol->second * arm_->dotq_[col];
 			}
 
 			// Save c_i in its place within "c":
@@ -300,8 +300,8 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 		const double epsilon = 1;
 		const double omega = 10;
 		for (size_t i = 0; i < nConstraints; i++)
-			c[i] -= 2 * epsilon * omega * m_arm->m_dotPhi[i] +
-					omega * omega * m_arm->m_Phi[i];
+			c[i] -= 2 * epsilon * omega * arm_->dotPhi_[i] +
+					omega * omega * arm_->Phi_[i];
 #endif
 	}
 }
@@ -311,32 +311,32 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
  */
 void CDynamicSimulatorBase::addPointSensor(const size_t pnt_index)
 {
-	ASSERT_(pnt_index < m_arm->m_parent.getPointCount());
+	ASSERT_(pnt_index < arm_->parent_.getPointCount());
 
 	// Create entry
-	m_sensors.push_back(TSensorData());
-	TSensorData& sd = m_sensors.back();
+	sensors_.push_back(TSensorData());
+	TSensorData& sd = sensors_.back();
 
 	// Init pointers, etc:
 	sd.pnt_index = pnt_index;
 
-	const Point2* mbs_point = &m_arm->m_parent.getPointInfo(pnt_index);
-	const Point2ToDOF& point_dof = m_arm->getPoints2DOFs()[pnt_index];
+	const Point2* mbs_point = &arm_->parent_.getPointInfo(pnt_index);
+	const Point2ToDOF& point_dof = arm_->getPoints2DOFs()[pnt_index];
 
 	// Get references to the point coordinates (either fixed or variables in q):
 	sd.pos[0] =
-		((point_dof.dof_x != INVALID_DOF) ? &m_arm->m_q[point_dof.dof_x]
+		((point_dof.dof_x != INVALID_DOF) ? &arm_->q_[point_dof.dof_x]
 										  : &mbs_point->coords.x);
 	sd.pos[1] =
-		((point_dof.dof_y != INVALID_DOF) ? &m_arm->m_q[point_dof.dof_y]
+		((point_dof.dof_y != INVALID_DOF) ? &arm_->q_[point_dof.dof_y]
 										  : &mbs_point->coords.y);
 
 	// Get references to the point velocities:
 	sd.vel[0] =
-		((point_dof.dof_x != INVALID_DOF) ? &m_arm->m_dotq[point_dof.dof_x]
+		((point_dof.dof_x != INVALID_DOF) ? &arm_->dotq_[point_dof.dof_x]
 										  : &dummy_zero);
 	sd.vel[1] =
-		((point_dof.dof_y != INVALID_DOF) ? &m_arm->m_dotq[point_dof.dof_y]
+		((point_dof.dof_y != INVALID_DOF) ? &arm_->dotq_[point_dof.dof_y]
 										  : &dummy_zero);
 }
 
@@ -352,8 +352,8 @@ bool CDynamicSimulatorBase::saveSensorLogsToFile(
 	// Header:
 	size_t N = 0;
 	f << "% Time ";
-	for (std::list<TSensorData>::const_iterator it = m_sensors.begin();
-		 it != m_sensors.end(); ++it)
+	for (std::list<TSensorData>::const_iterator it = sensors_.begin();
+		 it != sensors_.end(); ++it)
 	{
 		const TSensorData& sd = *it;
 		N = sd.log.size();
@@ -365,16 +365,16 @@ bool CDynamicSimulatorBase::saveSensorLogsToFile(
 		 "---------------------------------------------------------------------"
 		 "------------------\n";
 
-	if (m_sensors.empty()) return true;
+	if (sensors_.empty()) return true;
 
 	// Data:
 	std::string s;
 	for (size_t i = 0; i < N; i++)
 	{
-		s = mrpt::format("%f\t", m_sensors.begin()->log[i].first);
+		s = mrpt::format("%f\t", sensors_.begin()->log[i].first);
 
-		for (std::list<TSensorData>::const_iterator it = m_sensors.begin();
-			 it != m_sensors.end(); ++it)
+		for (std::list<TSensorData>::const_iterator it = sensors_.begin();
+			 it != sensors_.end(); ++it)
 		{
 			const TSensorData& sd = *it;
 			s += mrpt::format(

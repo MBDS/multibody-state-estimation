@@ -21,14 +21,9 @@ using namespace std;
 CDynamicSimulator_AugmentedLagrangian_KLU::
 	CDynamicSimulator_AugmentedLagrangian_KLU(
 		const std::shared_ptr<CAssembledRigidModel> arm_ptr)
-	: CDynamicSimulatorBasePenalty(arm_ptr),
-	  ordering(orderAMD),
-	  m_numeric(NULL),
-	  m_numeric_M(NULL),
-	  m_symbolic(NULL),
-	  m_symbolic_M(NULL)
+	: CDynamicSimulatorBasePenalty(arm_ptr), ordering(orderAMD)
 {
-	klu_defaults(&m_common);
+	klu_defaults(&common_);
 }
 
 /** Prepare the linear systems and anything else required to really call
@@ -37,8 +32,8 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 {
 	timelog.enter("solver_prepare");
 
-	const size_t nDepCoords = m_arm->m_q.size();
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nDepCoords = arm_->q_.size();
+	const size_t nConstraints = arm_->Phi_.size();
 
 	//
 	// [ M + alpha * Phi_q^t * Phi_q ] \ddot{q} = RHS
@@ -51,19 +46,19 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 	//
 	// Build mass matrix (constant), and set its triplet form as the beginning
 	// of the total "A" matrix:
-	m_arm->buildMassMatrix_sparse(m_M_tri);
-	m_A_tri = m_M_tri;
+	arm_->buildMassMatrix_sparse(A_tri_);
+	A_tri_ = M_tri_;
 
 	//  Add entries in the triplet form for the sparse Phi_q Jacobian.
 	// -----------------------------------------------------------
-	m_A_tri.reserve(
-		m_A_tri.size() + nDepCoords +
+	A_tri_.reserve(
+		A_tri_.size() + nDepCoords +
 		nDepCoords *
 			nDepCoords);  // *IMPORTANT* Reserve mem at once to avoid
 						  // reallocations, since we store pointers to places...
 
-	m_PhiqtPhi.clear();
-	m_PhiqtPhi.reserve(nDepCoords * nDepCoords);
+	PhiqtPhi_.clear();
+	PhiqtPhi_.reserve(nDepCoords * nDepCoords);
 
 	// Note: All this could be done much more efficiently if Phi_q was stored
 	// in compressed column form. But since this is only computed ONCE per
@@ -79,7 +74,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 			for (size_t row = 0; row < nConstraints; row++)
 			{
 				const CompressedRowSparseMatrix::row_t& row_r =
-					m_arm->m_Phi_q.matrix[row];
+					arm_->Phi_q_.matrix[row];
 
 				const double *Phi_r_i = NULL, *Phi_r_j = NULL;
 
@@ -106,58 +101,58 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 			if (!sdp.lst_terms.empty())
 			{
 				// Append a new triplet entry (i,j)
-				m_A_tri.push_back( Eigen::Triplet<double>(i,j, 1.0 /* a dummy value, it'll be updated later on by reference */ ) );
-				sdp.out_ptr1 = const_cast<double*>(&(m_A_tri.back().value()));
+				A_tri_.push_back( Eigen::Triplet<double>(i,j, 1.0 /* a dummy value, it'll be updated later on by reference */ ) );
+				sdp.out_ptr1 = const_cast<double*>(&(A_tri_.back().value()));
 
 				// And also (j,i) if i!=j:
 				sdp.out_ptr2 = NULL;
 				if (i != j)
 				{
-					m_A_tri.push_back( Eigen::Triplet<double>(j,i, 1.0 /* a dummy value, it'll be updated later on by reference */ ) );
+					A_tri_.push_back( Eigen::Triplet<double>(j,i, 1.0 /* a dummy value, it'll be updated later on by reference */ ) );
 					sdp.out_ptr2 =
-						const_cast<double*>(&(m_A_tri.back().value()));
+						const_cast<double*>(&(A_tri_.back().value()));
 				}
 
-				m_PhiqtPhi.push_back(sdp);
+				PhiqtPhi_.push_back(sdp);
 			}
 
 		}  // end for "j"
 	}  // end for "i"
 
 	// Analyze the pattern once:
-	m_A.resize(nDepCoords, nDepCoords);
-	m_A.setFromTriplets(m_A_tri.begin(), m_A_tri.end());
+	A_.resize(nDepCoords, nDepCoords);
+	A_.setFromTriplets(A_tri_.begin(), A_tri_.end());
 
-	m_M.resize(nDepCoords, nDepCoords);
-	m_M.setFromTriplets(m_M_tri.begin(), m_M_tri.end());
+	M_.resize(nDepCoords, nDepCoords);
+	M_.setFromTriplets(A_tri_.begin(), M_tri_.end());
 
 	/* Control [UMFPACK_ORDERING] and Info [UMFPACK_ORDERING_USED] are one of:
 	 */
 	switch (this->ordering)
 	{
 		case orderAMD:
-			m_common.ordering = 0;
+			common_.ordering = 0;
 			break;
 		case orderCOLAMD:
-			m_common.ordering = 1;
+			common_.ordering = 1;
 			break;
 		default:
 			THROW_EXCEPTION("Unknown or unsupported 'ordering' value.");
 	};
 
-	m_symbolic = klu_analyze(
-		m_A.rows(), m_A.outerIndexPtr(), m_A.innerIndexPtr(), &m_common);
-	if (!m_symbolic)
+	symbolic_ = klu_analyze(
+		A_.rows(), A_.outerIndexPtr(), A_.innerIndexPtr(), &common_);
+	if (!symbolic_)
 		THROW_EXCEPTION("Error: KLU couldn't factorize the augmented matrix.");
 
 	// Mass matrix: factorize numerically since it's constant:
-	m_symbolic_M = klu_analyze(
-		m_M.rows(), m_M.outerIndexPtr(), m_M.innerIndexPtr(), &m_common);
-	if (!m_symbolic_M)
+	symbolic_M_ = klu_analyze(
+		M_.rows(), M_.outerIndexPtr(), M_.innerIndexPtr(), &common_);
+	if (!symbolic_M_)
 		THROW_EXCEPTION("Error: KLU couldn't factorize the mass matrix.");
-	m_numeric_M = klu_factor(
-		m_M.outerIndexPtr(), m_M.innerIndexPtr(), m_M.valuePtr(), m_symbolic_M,
-		&m_common);
+	numeric_M_ = klu_factor(
+		M_.outerIndexPtr(), M_.innerIndexPtr(), M_.valuePtr(), symbolic_M_,
+		&common_);
 
 	timelog.leave("solver_prepare");
 }
@@ -165,18 +160,18 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 CDynamicSimulator_AugmentedLagrangian_KLU::
 	~CDynamicSimulator_AugmentedLagrangian_KLU()
 {
-	if (m_symbolic) klu_free_symbolic(&m_symbolic, &m_common);
-	if (m_symbolic_M) klu_free_symbolic(&m_symbolic_M, &m_common);
+	if (symbolic_) klu_free_symbolic(&symbolic_, &common_);
+	if (symbolic_M_) klu_free_symbolic(&symbolic_M_, &common_);
 
-	if (m_numeric) klu_free_numeric(&m_numeric, &m_common);
-	if (m_numeric_M) klu_free_numeric(&m_numeric_M, &m_common);
+	if (numeric_) klu_free_numeric(&numeric_, &common_);
+	if (numeric_M_) klu_free_numeric(&numeric_M_, &common_);
 }
 
 void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	const size_t nDepCoords = m_arm->m_q.size();
-	const size_t nConstraints = m_arm->m_Phi.size();
+	const size_t nDepCoords = arm_->q_.size();
+	const size_t nConstraints = arm_->Phi_.size();
 
 	if (lagrangre)
 		throw std::runtime_error(
@@ -194,8 +189,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	Eigen::VectorXd ddotq_prev(nDepCoords), ddotq_next(nDepCoords);
 	this->build_RHS(&ddotq_prev[0] /* Q */, NULL /* we don't need "c" */);
 
-	klu_solve(
-		m_symbolic_M, m_numeric_M, m_M.cols(), 1, &ddotq_prev[0], &m_common);
+	klu_solve(symbolic_M_, numeric_M_, M_.cols(), 1, &ddotq_prev[0], &common_);
 
 	// 2) Iterate:
 	// ---------------------------
@@ -211,12 +205,12 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 
 	// Update numeric values of the constraint Jacobians:
 	timelog.enter("solver_ddotq.update_PhiqtPhiq");
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Move the updated Jacobian values to their places in the triplet form:
-	for (size_t k = 0; k < m_PhiqtPhi.size(); k++)
+	for (size_t k = 0; k < PhiqtPhi_.size(); k++)
 	{
-		TSparseDotProduct& sdp = m_PhiqtPhi[k];
+		TSparseDotProduct& sdp = PhiqtPhi_[k];
 
 		double res = 0;
 		for (size_t i = 0; i < sdp.lst_terms.size(); i++)
@@ -232,17 +226,17 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	// Solve numeric sparse LU:
 	// -----------------------------------
 	timelog.enter("solver_ddotq.ccs");
-	m_A.setFromTriplets(m_A_tri.begin(), m_A_tri.end());
+	A_.setFromTriplets(A_tri_.begin(), A_tri_.end());
 	timelog.leave("solver_ddotq.ccs");
 
 	timelog.enter("solver_ddotq.numeric_factor");
-	if (m_numeric) klu_free_numeric(&m_numeric, &m_common);
+	if (numeric_) klu_free_numeric(&numeric_, &common_);
 
-	m_numeric = klu_factor(
-		m_A.outerIndexPtr(), m_A.innerIndexPtr(), m_A.valuePtr(), m_symbolic,
-		&m_common);
+	numeric_ = klu_factor(
+		A_.outerIndexPtr(), A_.innerIndexPtr(), A_.valuePtr(), symbolic_,
+		&common_);
 
-	if (!m_numeric)
+	if (!numeric_)
 		THROW_EXCEPTION(
 			"Error: KLU couldn't numeric-factorize the augmented matrix.");
 	timelog.leave("solver_ddotq.numeric_factor");
@@ -264,12 +258,12 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	for (size_t r = 0; r < nConstraints; r++)
 	{
 		const CompressedRowSparseMatrix::row_t& row_r =
-			m_arm->m_dotPhi_q.matrix[r];
+			arm_->dotPhi_q_.matrix[r];
 		double res = 0;
 		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 				 row_r.begin();
 			 itCol != row_r.end(); ++itCol)
-			res += itCol->second * m_arm->m_dotq[itCol->first];
+			res += itCol->second * arm_->dotq_[itCol->first];
 		b[r] = res;
 	}
 
@@ -277,11 +271,11 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 
 	// 2 * xi * omega * \dot{Phi}
 	const double xiw2 = 2 * params_penalty.xi * params_penalty.w;
-	for (size_t r = 0; r < nConstraints; r++) b[r] += xiw2 * m_arm->m_dotPhi[r];
+	for (size_t r = 0; r < nConstraints; r++) b[r] += xiw2 * arm_->dotPhi_[r];
 
 	// omega^2 * Phi
 	const double w2 = params_penalty.w * params_penalty.w;
-	for (size_t r = 0; r < nConstraints; r++) b[r] += w2 * m_arm->m_Phi[r];
+	for (size_t r = 0; r < nConstraints; r++) b[r] += w2 * arm_->Phi_[r];
 
 	// RHS2 =  alpha * Phi_q^t * b
 	Eigen::VectorXd RHS2(nDepCoords);
@@ -289,8 +283,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	b *= params_penalty.alpha;
 	for (size_t r = 0; r < nConstraints; r++)
 	{
-		const CompressedRowSparseMatrix::row_t& row_r =
-			m_arm->m_Phi_q.matrix[r];
+		const CompressedRowSparseMatrix::row_t& row_r = arm_->Phi_q_.matrix[r];
 		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 				 row_r.begin();
 			 itCol != row_r.end(); ++itCol)
@@ -317,11 +310,10 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	{
 		// RHS = M*\ddot{q}_i - RHS2
 		// (Directly store the RHS in the in/out vector of KLU)
-		ddotq_next = (m_M * ddotq_prev) - RHS2;
-		klu_solve(
-			m_symbolic, m_numeric, m_A.cols(), 1, &ddotq_next[0], &m_common);
+		ddotq_next = (M_ * ddotq_prev) - RHS2;
+		klu_solve(symbolic_, numeric_, A_.cols(), 1, &ddotq_next[0], &common_);
 
-		if (m_common.status != KLU_OK)
+		if (common_.status != KLU_OK)
 			THROW_EXCEPTION("Error: KLU couldn't solve the linear system.");
 
 		ddot_incr_norm = (ddotq_next - ddotq_prev).norm();

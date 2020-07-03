@@ -28,7 +28,7 @@ double CAssembledRigidModel::refinePosition(
 	this->update_numeric_Phi_and_Jacobians();
 
 	size_t iter = 0;
-	double phi_norm = m_Phi.norm();
+	double phi_norm = Phi_.norm();
 
 	timelog.registerUserMeasure("refinePosition.init_phi_norm", phi_norm);
 
@@ -47,13 +47,13 @@ double CAssembledRigidModel::refinePosition(
 		}
 
 		// Solve for increment:
-		const Eigen::VectorXd q_incr = lu_Phiq.solve(m_Phi);
-		m_q -= q_incr;
+		const Eigen::VectorXd q_incr = lu_Phiq.solve(Phi_);
+		q_ -= q_incr;
 
 		// Re-evaluate error:
 		this->update_numeric_Phi_and_Jacobians();
 
-		const double new_phi_norm = m_Phi.norm();
+		const double new_phi_norm = Phi_.norm();
 
 		// Selective re-evaluation of the Jacobian:
 		if (new_phi_norm > 1e-6) rebuild_lu = true;
@@ -81,19 +81,19 @@ double CAssembledRigidModel::finiteDisplacement(
 	this->update_numeric_Phi_and_Jacobians();
 
 	size_t iter = 0;
-	double phi_norm = m_Phi.norm();
+	double phi_norm = Phi_.norm();
 
 	timelog.registerUserMeasure("finiteDisplacement.init_phi_norm", phi_norm);
 
 	std::vector<bool> q_fixed;
-	q_fixed.assign(m_q.size(), false);
+	q_fixed.assign(q_.size(), false);
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
-	const size_t nDepCoords = m_q.size() - z_indices.size();
+	const size_t nDepCoords = q_.size() - z_indices.size();
 	std::vector<size_t> idxs_d;  // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
-	for (int i = 0; i < m_q.size(); i++)
+	for (int i = 0; i < q_.size(); i++)
 		if (!q_fixed[i]) idxs_d.push_back(i);
 
 	Eigen::FullPivLU<Eigen::MatrixXd> lu_Phiq;
@@ -112,14 +112,14 @@ double CAssembledRigidModel::finiteDisplacement(
 			rebuild_lu = false;
 		}
 		// Solve for increment:
-		const Eigen::VectorXd qi_incr = lu_Phiq.solve(m_Phi);
+		const Eigen::VectorXd qi_incr = lu_Phiq.solve(Phi_);
 
-		for (size_t i = 0; i < nDepCoords; i++) m_q[idxs_d[i]] -= qi_incr[i];
+		for (size_t i = 0; i < nDepCoords; i++) q_[idxs_d[i]] -= qi_incr[i];
 
 		// Re-evaluate error:
 		this->update_numeric_Phi_and_Jacobians();
 
-		const double new_phi_norm = m_Phi.norm();
+		const double new_phi_norm = Phi_.norm();
 
 		// Selective re-evaluation of the Jacobian:
 		if (new_phi_norm > 1e-6) rebuild_lu = true;
@@ -149,7 +149,7 @@ double CAssembledRigidModel::finiteDisplacement(
 		{
 			double r = 0;
 			for (size_t j = 0; j < z_indices.size(); j++)
-				r -= Phi_q(i, z_indices[j]) * m_dotq[z_indices[j]];
+				r -= Phi_q(i, z_indices[j]) * dotq_[z_indices[j]];
 
 			p[i] = r;
 		}
@@ -159,7 +159,7 @@ double CAssembledRigidModel::finiteDisplacement(
 		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
 
 		for (size_t i = 0; i < idxs_d.size(); i++)
-			m_dotq[idxs_d[i]] = dotq_d[i];
+			dotq_[idxs_d[i]] = dotq_d[i];
 
 		timelog.leave("finiteDisplacement.dotq");
 	}
@@ -182,14 +182,14 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 
 	// Build list of coordinates indices:
 	std::vector<bool> q_fixed;
-	q_fixed.assign(m_q.size(), false);
+	q_fixed.assign(q_.size(), false);
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
-	const size_t nDepCoords = m_q.size() - z_indices.size();
+	const size_t nDepCoords = q_.size() - z_indices.size();
 	std::vector<size_t> idxs_d;  // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
-	for (int i = 0; i < m_q.size(); i++)
+	for (int i = 0; i < q_.size(); i++)
 		if (!q_fixed[i]) idxs_d.push_back(i);
 
 	// ------------------------------------------
@@ -201,7 +201,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		this->update_numeric_Phi_and_Jacobians();
 
 		size_t iter = 0;
-		double phi_norm = m_Phi.norm();
+		double phi_norm = Phi_.norm();
 
 		timelog.registerUserMeasure(
 			"computeDependentPosVelAcc.init_phi_norm", phi_norm);
@@ -221,15 +221,15 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 				rebuild_lu = false;
 			}
 			// Solve for increment:
-			const Eigen::VectorXd qi_incr = lu_Phiq.solve(m_Phi);
+			const Eigen::VectorXd qi_incr = lu_Phiq.solve(Phi_);
 
 			for (size_t i = 0; i < nDepCoords; i++)
-				m_q[idxs_d[i]] -= qi_incr[i];
+				q_[idxs_d[i]] -= qi_incr[i];
 
 			// Re-evaluate error:
 			this->update_numeric_Phi_and_Jacobians();
 
-			const double new_phi_norm = m_Phi.norm();
+			const double new_phi_norm = Phi_.norm();
 
 			// Selective re-evaluation of the Jacobian:
 			if (new_phi_norm > 1e-6) rebuild_lu = true;
@@ -260,7 +260,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		{
 			double r = 0;
 			for (size_t j = 0; j < z_indices.size(); j++)
-				r -= Phi_q(i, z_indices[j]) * m_dotq[z_indices[j]];
+				r -= Phi_q(i, z_indices[j]) * dotq_[z_indices[j]];
 
 			p[i] = r;
 		}
@@ -269,7 +269,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
 
 		for (size_t i = 0; i < idxs_d.size(); i++)
-			m_dotq[idxs_d[i]] = dotq_d[i];
+			dotq_[idxs_d[i]] = dotq_d[i];
 
 		timelog.leave("computeDependentPosVelAcc.dotq");
 	}
@@ -286,7 +286,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		const Eigen::VectorXd& ddotz = *ptr_ddotz;
 		Eigen::VectorXd& ddotq = *out_results.ddotq;
 
-		const size_t nConstraints = this->m_Phi.size();
+		const size_t nConstraints = this->Phi_.size();
 
 		Eigen::MatrixXd Phiq;
 		this->getPhi_q_dense(Phiq);
@@ -306,13 +306,13 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 
 			// Part 2: - dot{Phi_q} * dotq)
 			const CompressedRowSparseMatrix::row_t& row_i =
-				m_dotPhi_q.matrix[i];
+				dotPhi_q_.matrix[i];
 			for (CompressedRowSparseMatrix::row_t::const_iterator it =
 					 row_i.begin();
 				 it != row_i.end(); ++it)
 			{
 				const size_t col = it->first;
-				r -= it->second * m_dotq[col];
+				r -= it->second * dotq_[col];
 			}
 
 			p[i] = r;
@@ -326,7 +326,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		//  ddotq[ z_indices ] <- ddotz
 		//  ddotq[ idxs_d ]       <- ddotq_d
 		// ------------------------------------
-		ddotq.resize(m_q.size());
+		ddotq.resize(q_.size());
 		for (size_t i = 0; i < z_indices.size(); i++)
 			ddotq[z_indices[i]] = ddotz[i];
 

@@ -63,8 +63,8 @@ TEST(Jacobians, gyroscope)
 
 	// Add factors:
 	// Create factor noises:
-	const auto n = aMBS->m_q.size();
-	const auto m = aMBS->m_Phi_q.getNumRows();
+	const auto n = aMBS->q_.size();
+	const auto m = aMBS->Phi_q_.getNumRows();
 
 	auto noise_gyro = gtsam::noiseModel::Isotropic::Sigma(1, 0.1);
 
@@ -96,13 +96,13 @@ TEST(Jacobians, gyroscope)
 		t = t_next;
 
 		std::cout << "Evaluating test for t=" << t << "\n";
-		std::cout << "q  =" << aMBS->m_q.transpose() << "\n";
-		std::cout << "dq =" << aMBS->m_dotq.transpose() << "\n";
+		std::cout << "q  =" << aMBS->q_.transpose() << "\n";
+		std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
 
 		// Convert plain Eigen vectors into state_t classes (used as Values in
 		// GTSAM factor graphs):
-		const state_t q = state_t(aMBS->m_q);
-		const state_t dotq = state_t(aMBS->m_dotq);
+		const state_t q = state_t(aMBS->q_);
+		const state_t dotq = state_t(aMBS->dotq_);
 
 		for (unsigned int body_idx = 0; body_idx < 3; body_idx++)
 		{

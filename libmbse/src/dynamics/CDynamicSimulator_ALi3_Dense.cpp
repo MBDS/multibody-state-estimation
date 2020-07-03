@@ -31,11 +31,11 @@ void CDynamicSimulator_ALi3_Dense::internal_prepare()
 {
 	timelog.enter("solver_prepare");
 
-	m_arm->buildMassMatrix_dense(m_M);
-	m_M_ldlt.compute(m_M);
+	arm_->buildMassMatrix_dense(M_);
+	M_ldlt_.compute(M_);
 
-	const size_t nConstraints = m_arm->m_Phi.size();
-	m_Lambda.setZero(nConstraints);
+	const size_t nConstraints = arm_->Phi_.size();
+	Lambda_.setZero(nConstraints);
 
 	timelog.leave("solver_prepare");
 }
@@ -51,7 +51,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 {
 	if (integr != ODE_Trapezoidal) return false;
 
-	const size_t nDepCoords = m_arm->m_q.size();
+	const size_t nDepCoords = arm_->q_.size();
 
 	timelog.enter("internal_integrate");
 
@@ -59,14 +59,14 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 
 	const double dt2 = dt * dt;
 
-	const Eigen::VectorXd qp_g = -(2. / dt * m_arm->m_q + m_arm->m_dotq);
+	const Eigen::VectorXd qp_g = -(2. / dt * arm_->q_ + arm_->dotq_);
 	const Eigen::VectorXd qpp_g =
-		-(4. / dt2 * m_arm->m_q + 4. / dt * m_arm->m_dotq + m_arm->m_ddotq);
+		-(4. / dt2 * arm_->q_ + 4. / dt * arm_->dotq_ + arm_->ddotq_);
 
-	m_arm->m_q += dt * m_arm->m_dotq + 0.5 * dt * dt * m_arm->m_ddotq;
+	arm_->q_ += dt * arm_->dotq_ + 0.5 * dt * dt * arm_->ddotq_;
 
-	m_arm->m_dotq = (2. / dt) * m_arm->m_q + qp_g;
-	m_arm->m_ddotq = (4. / dt2) * m_arm->m_q + qpp_g;
+	arm_->dotq_ = (2. / dt) * arm_->q_ + qp_g;
+	arm_->ddotq_ = (4. / dt2) * arm_->q_ + qpp_g;
 
 	double err = 1;
 	int iter = 0;
@@ -74,8 +74,8 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 	const double tol_dyn = 1e-6;
 	const int iter_max = 20;
 
-	m_arm->update_numeric_Phi_and_Jacobians();
-	m_arm->getPhi_q_dense(m_Phi_q);
+	arm_->update_numeric_Phi_and_Jacobians();
+	arm_->getPhi_q_dense(Phi_q_);
 
 	while (err > tol_dyn && iter < iter_max)
 	{
@@ -88,27 +88,27 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 
 		Eigen::VectorXd RHS =
 			0.25 * dt2 *
-			(m_M * m_arm->m_ddotq +
-			 m_Phi_q.transpose() * params_penalty.alpha * m_arm->m_Phi +
-			 m_Phi_q.transpose() * m_Lambda - Q);
+			(M_ * arm_->ddotq_ +
+			 Phi_q_.transpose() * params_penalty.alpha * arm_->Phi_ +
+			 Phi_q_.transpose() * Lambda_ - Q);
 		//[K,C]=evalKC(k_m, c_m);
 
 		// f_q = M + 0.5*dt*C+0.25*dt^2*(jac'*alpha*jac+K);
-		m_A = m_M +
-			  0.25 * dt2 * params_penalty.alpha * m_Phi_q.transpose() * m_Phi_q;
-		m_A_lu.compute(m_A);
+		A_ = M_ +
+			  0.25 * dt2 * params_penalty.alpha * Phi_q_.transpose() * Phi_q_;
+		A_lu_.compute(A_);
 
-		const Eigen::VectorXd Aq = -m_A_lu.solve(RHS);
+		const Eigen::VectorXd Aq = -A_lu_.solve(RHS);
 
-		m_arm->m_q += Aq;
-		m_arm->m_dotq = (2. / dt) * m_arm->m_q + qp_g;
-		m_arm->m_ddotq = (4. / dt2) * m_arm->m_q + qpp_g;
+		arm_->q_ += Aq;
+		arm_->dotq_ = (2. / dt) * arm_->q_ + qp_g;
+		arm_->ddotq_ = (4. / dt2) * arm_->q_ + qpp_g;
 
 		// phi_0 = phi(q,l,x);
-		m_arm->update_numeric_Phi_and_Jacobians();
-		m_arm->getPhi_q_dense(m_Phi_q);
+		arm_->update_numeric_Phi_and_Jacobians();
+		arm_->getPhi_q_dense(Phi_q_);
 
-		m_Lambda += params_penalty.alpha * m_arm->m_Phi;
+		Lambda_ += params_penalty.alpha * arm_->Phi_;
 		err = Aq.norm();
 	}
 
@@ -118,17 +118,17 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 	// del timepo, porque en este problema no hay restricciones que dependan
 	// explícitamente del tiempo).
 	// qp_out = f_q\((M + 0.5*dt*C + 0.25*dt^2*K)*qp);
-	m_arm->m_dotq = m_A_lu.solve(m_M * m_arm->m_dotq);
+	arm_->dotq_ = A_lu_.solve(M_ * arm_->dotq_);
 
 	// phiqpqp_0 = phiqpqp(q, qp, l);
-	m_arm->m_dotPhi_q.asDense(m_dotPhi_q);
+	arm_->dotPhi_q_.asDense(dotPhi_q_);
 
 	// qpp_out = f_q\((M + 0.5*dt*C + 0.25*dt^2*K)*qpp -
 	// 0.25*dt^2*jac'*alpha*phiqpqp_0);
-	m_arm->m_ddotq = m_A_lu.solve(
-		m_M * m_arm->m_ddotq - 0.25 * dt2 * params_penalty.alpha *
-								   m_Phi_q.transpose() * m_dotPhi_q *
-								   m_arm->m_dotq);
+	arm_->ddotq_ = A_lu_.solve(
+		M_ * arm_->ddotq_ - 0.25 * dt2 * params_penalty.alpha *
+								   Phi_q_.transpose() * dotPhi_q_ *
+								   arm_->dotq_);
 
 	timelog.leave("internal_integrate");
 
@@ -138,7 +138,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	const size_t nDepCoords = m_arm->m_q.size();
+	const size_t nDepCoords = arm_->q_.size();
 
 	if (lagrangre)
 		throw std::runtime_error(
@@ -169,19 +169,19 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 	//
 
 	// Update numeric values of the constraint Jacobians:
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
-	m_arm->getPhi_q_dense(m_Phi_q);
-	m_A = m_M + params_penalty.alpha * m_Phi_q.transpose() * m_Phi_q;
+	arm_->getPhi_q_dense(Phi_q_);
+	A_ = M_ + params_penalty.alpha * Phi_q_.transpose() * Phi_q_;
 
-	m_A_lu.compute(m_A);
+	A_lu_.compute(A_);
 
 	// Build the RHS vector:
 	// RHS = Q(q,dq) - alpha * Phi_q^t* [ \dot{Phi}_q * \dot{q} + 2 * xi * omega
 	// * \dot{Phi} + omega^2 * Phi ] - Phi_q^t * \lambda
 	//
 
-	m_arm->m_dotPhi_q.asDense(m_dotPhi_q);
+	arm_->dotPhi_q_.asDense(dotPhi_q_);
 
 	// Solve linear system:
 	// -----------------------------------
@@ -191,17 +191,17 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 
 	Eigen::MatrixXd RHS =
 		Q -
-		params_penalty.alpha * m_Phi_q.transpose() *
-			(m_dotPhi_q * m_arm->m_dotq +
-			 2 * params_penalty.xi * params_penalty.w * m_arm->m_dotPhi +
-			 params_penalty.w * params_penalty.w * m_arm->m_Phi) -
-		m_Phi_q.transpose() * m_Lambda;
+		params_penalty.alpha * Phi_q_.transpose() *
+			(dotPhi_q_ * arm_->dotq_ +
+			 2 * params_penalty.xi * params_penalty.w * arm_->dotPhi_ +
+			 params_penalty.w * params_penalty.w * arm_->Phi_) -
+		Phi_q_.transpose() * Lambda_;
 
-	ddot_q = m_A_lu.solve(RHS);
+	ddot_q = A_lu_.solve(RHS);
 
-	m_Lambda += params_penalty.alpha * m_arm->m_Phi;
+	Lambda_ += params_penalty.alpha * arm_->Phi_;
 
-	//	cout << "lamba: " << m_Lambda.transpose() << endl;
+	//	cout << "lamba: " << Lambda_.transpose() << endl;
 
 	timelog.leave("solver_ddotq.solve");
 

@@ -36,7 +36,7 @@ void FactorInverseDynamics::print(
 			  << keyFormatter(this->key3()) << keyFormatter(this->key4())
 			  << ")\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
-	this->noiseModel_->print("  noise model: ");
+	noiseModel_->print("  noise model: ");
 }
 
 struct NumericJacobParams
@@ -50,9 +50,9 @@ static void num_err_wrt_Q(
 	const gtsam::Vector& new_Q, const NumericJacobParams& p, gtsam::Vector& err)
 {
 	// Set q & dq in the multibody model:
-	p.arm->m_q = p.q;
-	p.arm->m_dotq = p.dq;
-	p.arm->m_Q = new_Q;
+	p.arm->q_ = p.q;
+	p.arm->dotq_ = p.dq;
+	p.arm->Q_ = new_Q;
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
@@ -67,9 +67,9 @@ static void num_err_wrt_q(
 	const gtsam::Vector& new_q, const NumericJacobParams& p, gtsam::Vector& err)
 {
 	// Set q & dq in the multibody model:
-	p.arm->m_q = new_q;
-	p.arm->m_dotq = p.dq;
-	p.arm->m_Q = p.Q;
+	p.arm->q_ = new_q;
+	p.arm->dotq_ = p.dq;
+	p.arm->Q_ = p.Q;
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
@@ -85,9 +85,9 @@ static void num_err_wrt_dq(
 	gtsam::Vector& err)
 {
 	// Set q & dq in the multibody model:
-	p.arm->m_q = p.q;
-	p.arm->m_dotq = new_dq;
-	p.arm->m_Q = p.Q;
+	p.arm->q_ = p.q;
+	p.arm->dotq_ = new_dq;
+	p.arm->Q_ = p.Q;
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
@@ -103,7 +103,7 @@ bool FactorInverseDynamics::equals(
 {
 	const This* e = dynamic_cast<const This*>(&expected);
 	return e != nullptr && Base::equals(*e, tol) &&
-		   m_dynamic_solver->get_model() == e->m_dynamic_solver->get_model();
+		   dynamic_solver_->get_model() == e->dynamic_solver_->get_model();
 }
 
 gtsam::Vector FactorInverseDynamics::evaluateError(
@@ -121,16 +121,16 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	ASSERT_(q_k.size() > 0);
 
 	// Set q & dq in the multibody model:
-	CAssembledRigidModel& arm = *m_dynamic_solver->get_model_non_const();
-	arm.m_q = q_k.vector();
-	arm.m_dotq = dq_k.vector();
-	arm.m_Q = Q_k.vector();
+	CAssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
+	arm.q_ = q_k.vector();
+	arm.dotq_ = dq_k.vector();
+	arm.Q_ = Q_k.vector();
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
 	const double t = 0;	 // wallclock time (useless?)
 
-	m_dynamic_solver->solve_ddotq(t, qpp_predicted);
+	dynamic_solver_->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
 	gtsam::Vector err = qpp_predicted - ddq_k.vector();
@@ -144,7 +144,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 #else
 		NumericJacobParams p;
 		p.arm = &arm;
-		p.dynamic_solver = m_dynamic_solver;
+		p.dynamic_solver = dynamic_solver_;
 		p.q = q_k.vector();
 		p.dq = dq_k.vector();
 		p.ddq = ddq_k.vector();
@@ -172,7 +172,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 #else
 		NumericJacobParams p;
 		p.arm = &arm;
-		p.dynamic_solver = m_dynamic_solver;
+		p.dynamic_solver = dynamic_solver_;
 		p.q = q_k.vector();
 		p.dq = dq_k.vector();
 		p.ddq = ddq_k.vector();
@@ -204,7 +204,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = &arm;
-		p.dynamic_solver = m_dynamic_solver;
+		p.dynamic_solver = dynamic_solver_;
 		p.q = q_k.vector();
 		p.dq = dq_k.vector();
 		p.ddq = ddq_k.vector();

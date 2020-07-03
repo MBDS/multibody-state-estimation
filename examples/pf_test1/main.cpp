@@ -374,8 +374,8 @@ int main(int argc, char** argv)
 			STATS_t.push_back(t_old_simul);
 			// GT value:
 			GT_ang0.push_back(atan2(
-				aMBS_GT->m_q[aMBS_GT->m_points2DOFs[1].dof_y],
-				aMBS_GT->m_q[aMBS_GT->m_points2DOFs[1].dof_x]));
+				aMBS_GT->q_[aMBS_GT->points2DOFs_[1].dof_y],
+				aMBS_GT->q_[aMBS_GT->points2DOFs_[1].dof_x]));
 
 			// Estimated values:
 			for (size_t i = 0; i < pf.m_particles.size(); i++)
@@ -383,9 +383,8 @@ int main(int argc, char** argv)
 				auto part = pf.m_particles[i].d;
 
 				const double val_phi = atan2(
-					part->num_model.m_q[part->num_model.m_points2DOFs[1].dof_y],
-					part->num_model
-						.m_q[part->num_model.m_points2DOFs[1].dof_x]);
+					part->num_model.q_[part->num_model.points2DOFs_[1].dof_y],
+					part->num_model.q_[part->num_model.points2DOFs_[1].dof_x]);
 
 				orientation_averager.m_particles[i].d.phi = val_phi;
 
@@ -536,14 +535,14 @@ void pf_initialize_uniform_distribution(
 		{
 			const double R = model.getBodies()[0].length();
 			const double ang = rnd.drawUniform(-M_PI, M_PI);
-			const size_t nTotalDOFs = part->num_model.m_q.size();
+			const size_t nTotalDOFs = part->num_model.q_.size();
 			for (size_t k = 0; k < nTotalDOFs; k++)
-				part->num_model.m_q[k] = rnd.drawUniform(-20, 20);
+				part->num_model.q_[k] = rnd.drawUniform(-20, 20);
 
 			const size_t PT_IDX = 1;  // This point is the one we force to be at
 									  // a predefined position:
-			part->num_model.m_q[p2dofs[PT_IDX].dof_x] = R * cos(ang);
-			part->num_model.m_q[p2dofs[PT_IDX].dof_y] = R * sin(ang);
+			part->num_model.q_[p2dofs[PT_IDX].dof_x] = R * cos(ang);
+			part->num_model.q_[p2dofs[PT_IDX].dof_y] = R * sin(ang);
 
 			final_err = part->num_model.refinePosition(1e-13, 30);
 		} while (final_err > 1e-6);

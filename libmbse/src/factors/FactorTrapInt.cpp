@@ -29,7 +29,7 @@ void FactorTrapInt::print(
 			  << keyFormatter(this->key2()) << "," << keyFormatter(this->key3())
 			  << "," << keyFormatter(this->key4()) << ")\n";
 	gtsam::traits<double>::Print(timestep_, "  timestep: ");
-	this->noiseModel_->print("  noise model: ");
+	noiseModel_->print("  noise model: ");
 }
 
 bool FactorTrapInt::equals(
@@ -37,7 +37,7 @@ bool FactorTrapInt::equals(
 {
 	const This* e = dynamic_cast<const This*>(&expected);
 	return e != nullptr && Base::equals(*e, tol) &&
-		   gtsam::traits<double>::Equals(this->timestep_, e->timestep_, tol);
+		   gtsam::traits<double>::Equals(timestep_, e->timestep_, tol);
 }
 
 // Build function evaluateError defined in the header FactorTrapInt.h

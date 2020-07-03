@@ -66,8 +66,8 @@ TEST(Jacobians, dynamics)
 
 		// Add factors:
 		// Create factor noises:
-		const auto n = aMBS->m_q.size();
-		// const auto m = aMBS->m_Phi_q.getNumRows();
+		const auto n = aMBS->q_.size();
+		// const auto m = aMBS->Phi_q_.getNumRows();
 
 		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
@@ -92,15 +92,15 @@ TEST(Jacobians, dynamics)
 			t = t_next;
 
 			std::cout << "Evaluating test for t=" << t << "\n";
-			std::cout << "q  =" << aMBS->m_q.transpose() << "\n";
-			std::cout << "dq =" << aMBS->m_dotq.transpose() << "\n";
-			std::cout << "ddq =" << aMBS->m_ddotq.transpose() << "\n";
+			std::cout << "q  =" << aMBS->q_.transpose() << "\n";
+			std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
+			std::cout << "ddq =" << aMBS->ddotq_.transpose() << "\n";
 
 			// Convert plain Eigen vectors into state_t classes (used as Values
 			// in GTSAM factor graphs):
-			const state_t q = state_t(aMBS->m_q);
-			const state_t dotq = state_t(aMBS->m_dotq);
-			const state_t ddotq = state_t(aMBS->m_ddotq);
+			const state_t q = state_t(aMBS->q_);
+			const state_t dotq = state_t(aMBS->dotq_);
+			const state_t ddotq = state_t(aMBS->ddotq_);
 
 			// Evaluate theoretical Jacobians:
 			gtsam::Matrix H[3];

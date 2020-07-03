@@ -39,7 +39,7 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor4<
 	using This = FactorInverseDynamics;
 	using Base = gtsam::NoiseModelFactor4<state_t, state_t, state_t, state_t>;
 
-	CDynamicSimulatorBase* m_dynamic_solver = nullptr;
+	CDynamicSimulatorBase* dynamic_solver_ = nullptr;
 
    public:
 	// shorthand for a smart pointer to a factor
@@ -54,7 +54,7 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor4<
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 		gtsam::Key key_dq_k, gtsam::Key key_ddq_k, gtsam::Key key_Q_k)
 		: Base(noiseModel, key_q_k, key_dq_k, key_ddq_k, key_Q_k),
-		  m_dynamic_solver(dynamic_solver)
+		  dynamic_solver_(dynamic_solver)
 	{
 	}
 

@@ -81,10 +81,10 @@ class CConstraintConstantDistance : public CConstraintBase
 	}
 
    protected:
-	mutable const Point2* m_points[2] = {nullptr, nullptr};
+	mutable const Point2* points_[2] = {nullptr, nullptr};
 	/** The indices of each point in the state vector "q" */
-	mutable Point2ToDOF m_pointDOFs[2];
-	mutable size_t m_idx_constr = static_cast<size_t>(-1);
+	mutable Point2ToDOF pointDOFs_[2];
+	mutable size_t idx_constr_ = static_cast<size_t>(-1);
 
 	/** Pointers to entries in the sparse Jacobian dPhi_dq */
 	mutable double *dPhi_dx0 = nullptr, *dPhi_dy0 = nullptr,
@@ -129,12 +129,12 @@ class CConstraintFixedSlider : public CConstraintBase
 		mrpt::opengl::CRenderizable::Ptr& inout_obj) const override;
 
    protected:
-	mutable const Point2* m_point = nullptr;
+	mutable const Point2* point_ = nullptr;
 	// The indices of each point in the state vector "q"
-	mutable Point2ToDOF m_pointDOF;
-	mutable size_t m_idx_constr = static_cast<size_t>(-1);
+	mutable Point2ToDOF pointDOF_;
+	mutable size_t idx_constr_ = static_cast<size_t>(-1);
 	mutable mrpt::math::TPoint2D
-		m_Delta;  //!< pt[1]-pt[0], precomputed only once
+		Delta_;  //!< pt[1]-pt[0], precomputed only once
 
 	/** Pointers to entries in the sparse Jacobian dPhi_dq */
 	mutable double *dPhi_dx0 = nullptr, *dPhi_dy0 = nullptr;
@@ -157,13 +157,13 @@ class CConstraintMobileSlider : public CConstraintBase
 
 	CConstraintMobileSlider(
 		const size_t _point_index, const size_t _ref_pt0, const size_t _ref_pt1)
-		: point_index(_point_index), m_idx_constr(static_cast<size_t>(-1))
+		: point_index(_point_index), idx_constr_(static_cast<size_t>(-1))
 	{
 		ref_pts[0] = _ref_pt0;
 		ref_pts[1] = _ref_pt1;
 		for (int i = 0; i < 3; i++)
 		{
-			m_points[i] = NULL;
+			points_[i] = NULL;
 			dPhi_dx[i] = dPhi_dy[i] = NULL;
 			dot_dPhi_dx[i] = dot_dPhi_dy[i] = NULL;
 		}
@@ -178,10 +178,10 @@ class CConstraintMobileSlider : public CConstraintBase
 	}
 
    protected:
-	mutable const Point2* m_points[3];
+	mutable const Point2* points_[3];
 	// The indices of each point in the state vector "q"
-	mutable Point2ToDOF m_pointDOF[3];
-	mutable size_t m_idx_constr;
+	mutable Point2ToDOF pointDOF_[3];
+	mutable size_t idx_constr_;
 	/** Pointers to entries in the sparse Jacobian dPhi_dq */
 	mutable double *dPhi_dx[3], *dPhi_dy[3];
 

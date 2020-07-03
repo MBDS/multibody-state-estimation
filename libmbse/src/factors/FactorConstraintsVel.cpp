@@ -36,7 +36,7 @@ void FactorConstraintsVel::print(
 {
 	std::cout << s << "FactorConstrintsVel(" << keyFormatter(this->key1())
 			  << "," << keyFormatter(this->key2()) << ")\n";
-	this->noiseModel_->print("  noise model: ");
+	noiseModel_->print("  noise model: ");
 }
 
 bool FactorConstraintsVel::equals(
@@ -57,14 +57,14 @@ static void num_err_wrt_q(
 	const gtsam::Vector& new_q, const NumericJacobParams& p, gtsam::Vector& err)
 {
 	// Set q & dq in the multibody model:
-	p.arm->m_q = new_q;
-	p.arm->m_dotq = p.dq;
+	p.arm->q_ = new_q;
+	p.arm->dotq_ = p.dq;
 
 	p.arm->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
 	const Eigen::MatrixXd Phi_q = p.arm->getPhi_q_dense();
-	err = Phi_q * p.arm->m_dotq;
+	err = Phi_q * p.arm->dotq_;
 }
 
 static void num_err_wrt_dq(
@@ -72,14 +72,14 @@ static void num_err_wrt_dq(
 	gtsam::Vector& err)
 {
 	// Set q & dq in the multibody model:
-	p.arm->m_q = p.q;
-	p.arm->m_dotq = new_dq;
+	p.arm->q_ = p.q;
+	p.arm->dotq_ = new_dq;
 
 	p.arm->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
 	const Eigen::MatrixXd Phi_q = p.arm->getPhi_q_dense();
-	err = Phi_q * p.arm->m_dotq;
+	err = Phi_q * p.arm->dotq_;
 }
 #endif
 
@@ -91,21 +91,21 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	MRPT_START
 
 	// const auto n = q_k.size();
-	// const auto m = m_arm->m_Phi.rows();
+	// const auto m = arm_->Phi_.rows();
 
 	ASSERT_EQUAL_(dotq_k.size(), q_k.size());
 	ASSERT_(q_k.size() > 0);
 
 	// Set q in the multibody model:
-	m_arm->m_q = q_k.vector();
-	m_arm->m_dotq = dotq_k.vector();
+	arm_->q_ = q_k.vector();
+	arm_->dotq_ = dotq_k.vector();
 
 	// Update Jacobian and Hessian tensor:
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
-	const Eigen::MatrixXd Phi_q = m_arm->getPhi_q_dense();
-	const Eigen::MatrixXd dPhiqdq_dq = m_arm->getdPhiqdq_dq_dense();
+	const Eigen::MatrixXd Phi_q = arm_->getPhi_q_dense();
+	const Eigen::MatrixXd dPhiqdq_dq = arm_->getdPhiqdq_dq_dense();
 
 	gtsam::Vector err = Phi_q * dotq_k.vector();
 
@@ -116,7 +116,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 		auto& Hv = H1.value();
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
-		p.arm = m_arm.get();
+		p.arm = arm_.get();
 		p.q = q_k.vector();
 		p.dq = dotq_k.vector();
 
@@ -141,7 +141,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 		auto& Hv = H2.value();
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
-		p.arm = m_arm.get();
+		p.arm = arm_.get();
 		p.q = q_k.vector();
 		p.dq = dotq_k.vector();
 

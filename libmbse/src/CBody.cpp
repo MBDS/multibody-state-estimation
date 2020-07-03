@@ -20,11 +20,11 @@ MRPT_TODO("Allow bodies with more than 2 points")
 // Constructor:
 CBody::CBody()
 	: name(),
-	  m_mass_matrices_cached(false),
-	  m_mass(0),
-	  m_cog(0, 0),
-	  m_length(0),
-	  m_I0(0)
+	  mass_matrices_cached_(false),
+	  mass_(0),
+	  cog_(0, 0),
+	  length_(0),
+	  I0_(0)
 {
 	points[0] = points[1] = static_cast<size_t>(-1);
 }
@@ -32,11 +32,11 @@ CBody::CBody()
 void CBody::evaluateMassMatrix(
 	Matrix2d& M00, Matrix2d& M11, Matrix2d& M01) const
 {
-	if (!m_mass_matrices_cached) internal_update_mass_submatrices();
+	if (!mass_matrices_cached_) internal_update_mass_submatrices();
 
-	M00 = m_M00;
-	M01 = m_M01;
-	M11 = m_M11;
+	M00 = M00_;
+	M01 = M01_;
+	M11 = M11_;
 }
 
 /** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
@@ -45,45 +45,45 @@ void CBody::internal_update_mass_submatrices() const
 {
 	// From ch3, eq(17) of "ANALISIS Y SINTESIS DE MECANISMOS POR ORDENADOR",
 	// Javier Cuadrado
-	const double MXg_L = m_mass * m_cog.x / m_length;
-	const double MYg_L = m_mass * m_cog.y / m_length;
-	const double I0_L2 = m_I0 / (m_length * m_length);
+	const double MXg_L = mass_ * cog_.x / length_;
+	const double MYg_L = mass_ * cog_.y / length_;
+	const double I0_L2 = I0_ / (length_ * length_);
 
 	// M00:
-	m_M00(0, 0) = m_mass - 2 * MXg_L + I0_L2;
-	m_M00(0, 1) = 0;
-	m_M00(1, 0) = 0;
-	m_M00(1, 1) = m_M00(0, 0);
+	M00_(0, 0) = mass_ - 2 * MXg_L + I0_L2;
+	M00_(0, 1) = 0;
+	M00_(1, 0) = 0;
+	M00_(1, 1) = M00_(0, 0);
 
 	// M11:
-	m_M11(0, 0) = I0_L2;
-	m_M11(0, 1) = 0;
-	m_M11(1, 0) = 0;
-	m_M11(1, 1) = m_M11(0, 0);
+	M11_(0, 0) = I0_L2;
+	M11_(0, 1) = 0;
+	M11_(1, 0) = 0;
+	M11_(1, 1) = M11_(0, 0);
 
 	// M01:
-	m_M01(0, 0) = MXg_L - I0_L2;
-	m_M01(0, 1) = -MYg_L;
-	m_M01(1, 0) = MYg_L;
-	m_M01(1, 1) = m_M01(0, 0);
+	M01_(0, 0) = MXg_L - I0_L2;
+	M01_(0, 1) = -MYg_L;
+	M01_(1, 0) = MYg_L;
+	M01_(1, 1) = M01_(0, 0);
 
-	m_mass_matrices_cached = true;
+	mass_matrices_cached_ = true;
 }
 
 const Matrix2d& CBody::getM00() const
 {
-	if (!m_mass_matrices_cached) internal_update_mass_submatrices();
-	return m_M00;
+	if (!mass_matrices_cached_) internal_update_mass_submatrices();
+	return M00_;
 }
 const Matrix2d& CBody::getM11() const
 {
-	if (!m_mass_matrices_cached) internal_update_mass_submatrices();
-	return m_M11;
+	if (!mass_matrices_cached_) internal_update_mass_submatrices();
+	return M11_;
 }
 const Matrix2d& CBody::getM01() const
 {
-	if (!m_mass_matrices_cached) internal_update_mass_submatrices();
-	return m_M01;
+	if (!mass_matrices_cached_) internal_update_mass_submatrices();
+	return M01_;
 }
 
 /**  Creates a 3D representation of the body */
@@ -103,7 +103,7 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 			obj->setRadius(render_params.cyl_diameter);
 			obj->setColor_u8(mrpt::img::TColor(0xFF, 0x00, 0x00));
 
-			obj->setHeight(this->m_length);
+			obj->setHeight(this->length_);
 
 			// Cylinder aligned with +X
 			obj->setPose(mrpt::poses::CPose3D(
@@ -124,7 +124,7 @@ mrpt::opengl::CRenderizable::Ptr CBody::get3DRepresentation() const
 				mrpt::img::TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
 
 			obj->setLineCoords(
-				0, 0, render_params.z_layer, this->m_length, 0,
+				0, 0, render_params.z_layer, this->length_, 0,
 				render_params.z_layer);
 
 			objs->insert(obj);

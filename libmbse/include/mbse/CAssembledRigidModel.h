@@ -20,7 +20,7 @@ struct TSymbolicAssembledModel
 {
 	const CModelDefinition& model;  //!< My "parent" model
 
-	/** Info on Natural Coordinate DOFs in the problem (same lenth than m_q) */
+	/** Info on Natural Coordinate DOFs in the problem (same lenth than q_) */
 	std::vector<NaturalCoordinateDOF> DOFs;
 
 	/** Additional relative coordinates */
@@ -56,7 +56,7 @@ class CAssembledRigidModel
 
 	inline const std::vector<Point2ToDOF>& getPoints2DOFs() const
 	{
-		return m_points2DOFs;
+		return points2DOFs_;
 	}
 
 	/** Only to be called between objects created from the same symbolic model,
@@ -124,36 +124,36 @@ class CAssembledRigidModel
 	 * beforehand */
 	inline void getPhi_q_dense(Eigen::MatrixXd& Phi_q) const
 	{
-		m_Phi_q.asDense(Phi_q);
+		Phi_q_.asDense(Phi_q);
 	}
 	inline Eigen::MatrixXd getPhi_q_dense() const
 	{
 		Eigen::MatrixXd m;
-		m_Phi_q.asDense(m);
+		Phi_q_.asDense(m);
 		return m;
 	}
 
 	/// like getPhi_q_dense() for dotPhi_q
 	inline void getdotPhi_q_dense(Eigen::MatrixXd& dotPhi_q) const
 	{
-		m_dotPhi_q.asDense(dotPhi_q);
+		dotPhi_q_.asDense(dotPhi_q);
 	}
 	inline Eigen::MatrixXd getdotPhi_q_dense() const
 	{
 		Eigen::MatrixXd m;
-		m_dotPhi_q.asDense(m);
+		dotPhi_q_.asDense(m);
 		return m;
 	}
 
 	/// like getPhi_q_dense() for dotPhi_q
 	inline void getdPhiqdq_dq_dense(Eigen::MatrixXd& dPhiqdq_dq) const
 	{
-		m_dPhiqdq_dq.asDense(dPhiqdq_dq);
+		dPhiqdq_dq_.asDense(dPhiqdq_dq);
 	}
 	inline Eigen::MatrixXd getdPhiqdq_dq_dense() const
 	{
 		Eigen::MatrixXd m;
-		m_dPhiqdq_dq.asDense(m);
+		dPhiqdq_dq_.asDense(m);
 		return m;
 	}
 
@@ -176,54 +176,54 @@ class CAssembledRigidModel
    private:
 	/** Created upon call to getAs3DRepresentation(), this holds a list of the
 	 * 3D object associated to each body in the MBS, in the same order than in
-	 * m_parent.m_bodies[] */
-	mutable std::vector<mrpt::opengl::CRenderizable::Ptr> m_gl_objects;
+	 * parent_.bodies_[] */
+	mutable std::vector<mrpt::opengl::CRenderizable::Ptr> gl_objects_;
 
-	Eigen::Vector3d m_gravity;  //!< The gravity vector (default: [0 -9.81 0])
+	Eigen::Vector3d gravity_;  //!< The gravity vector (default: [0 -9.81 0])
 
    public:
 	/** @name State vector itself
 		@{ */
-	Eigen::VectorXd m_q;  //!< State vector q with all the unknowns
-	Eigen::VectorXd m_dotq;  //!< Velocity vector \dot{q} for all the unknowns
-	Eigen::VectorXd m_ddotq;  //!< The previously computed acceleration vector
+	Eigen::VectorXd q_;  //!< State vector q with all the unknowns
+	Eigen::VectorXd dotq_;  //!< Velocity vector \dot{q} for all the unknowns
+	Eigen::VectorXd ddotq_;  //!< The previously computed acceleration vector
 							  //!< \ddot{q} for all the unknowns
 
 	/** External generalized forces (gravity NOT to be included) */
-	Eigen::VectorXd m_Q;
+	Eigen::VectorXd Q_;
 	/**  @} */
 
 	/** @name Other main data, and values computed as a function of the state
 	   vector.
 		@{ */
-	const CModelDefinition& m_parent;  //!< A reference to the parent MBS. Use
+	const CModelDefinition& parent_;  //!< A reference to the parent MBS. Use
 									   //!< to access the data of bodies, etc.
 
-	/** Info on each DOF in the problem [SAME SIZE THAN m_q] */
-	std::vector<NaturalCoordinateDOF> m_DOFs;
+	/** Info on each DOF in the problem [SAME SIZE THAN q_] */
+	std::vector<NaturalCoordinateDOF> DOFs_;
 
 	/** Reverse look-up list of points < -> DOFs in the q vector */
-	std::vector<Point2ToDOF> m_points2DOFs;
+	std::vector<Point2ToDOF> points2DOFs_;
 
 	/** The vector of numerical values of Phi, the vector of constraint
 	 * functions Phi=0 */
-	Eigen::VectorXd m_Phi;
-	Eigen::VectorXd m_dotPhi;  //!< numerical values of \dot{\Phi}
+	Eigen::VectorXd Phi_;
+	Eigen::VectorXd dotPhi_;  //!< numerical values of \dot{\Phi}
 
 	/** Jacobian dPhi_dq (as a sparse matrix) */
-	CompressedRowSparseMatrix m_Phi_q;
+	CompressedRowSparseMatrix Phi_q_;
 
 	/** Jacobian d(dPhi_dq)_dt (as a sparse matrix) */
-	CompressedRowSparseMatrix m_dotPhi_q;
+	CompressedRowSparseMatrix dotPhi_q_;
 
 	/** Jacobian d(Phiq*dq)_dq (as a sparse matrix) */
-	CompressedRowSparseMatrix m_dPhiqdq_dq;
+	CompressedRowSparseMatrix dPhiqdq_dq_;
 
 	/** The list of all constraints (of different kinds/classes).
 	 * \note This list DOES include constant-distance constraints (not like
 	 * in the original list in the parent CModelDefinition)
 	 */
-	std::vector<CConstraintBase::Ptr> m_constraints;
+	std::vector<CConstraintBase::Ptr> constraints_;
 
 	/** @} */
 
@@ -231,7 +231,7 @@ class CAssembledRigidModel
 	 * update3DRepresentation() to animate it during a simulation. \sa
 	 * update3DRepresentation \param rp May contain colors, etc. that want to be
 	 * updated into the 3D objects. \note Internally, this method builds a list
-	 * of 3D objects in m_gl_objects
+	 * of 3D objects in gl_objects_
 	 */
 	void getAs3DRepresentation(
 		mrpt::opengl::CSetOfObjects::Ptr& outObj,
@@ -259,7 +259,7 @@ class CAssembledRigidModel
 	/** Assemble the MBS mass matrix "M" */
 	void buildMassMatrix_dense(Eigen::MatrixXd& M) const;
 	void buildMassMatrix_sparse(
-		std::vector<Eigen::Triplet<double>>& M_tri) const;
+		std::vector<Eigen::Triplet<double>>& tri_) const;
 	/** Allocates and build a sparse representation of the Mass matrix "M". The
 	 * user must free the object when not needed anymore. */
 	cholmod_triplet* buildMassMatrix_sparse_CHOLMOD(cholmod_common& c) const;

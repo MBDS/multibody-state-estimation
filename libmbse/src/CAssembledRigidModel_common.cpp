@@ -21,9 +21,9 @@ const double DEFAULT_GRAVITY[3] = {0, -9.81, 0};
 
 /** Constructor */
 CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
-	: m_parent(armi.model)
+	: parent_(armi.model)
 {
-	for (int i = 0; i < 3; i++) m_gravity[i] = DEFAULT_GRAVITY[i];
+	for (int i = 0; i < 3; i++) gravity_[i] = DEFAULT_GRAVITY[i];
 
 	const auto nEuclideanDOFs = armi.DOFs.size();
 	const auto nRelativeDOFs = armi.rDOFs.size();
@@ -40,63 +40,63 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 		THROW_EXCEPTION("To-do relative coordinates!");
 	}
 
-	m_q.resize(nDOFs);
-	m_q.setConstant(0);
+	q_.resize(nDOFs);
+	q_.setConstant(0);
 
-	m_dotq.resize(nDOFs);
-	m_dotq.setConstant(0);
+	dotq_.resize(nDOFs);
+	dotq_.setConstant(0);
 
-	m_ddotq.resize(nDOFs);
-	m_ddotq.setConstant(0);
+	ddotq_.resize(nDOFs);
+	ddotq_.setConstant(0);
 
-	m_Q.resize(nDOFs);
-	m_Q.setConstant(0);
+	Q_.resize(nDOFs);
+	Q_.setConstant(0);
 
-	m_DOFs = armi.DOFs;
-	m_points2DOFs.resize(armi.model.getPointCount());
+	DOFs_ = armi.DOFs;
+	points2DOFs_.resize(armi.model.getPointCount());
 
 	for (dof_index_t i = 0; i < nDOFs; i++)
 	{
-		const size_t pt_idx = m_DOFs[i].point_index;
-		const Point2& pt = m_parent.getPointInfo(pt_idx);
-		switch (m_DOFs[i].point_dof)
+		const size_t pt_idx = DOFs_[i].point_index;
+		const Point2& pt = parent_.getPointInfo(pt_idx);
+		switch (DOFs_[i].point_dof)
 		{
 			case PointDOF::X:
-				m_q[i] = pt.coords.x;
-				m_points2DOFs[pt_idx].dof_x = i;
+				q_[i] = pt.coords.x;
+				points2DOFs_[pt_idx].dof_x = i;
 				break;
 			case PointDOF::Y:  // y
-				m_q[i] = pt.coords.y;
-				m_points2DOFs[pt_idx].dof_y = i;
+				q_[i] = pt.coords.y;
+				points2DOFs_[pt_idx].dof_y = i;
 				break;
 			// case 2: //z
-			//	m_q[i] = pt.coords.z;
+			//	q_[i] = pt.coords.z;
 			//	break;
 			default:
-				THROW_EXCEPTION("Unexpected value for m_DOFs[i].point_dof");
+				THROW_EXCEPTION("Unexpected value for DOFs_[i].point_dof");
 		};
 	}
 
 	// Save the number of DOFs as the number of columsn in sparse Jacobians:
-	m_Phi_q.ncols = nDOFs;
-	m_dotPhi_q.ncols = nDOFs;
-	m_dPhiqdq_dq.ncols = nDOFs;
+	Phi_q_.ncols = nDOFs;
+	dotPhi_q_.ncols = nDOFs;
+	dPhiqdq_dq_.ncols = nDOFs;
 
 	// Generate constraint equations & create structure of sparse Jacobians:
 	// ---------------------------------------------------------------------------------------------------
 	const std::vector<CConstraintBase::Ptr>& parent_constraints =
-		m_parent.getConstraints();
+		parent_.getConstraints();
 	const size_t nConst = parent_constraints.size();
 
-	m_constraints.resize(nConst);
+	constraints_.resize(nConst);
 
 	for (size_t i = 0; i < nConst; i++)
 	{
-		m_constraints[i] = parent_constraints[i];  // Copy smart pointer, and
+		constraints_[i] = parent_constraints[i];  // Copy smart pointer, and
 		// clone object:
-		m_constraints[i] = CConstraintBase::Ptr(m_constraints[i]->clone());
+		constraints_[i] = CConstraintBase::Ptr(constraints_[i]->clone());
 
-		const CConstraintBase* c = m_constraints[i].get();
+		const CConstraintBase* c = constraints_[i].get();
 		ASSERT_(c != NULL);
 		c->buildSparseStructures(*this);
 	}
@@ -107,9 +107,9 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 void CAssembledRigidModel::getGravityVector(
 	double& gx, double& gy, double& gz) const
 {
-	gx = m_gravity[0];
-	gy = m_gravity[1];
-	gz = m_gravity[2];
+	gx = gravity_[0];
+	gy = gravity_[1];
+	gz = gravity_[2];
 }
 
 /** Changes the gravity aceleration vector, used for the bodies weights
@@ -117,9 +117,9 @@ void CAssembledRigidModel::getGravityVector(
 void CAssembledRigidModel::setGravityVector(
 	const double gx, const double gy, const double gz)
 {
-	m_gravity[0] = gx;
-	m_gravity[1] = gy;
-	m_gravity[2] = gz;
+	gravity_[0] = gx;
+	gravity_[1] = gy;
+	gravity_[2] = gz;
 }
 
 /** Call all constraint objects and command them to update their corresponding
@@ -127,8 +127,8 @@ void CAssembledRigidModel::setGravityVector(
 void CAssembledRigidModel::update_numeric_Phi_and_Jacobians()
 {
 	// Update numeric values of the constraint Jacobians:
-	for (size_t i = 0; i < m_constraints.size(); i++)
-		m_constraints[i]->update(*this);
+	for (size_t i = 0; i < constraints_.size(); i++)
+		constraints_[i]->update(*this);
 }
 
 /** Returns a 3D visualization of the model */
@@ -143,7 +143,7 @@ void CAssembledRigidModel::getAs3DRepresentation(
 
 	// Render constraints:
 	const std::vector<CConstraintBase::Ptr>& parent_constr =
-		m_parent.getConstraints();
+		parent_.getConstraints();
 
 	const size_t nConstr = parent_constr.size();
 	for (size_t i = 0; i < nConstr; i++)
@@ -160,10 +160,10 @@ void CAssembledRigidModel::getAs3DRepresentation(
 	// Render "ground" points:
 	if (rp.show_grounds)
 	{
-		const size_t nPts = m_parent.getPointCount();
+		const size_t nPts = parent_.getPointCount();
 		for (size_t i = 0; i < nPts; i++)
 		{
-			const Point2& pt = m_parent.getPointInfo(i);
+			const Point2& pt = parent_.getPointInfo(i);
 			if (!pt.fixed) continue;
 			// This is a fixed point:
 			outObj->insert(this->internal_render_ground_point(pt, rp));
@@ -171,9 +171,9 @@ void CAssembledRigidModel::getAs3DRepresentation(
 	}
 
 	// Render bodies:
-	const std::vector<CBody>& parent_bodies = m_parent.getBodies();
+	const std::vector<CBody>& parent_bodies = parent_.getBodies();
 	const size_t nBodies = parent_bodies.size();
-	m_gl_objects.resize(nBodies);
+	gl_objects_.resize(nBodies);
 
 	for (size_t i = 0; i < nBodies; i++)
 	{
@@ -186,7 +186,7 @@ void CAssembledRigidModel::getAs3DRepresentation(
 
 		// And save reference for quickly update the 3D pose in the future
 		// during animations:
-		m_gl_objects[i] = gl_obj;
+		gl_objects_[i] = gl_obj;
 	}
 
 	// Place each body in its current pose:
@@ -199,10 +199,10 @@ void CAssembledRigidModel::getAs3DRepresentation(
 void CAssembledRigidModel::update3DRepresentation(
 	const CBody::TRenderParams& rp) const
 {
-	const std::vector<CBody>& parent_bodies = m_parent.getBodies();
+	const std::vector<CBody>& parent_bodies = parent_.getBodies();
 
 	const size_t nBodies = parent_bodies.size();
-	if (m_gl_objects.size() != nBodies)
+	if (gl_objects_.size() != nBodies)
 	{
 		std::cerr << "[CAssembledRigidModel::update3DRepresentation] Warning: "
 					 "Opengl model is not initialized.\n";
@@ -211,7 +211,7 @@ void CAssembledRigidModel::update3DRepresentation(
 
 	for (size_t i = 0; i < nBodies; i++)
 	{
-		mrpt::opengl::CRenderizable::Ptr& obj = m_gl_objects[i];
+		mrpt::opengl::CRenderizable::Ptr& obj = gl_objects_[i];
 		ASSERT_(obj);
 
 		// Recover the 2D pose from 2 points:
@@ -219,21 +219,21 @@ void CAssembledRigidModel::update3DRepresentation(
 		const size_t i0 = b.points[0];
 		const size_t i1 = b.points[1];
 
-		const Point2& pnt0 = m_parent.getPointInfo(i0);
-		const Point2& pnt1 = m_parent.getPointInfo(i1);
+		const Point2& pnt0 = parent_.getPointInfo(i0);
+		const Point2& pnt1 = parent_.getPointInfo(i1);
 
-		const Point2ToDOF dof0 = m_points2DOFs[i0];
-		const Point2ToDOF dof1 = m_points2DOFs[i1];
+		const Point2ToDOF dof0 = points2DOFs_[i0];
+		const Point2ToDOF dof1 = points2DOFs_[i1];
 
 		const double& p0x =
-			(dof0.dof_x != INVALID_DOF) ? m_q[dof0.dof_x] : pnt0.coords.x;
+			(dof0.dof_x != INVALID_DOF) ? q_[dof0.dof_x] : pnt0.coords.x;
 		const double& p0y =
-			(dof0.dof_y != INVALID_DOF) ? m_q[dof0.dof_y] : pnt0.coords.y;
+			(dof0.dof_y != INVALID_DOF) ? q_[dof0.dof_y] : pnt0.coords.y;
 
 		const double& p1x =
-			(dof1.dof_x != INVALID_DOF) ? m_q[dof1.dof_x] : pnt1.coords.x;
+			(dof1.dof_x != INVALID_DOF) ? q_[dof1.dof_x] : pnt1.coords.x;
 		const double& p1y =
-			(dof1.dof_y != INVALID_DOF) ? m_q[dof1.dof_y] : pnt1.coords.y;
+			(dof1.dof_y != INVALID_DOF) ? q_[dof1.dof_y] : pnt1.coords.y;
 
 		const double theta = atan2(p1y - p0y, p1x - p0x);
 
@@ -253,17 +253,17 @@ void CAssembledRigidModel::update3DRepresentation(
 
 size_t CAssembledRigidModel::addNewRowToConstraints()
 {
-	const size_t idx = m_Phi.size();
+	const size_t idx = Phi_.size();
 	const size_t m = idx + 1;  // new size
 
 	// Add rows:
-	m_Phi.resize(m);
-	m_dotPhi.resize(m);
+	Phi_.resize(m);
+	dotPhi_.resize(m);
 
 	// Jacobians:
-	m_Phi_q.setRowCount(m);
-	m_dotPhi_q.setRowCount(m);
-	m_dPhiqdq_dq.setRowCount(m);
+	Phi_q_.setRowCount(m);
+	dotPhi_q_.setRowCount(m);
+	dPhiqdq_dq_.setRowCount(m);
 
 	return idx;
 }
@@ -274,24 +274,24 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 {
 #ifdef _DEBUG
 	// Security checks, just in case...
-	ASSERT_(this->m_q.size() == o.m_q.size());
-	ASSERT_(this->m_dotq.size() == o.m_dotq.size());
-	ASSERT_(this->m_DOFs.size() == o.m_DOFs.size());
-	ASSERT_(this->m_Phi.size() == o.m_Phi.size());
-	const double* ptr_q0 = &m_q[0];
-	const double* ptr_dotq0 = &m_dotq[0];
+	ASSERT_(this->q_.size() == o.q_.size());
+	ASSERT_(this->dotq_.size() == o.dotq_.size());
+	ASSERT_(this->DOFs_.size() == o.DOFs_.size());
+	ASSERT_(this->Phi_.size() == o.Phi_.size());
+	const double* ptr_q0 = &q_[0];
+	const double* ptr_dotq0 = &dotq_[0];
 #endif
 
-	this->m_q = o.m_q;
-	this->m_dotq = o.m_dotq;
+	this->q_ = o.q_;
+	this->dotq_ = o.dotq_;
 
 #ifdef _DEBUG
 	ASSERT_(
-		ptr_q0 == &m_q[0]);  // make sure the vectors didn't suffer mem
+		ptr_q0 == &q_[0]);  // make sure the vectors didn't suffer mem
 							 // reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
-		&m_dotq[0]);  // make sure the vectors didn't suffer mem reallocation,
+		&dotq_[0]);  // make sure the vectors didn't suffer mem reallocation,
 					  // since we save pointers to these!
 #endif
 }
@@ -300,7 +300,7 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 void CAssembledRigidModel::copyOpenGLRepresentationFrom(
 	const CAssembledRigidModel& o)
 {
-	this->m_gl_objects = o.m_gl_objects;
+	this->gl_objects_ = o.gl_objects_;
 }
 
 /** Retrieves the current coordinates of a point, which may include either fixed
@@ -308,13 +308,13 @@ void CAssembledRigidModel::copyOpenGLRepresentationFrom(
 void CAssembledRigidModel::getPointCurrentCoords(
 	const size_t pt_idx, mrpt::math::TPoint2D& pt) const
 {
-	const Point2& pt_info = m_parent.getPointInfo(pt_idx);
-	const Point2ToDOF& pt_dofs = m_points2DOFs[pt_idx];
+	const Point2& pt_info = parent_.getPointInfo(pt_idx);
+	const Point2ToDOF& pt_dofs = points2DOFs_[pt_idx];
 
 	pt.x =
-		(pt_dofs.dof_x != INVALID_DOF) ? m_q[pt_dofs.dof_x] : pt_info.coords.x;
+		(pt_dofs.dof_x != INVALID_DOF) ? q_[pt_dofs.dof_x] : pt_info.coords.x;
 	pt.y =
-		(pt_dofs.dof_y != INVALID_DOF) ? m_q[pt_dofs.dof_y] : pt_info.coords.y;
+		(pt_dofs.dof_y != INVALID_DOF) ? q_[pt_dofs.dof_y] : pt_info.coords.y;
 }
 
 /** Retrieves the current velocity of a point, which may include either fixed or
@@ -322,10 +322,10 @@ void CAssembledRigidModel::getPointCurrentCoords(
 void CAssembledRigidModel::getPointCurrentVelocity(
 	const size_t pt_idx, mrpt::math::TPoint2D& vel) const
 {
-	const Point2ToDOF& pt_dofs = m_points2DOFs[pt_idx];
+	const Point2ToDOF& pt_dofs = points2DOFs_[pt_idx];
 
-	vel.x = (pt_dofs.dof_x != INVALID_DOF) ? m_dotq[pt_dofs.dof_x] : 0;
-	vel.y = (pt_dofs.dof_y != INVALID_DOF) ? m_dotq[pt_dofs.dof_y] : 0;
+	vel.x = (pt_dofs.dof_x != INVALID_DOF) ? dotq_[pt_dofs.dof_x] : 0;
+	vel.y = (pt_dofs.dof_y != INVALID_DOF) ? dotq_[pt_dofs.dof_y] : 0;
 }
 
 /** Computes the current coordinates of a point fixed to a given body, given its
@@ -334,9 +334,9 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	const size_t body_index, const mrpt::math::TPoint2D& relative_pt,
 	mrpt::math::TPoint2D& out_pt) const
 {
-	ASSERTDEB_(body_index < m_parent.getBodies().size());
+	ASSERTDEB_(body_index < parent_.getBodies().size());
 
-	const CBody& b = m_parent.getBodies()[body_index];
+	const CBody& b = parent_.getBodies()[body_index];
 
 	mrpt::math::TPoint2D q[2];
 	this->getPointCurrentCoords(b.points[0], q[0]);
@@ -386,7 +386,7 @@ void CAssembledRigidModel::evaluateEnergy(
 
 	e = TEnergyValues();  // Reset to zero
 
-	const std::vector<CBody>& bodies = m_parent.getBodies();
+	const std::vector<CBody>& bodies = parent_.getBodies();
 	for (size_t i = 0; i < bodies.size(); i++)
 	{
 		const CBody& b = bodies[i];
@@ -413,9 +413,9 @@ void CAssembledRigidModel::evaluateEnergy(
 			global_cog;  // current COG position, in global coords:
 		this->getPointOnBodyCurrentCoords(i, b.cog(), global_cog);
 
-		e.E_pot -= b.mass() * (this->m_gravity[0] * global_cog.x +
-							   this->m_gravity[1] * global_cog.y +
-							   this->m_gravity[2] * 0 /*global_cog.z*/);
+		e.E_pot -= b.mass() * (this->gravity_[0] * global_cog.x +
+							   this->gravity_[1] * global_cog.y +
+							   this->gravity_[2] * 0 /*global_cog.z*/);
 	}
 
 	e.E_total = e.E_kin + e.E_pot;

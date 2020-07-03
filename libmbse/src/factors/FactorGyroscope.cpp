@@ -31,9 +31,9 @@ void FactorGyroscope::print(
 {
 	std::cout << s << "FactorGyroscope(" << keyFormatter(this->key1()) << ","
 			  << keyFormatter(this->key2()) << ")\n";
-	std::cout << " body: " << m_body_idx << "\n";
+	std::cout << " body: " << body_idx_ << "\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
-	this->noiseModel_->print("  noise model: ");
+	noiseModel_->print("  noise model: ");
 }
 
 bool FactorGyroscope::equals(
@@ -53,24 +53,24 @@ gtsam::Vector FactorGyroscope::evaluateError(
 	if (n < 1) throw std::runtime_error("Empty state vector!");
 
 	// Set q in the multibody model:
-	m_arm->m_q = q_k;
-	m_arm->m_dotq = dq_k;
+	arm_->q_ = q_k;
+	arm_->dotq_ = dq_k;
 
-	const std::vector<CBody>& bodies = m_arm->m_parent.getBodies();
-	ASSERT_BELOW_(m_body_idx, bodies.size());
+	const std::vector<CBody>& bodies = arm_->parent_.getBodies();
+	ASSERT_BELOW_(body_idx_, bodies.size());
 
-	const CBody& body = bodies[m_body_idx];
+	const CBody& body = bodies[body_idx_];
 
 	const size_t pt0_idx = body.points[0];
 	const size_t pt1_idx = body.points[1];
 
 	TPoint2D pt0, pt1;
-	m_arm->getPointCurrentCoords(pt0_idx, pt0);
-	m_arm->getPointCurrentCoords(pt1_idx, pt1);
+	arm_->getPointCurrentCoords(pt0_idx, pt0);
+	arm_->getPointCurrentCoords(pt1_idx, pt1);
 
 	TPoint2D pt0vel, pt1vel;
-	m_arm->getPointCurrentVelocity(pt0_idx, pt0vel);
-	m_arm->getPointCurrentVelocity(pt1_idx, pt1vel);
+	arm_->getPointCurrentVelocity(pt0_idx, pt0vel);
+	arm_->getPointCurrentVelocity(pt1_idx, pt1vel);
 
 	// u: unit director vector from pt0->pt1
 	TPoint2D u = pt1 - pt0;
@@ -94,7 +94,7 @@ gtsam::Vector FactorGyroscope::evaluateError(
 	gtsam::Vector err;
 	err.resize(1);
 
-	err[0] = w - m_reading;
+	err[0] = w - reading_;
 
 	// d err / d q_k
 	if (H1)
@@ -103,8 +103,8 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		Hv.setZero(1, n);
 
 		// point0 & point1:
-		const Point2ToDOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
-										 m_arm->m_points2DOFs[pt1_idx]};
+		const Point2ToDOF pts_dofs[2] = {arm_->points2DOFs_[pt0_idx],
+										 arm_->points2DOFs_[pt1_idx]};
 
 		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{
@@ -155,8 +155,8 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		Hv.setZero(1, n);
 
 		// point0 & point1:
-		const Point2ToDOF pts_dofs[2] = {m_arm->m_points2DOFs[pt0_idx],
-										 m_arm->m_points2DOFs[pt1_idx]};
+		const Point2ToDOF pts_dofs[2] = {arm_->points2DOFs_[pt0_idx],
+										 arm_->points2DOFs_[pt1_idx]};
 
 		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{

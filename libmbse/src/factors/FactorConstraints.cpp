@@ -25,7 +25,7 @@ void FactorConstraints::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
 	std::cout << s << "FactorConstrints(" << keyFormatter(this->key()) << ")\n";
-	this->noiseModel_->print("  noise model: ");
+	noiseModel_->print("  noise model: ");
 }
 
 bool FactorConstraints::equals(
@@ -44,20 +44,20 @@ gtsam::Vector FactorConstraints::evaluateError(
 	if (n < 1) throw std::runtime_error("Empty state vector!");
 
 	// Set q in the multibody model:
-	m_arm->m_q = q_k.vector();
+	arm_->q_ = q_k.vector();
 
 	// Update Jacobians:
-	m_arm->update_numeric_Phi_and_Jacobians();
+	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
-	gtsam::Vector err = m_arm->m_Phi;
+	gtsam::Vector err = arm_->Phi_;
 
 	// Get the Jacobians required for optimization:
 	// d err / d q_k
 	if (H1)
 	{
 		auto& Hv = H1.value();
-		Hv = m_arm->getPhi_q_dense();
+		Hv = arm_->getPhi_q_dense();
 	}
 
 	return err;

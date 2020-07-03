@@ -29,11 +29,10 @@ CMultiBodyParticleFilter::CMultiBodyParticleFilter(
 	// 2) Create particles:
 	m_particles.resize(M);
 
-	for (CParticleList::iterator it = m_particles.begin();
-		 it != m_particles.end(); ++it)
+	for (auto& p : m_particles)
 	{
-		it->log_w = 0;
-		it->d.reset(new particle_t(sym_model));
+		p.log_w = 0;
+		p.d.reset(new particle_t(sym_model));
 	}
 
 	// Randomize?
@@ -88,13 +87,13 @@ void CMultiBodyParticleFilter::run_PF_step(
 			// ODE_RK4:
 			// --------------------------------
 			{
-				q0 = part->num_model.m_q;  // Make backup copy of state
-										   // (velocities will be in "v1")
+				q0 = part->num_model.q_;  // Make backup copy of state
+										  // (velocities will be in "v1")
 
 				// k1 = f(t,y);
 				// cur_time = t;
-				v1 = part->num_model.m_dotq;
-				// No change needed: part->num_model.m_q = q0;
+				v1 = part->num_model.dotq_;
+				// No change needed: part->num_model.q_ = q0;
 				part->dyn_simul->solve_ddotz(
 					t, ddotz1, true /* can choose indep. coords */);
 
@@ -103,39 +102,39 @@ void CMultiBodyParticleFilter::run_PF_step(
 				part->dyn_simul->dq_plus_dz(
 					v1, t_step2 * ddotz1,
 					part->num_model
-						.m_dotq);  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
-				part->num_model.m_q = q0 + t_step2 * v1;
+						.dotq_);  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
+				part->num_model.q_ = q0 + t_step2 * v1;
 				part->dyn_simul->correct_dependent_q_dq();
 
-				v2 = part->num_model.m_dotq;
+				v2 = part->num_model.dotq_;
 				part->dyn_simul->solve_ddotz(
 					t + t_step2, ddotz2,
 					false /* don't change again the indep. coords */);
 
 				// k3 = f(t+At/2,y+At/2*k2)
 				// cur_time = t + t_step2;
-				// part->num_model.m_dotq = v1 + t_step2*ddotq2;  // \dot{q}=
+				// part->num_model.dotq_ = v1 + t_step2*ddotq2;  // \dot{q}=
 				// \dot{q}_0 + At/2 * \ddot{q}_2
 				part->dyn_simul->dq_plus_dz(
-					v1, t_step2 * ddotz2, part->num_model.m_dotq);
+					v1, t_step2 * ddotz2, part->num_model.dotq_);
 
-				part->num_model.m_q = q0 + t_step2 * v2;
+				part->num_model.q_ = q0 + t_step2 * v2;
 				part->dyn_simul->correct_dependent_q_dq();
 
-				v3 = part->num_model.m_dotq;
+				v3 = part->num_model.dotq_;
 				part->dyn_simul->solve_ddotz(
 					t + t_step2, ddotz3,
 					false /* don't change again the indep. coords */);
 
 				// k4 = f(t+At  ,y+At*k3)
 				// cur_time = t + t_step;
-				// part->num_model.m_dotq = v1 + t_step*ddotq3;
+				// part->num_model.dotq_ = v1 + t_step*ddotq3;
 				part->dyn_simul->dq_plus_dz(
-					v1, t_step * ddotz3, part->num_model.m_dotq);
-				part->num_model.m_q = q0 + t_step * v3;
+					v1, t_step * ddotz3, part->num_model.dotq_);
+				part->num_model.q_ = q0 + t_step * v3;
 				part->dyn_simul->correct_dependent_q_dq();
 
-				v4 = part->num_model.m_dotq;
+				v4 = part->num_model.dotq_;
 				part->dyn_simul->solve_ddotz(
 					t + t_step, ddotz4,
 					false /* don't change again the indep. coords */);
@@ -153,9 +152,9 @@ void CMultiBodyParticleFilter::run_PF_step(
 				dotz_noise, 0, model_options.acc_xy_noise_std * t_step);
 
 			// Add (noisy) increment:
-			part->num_model.m_q = q0 + q_incr;
+			part->num_model.q_ = q0 + q_incr;
 			part->dyn_simul->dq_plus_dz(
-				v1, dotz_incr + dotz_noise, part->num_model.m_dotq);
+				v1, dotz_incr + dotz_noise, part->num_model.dotq_);
 			part->dyn_simul->correct_dependent_q_dq();
 
 		}  // end numeric integration of one time_step
