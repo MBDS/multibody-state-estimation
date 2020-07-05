@@ -68,16 +68,14 @@ void CDynamicSimulator_Lagrange_LU_dense::internal_solve_ddotq(
 	for (size_t i = 0; i < nConstraints; i++)
 	{
 		// Constraint "i" goes to column "nDOFs+i" in the augmented matrix:
-		const CompressedRowSparseMatrix::row_t row_i = arm_->Phi_q_.matrix[i];
-		for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
-				 row_i.begin();
-			 itCol != row_i.end(); ++itCol)
+		const CompressedRowSparseMatrix::row_t& row_i = arm_->Phi_q_.matrix[i];
+		for (const auto& kv : row_i)
 		{
-			const size_t col = itCol->first;
+			const size_t col = kv.first;
 			// Insert at (col,i) because it's tranposed:
 
-			A.coeffRef(col, nDOFs + i) = itCol->second;
-			A.coeffRef(nDOFs + i, col) = itCol->second;
+			A.coeffRef(col, nDOFs + i) = kv.second;
+			A.coeffRef(nDOFs + i, col) = kv.second;
 		}
 	}
 	timelog.leave("solver_ddotq.update_jacob");
@@ -99,8 +97,8 @@ void CDynamicSimulator_Lagrange_LU_dense::internal_solve_ddotq(
 	if (lagrangre) *lagrangre = solution.tail(nConstraints);
 
 #if 0
-	//A.saveToTextFile("A.txt");
-	//RHS.saveToTextFile("RHS.txt");
+	// A.saveToTextFile("A.txt");
+	// RHS.saveToTextFile("RHS.txt");
 
 	cout << "q: " << arm_->q_.transpose() << endl;
 	cout << "qdot: " << arm_->dotq_.transpose() << endl;

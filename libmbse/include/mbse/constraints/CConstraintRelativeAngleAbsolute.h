@@ -25,19 +25,19 @@ namespace mbse
  * pt0 -------------> +X axis
  * \endcode
  */
-class CConstraintRelativeAngleAbsolute : public CConstraintBase,
-										 public CConstraintCommon<2>
+class CConstraintRelativeAngleAbsolute
+	: public CConstraintBase,
+	  public CConstraintCommon<
+		  2 /* Num Euclidean points*/, 1 /* Num relative coords */,
+		  1 /* Num Jacobian rows*/>
 {
    public:
 	using me_t = CConstraintRelativeAngleAbsolute;
 
-	size_t angleIndexInQ = static_cast<size_t>(-1);
-
 	CConstraintRelativeAngleAbsolute(
 		const size_t _point_index0, const size_t _point_index1,
 		const size_t _angleIndexInQ)
-		: CConstraintCommon({_point_index0, _point_index1}),
-		  angleIndexInQ(_angleIndexInQ)
+		: CConstraintCommon({_point_index0, _point_index1}, {_angleIndexInQ})
 	{
 	}
 

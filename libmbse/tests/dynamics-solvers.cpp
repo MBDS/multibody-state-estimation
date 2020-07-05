@@ -45,7 +45,11 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 	dynSimul.solve_ddotq(0.0 /*current time*/, ddotq0);
 
 	const Eigen::VectorXd ddotq_real =
-		(Eigen::Vector2d() << 0, -14.7041).finished();
+		addRelativeAngle ?	//
+			Eigen::VectorXd(
+				(Eigen::Vector3d() << 0, -14.7041, -29.43).finished())
+						 :	//
+			Eigen::VectorXd((Eigen::Vector2d() << 0, -14.7041).finished());
 
 	EXPECT_NEAR(
 		(ddotq0 - ddotq_real).array().abs().maxCoeff() /

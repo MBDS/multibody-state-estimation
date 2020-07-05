@@ -53,22 +53,22 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
-	if (j.dPhi_dx[0]) *j.dPhi_dx[0] = -2 * Ax;
-	if (j.dPhi_dy[0]) *j.dPhi_dy[0] = -2 * Ay;
-	if (j.dPhi_dx[1]) *j.dPhi_dx[1] = 2 * Ax;
-	if (j.dPhi_dy[1]) *j.dPhi_dy[1] = 2 * Ay;
+	set(j.dPhi_dx[0], -2 * Ax);
+	set(j.dPhi_dy[0], -2 * Ay);
+	set(j.dPhi_dx[1], 2 * Ax);
+	set(j.dPhi_dy[1], 2 * Ay);
 
 	// Update Jacobian \dot{dPhi_dq}(i,:)
 	// ----------------------------------
-	if (j.dot_dPhi_dx[0]) *j.dot_dPhi_dx[0] = -2 * Adotx;
-	if (j.dot_dPhi_dy[0]) *j.dot_dPhi_dy[0] = -2 * Adoty;
-	if (j.dot_dPhi_dx[1]) *j.dot_dPhi_dx[1] = 2 * Adotx;
-	if (j.dot_dPhi_dy[1]) *j.dot_dPhi_dy[1] = 2 * Adoty;
+	set(j.dot_dPhi_dx[0], -2 * Adotx);
+	set(j.dot_dPhi_dy[0], -2 * Adoty);
+	set(j.dot_dPhi_dx[1], 2 * Adotx);
+	set(j.dot_dPhi_dy[1], 2 * Adoty);
 
-	// Update Jacobian \{dPhiq*dq}_(dq)(i,:)
+	// Update Jacobian \{dPhiq*dq}_{\dot{q}}(i,:)
 	// --------------------------------------
-	if (j.dPhiqdq_dx[0]) *j.dPhiqdq_dx[0] = -2 * Adotx;
-	if (j.dPhiqdq_dy[0]) *j.dPhiqdq_dy[0] = -2 * Adoty;
-	if (j.dPhiqdq_dx[1]) *j.dPhiqdq_dx[1] = 2 * Adotx;
-	if (j.dPhiqdq_dy[1]) *j.dPhiqdq_dy[1] = 2 * Adoty;
+	set(j.dPhiqdq_dx[0], -2 * Adotx);
+	set(j.dPhiqdq_dy[0], -2 * Adoty);
+	set(j.dPhiqdq_dx[1], 2 * Adotx);
+	set(j.dPhiqdq_dy[1], 2 * Adoty);
 }

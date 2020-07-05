@@ -10,6 +10,7 @@
 
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/constraints/CConstraintRelativeAngle.h>
+#include <mbse/constraints/CConstraintRelativeAngleAbsolute.h>
 #include <mrpt/opengl.h>
 
 using namespace mbse;
@@ -85,7 +86,6 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 	for (size_t i = 0; i < nConst; i++)
 	{
 		constraints_[i] = parent_constraints[i]->clone();
-		constraints_[i]->buildSparseStructures(*this);
 	}
 
 	// 2/2: Constraints from relative coordinates:
@@ -107,11 +107,26 @@ CAssembledRigidModel::CAssembledRigidModel(const TSymbolicAssembledModel& armi)
 			// reverse look up table:
 			relCoordinate2Index_[i] = idxInQ;
 		}
+		else if (std::holds_alternative<RelativeAngleAbsoluteDOF>(relConstr))
+		{
+			const auto& c = std::get<RelativeAngleAbsoluteDOF>(relConstr);
+
+			// Add constraint:
+			auto co = std::make_shared<CConstraintRelativeAngleAbsolute>(
+				c.point_idx0, c.point_idx1, idxInQ);
+			constraints_.push_back(co);
+
+			// reverse look up table:
+			relCoordinate2Index_[i] = idxInQ;
+		}
 		else
 		{
 			THROW_EXCEPTION("Unknown type of relative coordinate");
 		}
 	}
+
+	// Final step: build structures
+	for (auto& c : constraints_) c->buildSparseStructures(*this);
 }
 
 void CAssembledRigidModel::getGravityVector(
@@ -295,11 +310,11 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 
 #ifdef _DEBUG
 	ASSERT_(
-		ptr_q0 == &q_[0]);  // make sure the vectors didn't suffer mem
+		ptr_q0 == &q_[0]);	// make sure the vectors didn't suffer mem
 							// reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
-		&dotq_[0]);  // make sure the vectors didn't suffer mem reallocation,
+		&dotq_[0]);	 // make sure the vectors didn't suffer mem reallocation,
 					 // since we save pointers to these!
 #endif
 }
@@ -354,7 +369,7 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	ASSERTDEB_(L > 0);
 	const double Linv = 1.0 / L;
 
-	mrpt::math::TPoint2D u, v;  // unit vectors in X,Y,Z local to the body
+	mrpt::math::TPoint2D u, v;	// unit vectors in X,Y,Z local to the body
 
 	u = (q[1] - q[0]) * Linv;
 	v.x = -u.y;
@@ -418,7 +433,7 @@ void CAssembledRigidModel::evaluateEnergy(
 
 		// Potential energy:
 		mrpt::math::TPoint2D
-			global_cog;  // current COG position, in global coords:
+			global_cog;	 // current COG position, in global coords:
 		this->getPointOnBodyCurrentCoords(i, b.cog(), global_cog);
 
 		e.E_pot -= b.mass() * (this->gravity_[0] * global_cog.x +
