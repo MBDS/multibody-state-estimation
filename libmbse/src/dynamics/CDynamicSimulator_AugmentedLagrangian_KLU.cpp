@@ -46,7 +46,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 	//
 	// Build mass matrix (constant), and set its triplet form as the beginning
 	// of the total "A" matrix:
-	arm_->buildMassMatrix_sparse(A_tri_);
+	arm_->buildMassMatrix_sparse(M_tri_);
 	A_tri_ = M_tri_;
 
 	//  Add entries in the triplet form for the sparse Phi_q Jacobian.
@@ -83,7 +83,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 					 itCol != row_r.end(); ++itCol)
 				{
 					const size_t col = itCol->first;
-					if (col > j) break;  // We're done in this row.
+					if (col > j) break;	 // We're done in this row.
 					if (col != i && col != j) continue;
 
 					if (col == i) Phi_r_i = &(itCol->second);
@@ -124,7 +124,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 	A_.setFromTriplets(A_tri_.begin(), A_tri_.end());
 
 	M_.resize(nDepCoords, nDepCoords);
-	M_.setFromTriplets(A_tri_.begin(), M_tri_.end());
+	M_.setFromTriplets(M_tri_.begin(), M_tri_.end());
 
 	/* Control [UMFPACK_ORDERING] and Info [UMFPACK_ORDERING_USED] are one of:
 	 */

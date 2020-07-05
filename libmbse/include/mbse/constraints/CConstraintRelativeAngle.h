@@ -10,25 +10,34 @@
 
 #pragma once
 
-#include <mbse/CConstraintBase.h>
-#include <mbse/CConstraintCommon.h>
+#include <mbse/constraints/CConstraintBase.h>
+#include <mbse/constraints/CConstraintCommon.h>
 
 namespace mbse
 {
-/** Constraint: forces a point to lie exactly on the line defined by two other
- * reference points */
-class CConstraintMobileSlider : public CConstraintBase,
-								public CConstraintCommon<3>
+/** Constraint (for relative coordinates): relative angle in "point 0" between
+ * two rods pt0-pt1 and pt0-pt2 (CCW=positive):
+ * \code
+ *        pt2
+ *       /
+ *      /
+ *     / ) angle
+ * pt0 ----------- pt1
+ * \endcode
+ */
+class CConstraintRelativeAngle : public CConstraintBase,
+								 public CConstraintCommon<3>
 {
    public:
-	using me_t = CConstraintMobileSlider;
+	using me_t = CConstraintRelativeAngle;
 
-	// Point indices: 0=mobile at the slider, 1 & 2: define the line on which 0
-	// slides.
+	size_t angleIndexInQ = static_cast<size_t>(-1);
 
-	CConstraintMobileSlider(
-		const size_t _point_index, const size_t _ref_pt0, const size_t _ref_pt1)
-		: CConstraintCommon({_point_index, _ref_pt0, _ref_pt1})
+	CConstraintRelativeAngle(
+		const size_t _point_index0, const size_t _point_index1,
+		const size_t _point_index2, const size_t _angleIndexInQ)
+		: CConstraintCommon({_point_index0, _point_index1, _point_index2}),
+		  angleIndexInQ(_angleIndexInQ)
 	{
 	}
 
@@ -36,6 +45,8 @@ class CConstraintMobileSlider : public CConstraintBase,
 	void update(CAssembledRigidModel& arm) const override;
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
+
+   protected:
 };
 
 }  // namespace mbse

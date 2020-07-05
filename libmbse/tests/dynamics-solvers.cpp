@@ -29,7 +29,7 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 	if (addRelativeAngle)
 	{
 		// Add angle between points #0 and #1:
-		rDOFs.emplace_back(mbse::RelativeAngleDOF(0, 1));
+		rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
 	}
 
 	std::shared_ptr<mbse::CAssembledRigidModel> aMBS =

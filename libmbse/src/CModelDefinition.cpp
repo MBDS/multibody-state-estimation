@@ -10,7 +10,7 @@
 
 #include <mbse/CModelDefinition.h>
 #include <mbse/CAssembledRigidModel.h>
-#include <mbse/CConstraintConstantDistance.h>
+#include <mbse/constraints/CConstraintConstantDistance.h>
 #include <mrpt/opengl.h>
 
 using namespace mbse;

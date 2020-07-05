@@ -9,7 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/CAssembledRigidModel.h>
-#include <mbse/CConstraintRelativeAngle.h>
+#include <mbse/constraints/CConstraintRelativeAngle.h>
 #include <mrpt/opengl.h>
 
 using namespace mbse;

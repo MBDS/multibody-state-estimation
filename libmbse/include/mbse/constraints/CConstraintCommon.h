@@ -24,6 +24,70 @@ class CConstraintCommon
    public:
 	void commonbuildSparseStructures(CAssembledRigidModel& arm) const;
 
+	/** Get references to the point coordinates (either fixed or variables in
+	 * q) */
+	const double& actual_coord(
+		const CAssembledRigidModel& arm, size_t idx, const PointDOF dof) const
+	{
+		switch (dof)
+		{
+			case PointDOF::X:
+				return (pointDOFs_[idx].dof_x != INVALID_DOF)
+						   ? arm.q_[pointDOFs_[idx].dof_x]
+						   : points_[idx]->coords.x;
+			case PointDOF::Y:
+				return (pointDOFs_[idx].dof_y != INVALID_DOF)
+						   ? arm.q_[pointDOFs_[idx].dof_y]
+						   : points_[idx]->coords.y;
+			default:
+				throw std::invalid_argument("actual_coord(): Invalid dof");
+		};
+	}
+
+	/** Get references to the point velocities (either fixed zero or variables
+	 * in q) */
+	const double& actual_vel(
+		const CAssembledRigidModel& arm, size_t idx, const PointDOF dof) const
+	{
+		switch (dof)
+		{
+			case PointDOF::X:
+				return (pointDOFs_[idx].dof_x != INVALID_DOF)
+						   ? arm.dotq_[pointDOFs_[idx].dof_x]
+						   : dummy_zero_;
+			case PointDOF::Y:
+				return (pointDOFs_[idx].dof_y != INVALID_DOF)
+						   ? arm.dotq_[pointDOFs_[idx].dof_y]
+						   : dummy_zero_;
+			default:
+				throw std::invalid_argument("actual_vel(): Invalid dof");
+		};
+	}
+
+	struct PointRef
+	{
+		const double &x, &y, &dotx, &doty;
+
+		PointRef(
+			const double& X, const double& Y, const double& DOTX,
+			const double& DOTY)
+			: x(X), y(Y), dotx(DOTX), doty(DOTY)
+		{
+		}
+	};
+
+	/** Returns all constant references to X,Y coordinates and velocities of a
+	 * point, no matter if the point is fixed (constant) or part of m_q
+	 * (generalized coordinates) */
+	PointRef actual_coords(const CAssembledRigidModel& arm, size_t idx) const
+	{
+		return {
+			actual_coord(arm, idx, PointDOF::X),
+			actual_coord(arm, idx, PointDOF::Y),
+			actual_vel(arm, idx, PointDOF::X),
+			actual_vel(arm, idx, PointDOF::Y)};
+	}
+
    protected:
 	CConstraintCommon(std::initializer_list<size_t> idxs)
 	{
@@ -38,7 +102,8 @@ class CConstraintCommon
 
 	using array_dptr_t = std::array<double*, NUM_POINTS>;
 
-	/** Assigned constraint indices, i.e. row indices in the Jacobian dQ_dq */
+	/** Assigned constraint indices, i.e. row indices in the Jacobian dQ_dq
+	 */
 	mutable std::array<size_t, NUM_JACOB_ROWS> idx_constr_;
 
 	/** Indices of points attached to this constraint: */
@@ -73,10 +138,13 @@ class CConstraintCommon
 		}
 	};
 
+	const double dummy_zero_ = 0;
+
 	mutable std::array<JacobRowEntries, NUM_JACOB_ROWS> jacob;
 };
 
-//  =================== Template implementations =============================
+//  =================== Template implementations
+//  =============================
 
 template <std::size_t NUM_POINTS, std::size_t NUM_JACOB_ROWS>
 void CConstraintCommon<NUM_POINTS, NUM_JACOB_ROWS>::commonbuildSparseStructures(

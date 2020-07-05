@@ -21,7 +21,7 @@
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
 
-#include <Eigen/Dense>  // provided by MRPT or standalone
+#include <Eigen/Dense>	// provided by MRPT or standalone
 #if EIGEN_VERSION_AT_LEAST(3, 1, 0)
 #include <Eigen/Sparse>
 #include <Eigen/UmfPackSupport>
@@ -95,6 +95,28 @@ struct RelativeAngleDOF
 	{
 	}
 };
+
+/**
+ * \code
+ *        pt1
+ *       /
+ *      /
+ *     / ) angle
+ * pt0 -----------> +X axis
+ * \endcode
+ */
+struct RelativeAngleAbsoluteDOF
+{
+	point_index_t point_idx0 = INVALID_POINT_INDEX;
+	point_index_t point_idx1 = INVALID_POINT_INDEX;
+
+	RelativeAngleAbsoluteDOF() = default;
+	RelativeAngleAbsoluteDOF(point_index_t i0, point_index_t i1)
+		: point_idx0(i0), point_idx1(i1)
+	{
+	}
+};
+
 struct RelativeDistanceDOF
 {
 	point_index_t point_idx0 = INVALID_POINT_INDEX;
@@ -107,7 +129,9 @@ struct RelativeDistanceDOF
 	}
 };
 
-using RelativeDOF = std::variant<std::monostate, RelativeAngleDOF>;
+using RelativeDOF = std::variant<
+	std::monostate, RelativeAngleDOF, RelativeAngleAbsoluteDOF,
+	RelativeDistanceDOF>;
 
 struct Point2ToDOF
 {

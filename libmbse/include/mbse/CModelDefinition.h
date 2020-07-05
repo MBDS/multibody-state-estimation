@@ -12,7 +12,7 @@
 
 #include <mbse/mbse-common.h>
 #include <mbse/CBody.h>
-#include <mbse/CConstraintBase.h>
+#include <mbse/constraints/CConstraintBase.h>
 #include <mbse/mbse-utils.h>
 #include <Eigen/UmfPackSupport>
 #include <mrpt/opengl/CSetOfObjects.h>

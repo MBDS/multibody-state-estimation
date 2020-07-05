@@ -8,7 +8,7 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
-#include <mbse/CConstraintRelativeAngle.h>
+#include <mbse/constraints/CConstraintRelativeAngle.h>
 #include <mrpt/opengl/CSimpleLine.h>
 
 using namespace mbse;
@@ -22,53 +22,26 @@ void CConstraintRelativeAngle::buildSparseStructures(
 
 	ASSERTMSG_(
 		!(points_[0]->fixed && points_[1]->fixed && points_[2]->fixed),
-		"Useless relative coordinates added between three fixed points!");
+		"Useless relative coordinate added between three fixed points!");
 }
 
 void CConstraintRelativeAngle::update(CAssembledRigidModel& arm) const
 {
-	// Get references to the point coordinates (either fixed or variables in q):
-	const double& p0x = (pointDOFs_[0].dof_x != INVALID_DOF)
-							? arm.q_[pointDOFs_[0].dof_x]
-							: points_[0]->coords.x;
-	const double& p0y = (pointDOFs_[0].dof_y != INVALID_DOF)
-							? arm.q_[pointDOFs_[0].dof_y]
-							: points_[0]->coords.y;
+	// Get references to the point coordinates and velocities
+	// (either fixed or variables in q):
+	PointRef p[3] = {
+		actual_coords(arm, 0), actual_coords(arm, 1), actual_coords(arm, 2)};
 
-	const double& p1x = (pointDOFs_[1].dof_x != INVALID_DOF)
-							? arm.q_[pointDOFs_[1].dof_x]
-							: points_[1]->coords.x;
-	const double& p1y = (pointDOFs_[1].dof_y != INVALID_DOF)
-							? arm.q_[pointDOFs_[1].dof_y]
-							: points_[1]->coords.y;
+	const double Ax = p[1].x - p[0].x;
+	const double Ay = p[1].y - p[0].y;
 
-	// Get references to point velocities (fixed=>Zero, variables=>their actual
-	// members in dotq_):
-	const double dummy_zero = 0;
-
-	const double& p0dotx = (pointDOFs_[0].dof_x != INVALID_DOF)
-							   ? arm.dotq_[pointDOFs_[0].dof_x]
-							   : dummy_zero;
-	const double& p0doty = (pointDOFs_[0].dof_y != INVALID_DOF)
-							   ? arm.dotq_[pointDOFs_[0].dof_y]
-							   : dummy_zero;
-
-	const double& p1dotx = (pointDOFs_[1].dof_x != INVALID_DOF)
-							   ? arm.dotq_[pointDOFs_[1].dof_x]
-							   : dummy_zero;
-	const double& p1doty = (pointDOFs_[1].dof_y != INVALID_DOF)
-							   ? arm.dotq_[pointDOFs_[1].dof_y]
-							   : dummy_zero;
-
-	const double Ax = p1x - p0x;
-	const double Ay = p1y - p0y;
-
-	const double Adotx = p1dotx - p0dotx;
-	const double Adoty = p1doty - p0doty;
+	const double Adotx = p[1].dotx - p[0].dotx;
+	const double Adoty = p[1].doty - p[0].doty;
 
 	// Update Phi[i]
 	// ----------------------------------
-	const double dist2 = square(Ax) + square(Ay);
+	MRPT_TODO("Continue!");
+	THROW_EXCEPTION("TO DO");
 	const double PhiVal = 0;  // XXX
 	arm.Phi_[idx_constr_[0]] = PhiVal;
 
@@ -76,7 +49,7 @@ void CConstraintRelativeAngle::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = 2 * Ax * Adotx + 2 * Ay * Adoty;
 
-	auto& j = jacob.at(0);  // 1st (and unique) jacob row
+	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------

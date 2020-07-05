@@ -8,3 +8,4 @@ html
 >>>>>>> origin/master
 # qtcreator:
 CMakeLists.txt.user
+.cmake

@@ -12,6 +12,8 @@
 // ------------------------------------------------------------
 #include <mbse/mbse.h>
 #include <mbse/CMultiBodyParticleFilter.h>
+#include <mbse/constraints/CConstraintMobileSlider.h>
+#include <mbse/constraints/CConstraintFixedSlider.h>
 
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
@@ -113,7 +115,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 		b.points[0] = 2;
 		b.points[1] = 3;
 
-		b.length() = 0.540;  // std::sqrt(2.0*2.0+3.0*3.0);
+		b.length() = 0.540;	 // std::sqrt(2.0*2.0+3.0*3.0);
 		b.mass() = 303.70e-3;
 		b.I0() = (1. / 3.) * b.mass() * square(b.length());
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
@@ -308,7 +310,7 @@ int main(int argc, char** argv)
 #endif
 
 		// win3D.grabImagesStart();
-#endif  // SHOW_GUI
+#endif	// SHOW_GUI
 
 #if SAVE_STATS || COMPUTE_RMSE
 		vector<double> STATS_t, GT_ang0, EST_ang0_mean, EST_ang0_std;
@@ -485,7 +487,7 @@ int main(int argc, char** argv)
 				std::this_thread::sleep_for(
 					std::chrono::milliseconds(DRAW_DELAY_MS));
 			}
-#endif  // SHOW_GUI
+#endif	// SHOW_GUI
 		}
 
 #if SAVE_STATS

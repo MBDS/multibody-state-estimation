@@ -8,7 +8,7 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
-#include <mbse/CConstraintBase.h>
+#include <mbse/constraints/CConstraintBase.h>
 
 using namespace mbse;
 

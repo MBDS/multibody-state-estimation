@@ -10,24 +10,34 @@
 
 #pragma once
 
-#include <mbse/CConstraintBase.h>
-#include <mbse/CConstraintCommon.h>
+#include <mbse/constraints/CConstraintBase.h>
+#include <mbse/constraints/CConstraintCommon.h>
 
 namespace mbse
 {
-/** Constraint: constant distance between two points */
-class CConstraintConstantDistance : public CConstraintBase,
-									public CConstraintCommon<2>
+/** Constraint (for relative coordinates): relative angle in "point 0" between
+ * the absolute +X axis and the rod pt0-pt1 (CCW=positive):
+ * \code
+ *        pt1
+ *       /
+ *      /
+ *     / ) angle
+ * pt0 -------------> +X axis
+ * \endcode
+ */
+class CConstraintRelativeAngleAbsolute : public CConstraintBase,
+										 public CConstraintCommon<2>
 {
    public:
-	using me_t = CConstraintConstantDistance;
+	using me_t = CConstraintRelativeAngleAbsolute;
 
-	double length;
+	size_t angleIndexInQ = static_cast<size_t>(-1);
 
-	CConstraintConstantDistance(
+	CConstraintRelativeAngleAbsolute(
 		const size_t _point_index0, const size_t _point_index1,
-		const double _length)
-		: CConstraintCommon({_point_index0, _point_index1}), length(_length)
+		const size_t _angleIndexInQ)
+		: CConstraintCommon({_point_index0, _point_index1}),
+		  angleIndexInQ(_angleIndexInQ)
 	{
 	}
 
@@ -35,6 +45,8 @@ class CConstraintConstantDistance : public CConstraintBase,
 	void update(CAssembledRigidModel& arm) const override;
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
+
+   protected:
 };
 
 }  // namespace mbse

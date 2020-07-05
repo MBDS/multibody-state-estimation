@@ -1,6 +1,12 @@
-if (POLICY CMP0048)
-    cmake_policy(SET CMP0048 NEW) # Allow project(xxx VERSION a.b.c)
-endif()
+#  +-------------------------------------------------------------------------+
+#  |            Multi Body State Estimation (mbse) C++ library               |
+#  |                                                                         |
+#  | Copyright (C) 2014-2020 University of Almeria                           |
+#  | Copyright (C) 2020 University of Salento                                |
+#  | See README for list of authors and papers                               |
+#  | Distributed under 3-clause BSD license                                  |
+#  |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
+#  +-------------------------------------------------------------------------+
 
 project(MBSE)
 

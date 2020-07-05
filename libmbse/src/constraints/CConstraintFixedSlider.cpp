@@ -8,7 +8,7 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
-#include <mbse/CConstraintFixedSlider.h>
+#include <mbse/constraints/CConstraintFixedSlider.h>
 #include <mrpt/opengl/CSimpleLine.h>
 
 using namespace mbse;
@@ -35,24 +35,19 @@ void CConstraintFixedSlider::buildSparseStructures(
 void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 {
 	// Get references to the point coordinates (either fixed or variables in q):
-	const double& px = arm.q_[pointDOFs_[0].dof_x];
-	const double& py = arm.q_[pointDOFs_[0].dof_y];
-
-	// Get references to point velocities (members in dotq_):
-	const double& pdotx = arm.dotq_[pointDOFs_[0].dof_x];
-	const double& pdoty = arm.dotq_[pointDOFs_[0].dof_y];
+	PointRef p = actual_coords(arm, 0);
 
 	// Update Phi[i] = Ax * (py-y0) - Ay * (px-x0)
 	// --------------------------------------------
-	const double py_y0 = py - line_pt[0].y;
-	const double px_x0 = px - line_pt[0].x;
+	const double py_y0 = p.y - line_pt[0].y;
+	const double px_x0 = p.x - line_pt[0].x;
 	arm.Phi_[idx_constr_[0]] = Delta_.x * py_y0 - Delta_.y * px_x0;
 
 	// Update dotPhi[i]
 	// ----------------------------------
-	arm.dotPhi_[idx_constr_[0]] = Delta_.x * pdoty - Delta_.y * pdotx;
+	arm.dotPhi_[idx_constr_[0]] = Delta_.x * p.doty - Delta_.y * p.dotx;
 
-	auto& j = jacob.at(0);  // 1st (and unique) jacob row
+	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------

@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include <mbse/CConstraintBase.h>
-#include <mbse/CConstraintCommon.h>
+#include <mbse/constraints/CConstraintBase.h>
+#include <mbse/constraints/CConstraintCommon.h>
 
 namespace mbse
 {
