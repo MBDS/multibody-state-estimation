@@ -143,8 +143,8 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 				// -------------------------------------------
 				case ODE_RK4:
 				{
-					q0 = arm_->q_;  // Make backup copy of state (velocities
-									  // will be in "v1")
+					q0 = arm_->q_;	// Make backup copy of state (velocities
+									// will be in "v1")
 
 					// k1 = f(t,y);
 					// cur_time = t;
@@ -157,7 +157,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					arm_->dotq_ =
 						v1 +
 						t_step2 *
-							ddotq1;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
+							ddotq1;	 // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
 					arm_->q_ = q0 + t_step2 * v1;
 					v2 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq2);
@@ -167,7 +167,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					arm_->dotq_ =
 						v1 +
 						t_step2 *
-							ddotq2;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
+							ddotq2;	 // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
 					arm_->q_ = q0 + t_step2 * v2;
 					v3 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq3);
@@ -182,7 +182,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					// Runge-Kutta 4th order formula:
 					arm_->q_ = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
 					arm_->dotq_ = v1 + t_step6 * (ddotq1 + 2 * ddotq2 +
-													2 * ddotq3 + ddotq4);
+												  2 * ddotq3 + ddotq4);
 				}
 				break;
 
@@ -289,6 +289,9 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 				const size_t col = itCol->first;
 				ci -= itCol->second * arm_->dotq_[col];
 			}
+
+			// "-\dot{Phi_t}"
+			MRPT_TODO("Fix me!");
 
 			// Save c_i in its place within "c":
 			c[i] = ci;

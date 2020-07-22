@@ -103,7 +103,7 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 		set(j.dPhiqdq_dx[1], 1);
 		set(j.dPhiqdq_dy[0], 0);
 		set(j.dPhiqdq_dy[1], 0);
-		set(j.dPhiqdq_drel[0], L * cosTh);
+		set(j.dPhiqdq_drel[0], L * sinTh);
 	}
 	else
 	{
@@ -111,6 +111,6 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 		set(j.dPhiqdq_dx[1], 0);
 		set(j.dPhiqdq_dy[0], -1);
 		set(j.dPhiqdq_dy[1], 1);
-		set(j.dPhiqdq_drel[0], L * sinTh);
+		set(j.dPhiqdq_drel[0], -L * cosTh);
 	}
 }
