@@ -45,7 +45,7 @@ gtsam::Vector FactorConstraints::evaluateError(
 	if (n < 1) throw std::runtime_error("Empty state vector!");
 
 	// Set q in the multibody model:
-	arm_->q_ = q_k.vector();
+	arm_->q_ = q_k;
 
 	// Update Jacobians:
 	arm_->update_numeric_Phi_and_Jacobians();

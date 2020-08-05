@@ -98,8 +98,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	ASSERT_(q_k.size() > 0);
 
 	// Set q in the multibody model:
-	arm_->q_ = q_k.vector();
-	arm_->dotq_ = dotq_k.vector();
+	arm_->q_ = q_k;
+	arm_->dotq_ = dotq_k;
 
 	// Update Jacobian and Hessian tensor:
 	arm_->update_numeric_Phi_and_Jacobians();
@@ -108,7 +108,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	const Eigen::MatrixXd Phi_q = arm_->getPhi_q_dense();
 	const Eigen::MatrixXd dPhiqdq_dq = arm_->getdPhiqdq_dq_dense();
 
-	gtsam::Vector err = Phi_q * dotq_k.vector();
+	gtsam::Vector err = Phi_q * dotq_k;
 
 	// Get the Jacobians required for optimization:
 	// d err / d q_k
@@ -118,8 +118,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = arm_.get();
-		p.q = q_k.vector();
-		p.dq = dotq_k.vector();
+		p.q = q_k;
+		p.dq = dotq_k;
 
 		const gtsam::Vector x = p.q;
 		const gtsam::Vector x_incr =
@@ -143,8 +143,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = arm_.get();
-		p.q = q_k.vector();
-		p.dq = dotq_k.vector();
+		p.q = q_k;
+		p.dq = dotq_k;
 
 		const gtsam::Vector x = p.dq;
 		const gtsam::Vector x_incr =

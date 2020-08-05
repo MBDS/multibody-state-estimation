@@ -100,8 +100,8 @@ gtsam::Vector FactorDynamics::evaluateError(
 
 	// Set q & dq in the multibody model:
 	CAssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
-	arm.q_ = q_k.vector();
-	arm.dotq_ = dq_k.vector();
+	arm.q_ = q_k;
+	arm.dotq_ = dq_k;
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
@@ -110,7 +110,7 @@ gtsam::Vector FactorDynamics::evaluateError(
 	dynamic_solver_->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
-	gtsam::Vector err = qpp_predicted - ddq_k.vector();
+	gtsam::Vector err = qpp_predicted - ddq_k;
 
 	// d err / d q_k
 	if (H1)
@@ -120,9 +120,9 @@ gtsam::Vector FactorDynamics::evaluateError(
 		NumericJacobParams p;
 		p.arm = &arm;
 		p.dynamic_solver = dynamic_solver_;
-		p.q = q_k.vector();
-		p.dq = dq_k.vector();
-		p.ddq = ddq_k.vector();
+		p.q = q_k;
+		p.dq = dq_k;
+		p.ddq = ddq_k;
 
 		const gtsam::Vector x = p.q;
 		const gtsam::Vector x_incr =
@@ -186,9 +186,9 @@ Jacc_qt = ddq_I+ddq_II+ddq_III+ddq_IV+ddq_V;
 		NumericJacobParams p;
 		p.arm = &arm;
 		p.dynamic_solver = dynamic_solver_;
-		p.q = q_k.vector();
-		p.dq = dq_k.vector();
-		p.ddq = ddq_k.vector();
+		p.q = q_k;
+		p.dq = dq_k;
+		p.ddq = ddq_k;
 
 		const gtsam::Vector x = p.dq;
 		const gtsam::Vector x_incr =

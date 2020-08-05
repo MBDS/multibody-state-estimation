@@ -13,8 +13,3 @@
 #include <iostream>
 
 using namespace mbse;
-
-void state_t::print(const std::string& prefix) const
-{
-	std::cout << prefix << this->transpose();
-}

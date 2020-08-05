@@ -49,8 +49,7 @@ gtsam::Vector FactorEulerInt::evaluateError(
 	ASSERT_EQUAL_(x_kp1.size(), x_k.size());
 	ASSERT_EQUAL_(v_k.size(), x_k.size());
 
-	gtsam::Vector err =
-		x_kp1.vector() - x_k.vector() - timestep_ * v_k.vector();
+	gtsam::Vector err = x_kp1 - x_k - timestep_ * v_k;
 
 	if (H1)
 	{

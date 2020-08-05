@@ -117,9 +117,9 @@ TEST(Jacobians, dynamics)
 			for (int i = 0; i < 3; i++)
 			{
 				NumericJacobParams p;
-				p.q = q.vector();
-				p.dq = dotq.vector();
-				p.ddq = ddotq.vector();
+				p.q = q;
+				p.dq = dotq;
+				p.ddq = ddotq;
 				p.diff_variable = i;
 				p.factor = factorDyn.get();
 

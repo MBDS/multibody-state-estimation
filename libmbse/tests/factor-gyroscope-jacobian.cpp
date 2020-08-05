@@ -121,8 +121,8 @@ TEST(Jacobians, gyroscope)
 			for (int i = 0; i < 2; i++)
 			{
 				NumericJacobParams p;
-				p.q = q.vector();
-				p.dq = dotq.vector();
+				p.q = q;
+				p.dq = dotq;
 				p.diff_variable = i;
 				p.factor = factorsGyro[body_idx].get();
 
