@@ -12,21 +12,22 @@
 
 #include <mbse/mbse-common.h>
 #include <mrpt/opengl/CRenderizable.h>
+#include <array>
 
 namespace mbse
 {
 /** 2D generic body */
 struct CBody
 {
-	CBody();  //!< Default ctor.
+	CBody() = default;
 
-	std::string name;
+	std::string name{};
 
 	/** A 2D body is defined (in natural coords) with 2 points
 	 * Indices of the body 2 points (from the list of all
 	 * points in the problem); may include one fixed point
 	 * (not a variable) */
-	size_t points[2];
+	std::array<size_t, 2> points = {std::string::npos, std::string::npos};
 
 	/** In (kg) */
 	inline double mass() const { return mass_; }
@@ -83,18 +84,22 @@ struct CBody
 	/** Cached versions of mass submatrices, stored here after calling
 	 * evaluateMassMatrix() */
 	mutable Eigen::Matrix2d M00_, M11_, M01_;
-	mutable bool mass_matrices_cached_;
+	mutable bool mass_matrices_cached_ = false;
 
 	/** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
 	 * planar rigid element */
 	void internal_update_mass_submatrices() const;
 
-	double mass_;  //!< In (kg)
-	mrpt::math::TPoint2D cog_;  //!< Center of gravity (in local coordinates,
-								 //!< origin=first point)
-	double length_;  //!< Fixed length (distance) between points 0-1 (constant
-					  //!< since this is a rigid body)
-	double I0_;  //!< Moment of inertia wrt point 0
+	double mass_ = 0;  //!< In (kg)
+	/** Center of gravity (in local coordinates, origin=first point) */
+	mrpt::math::TPoint2D cog_ = {0, 0};
+
+	/** Fixed length (distance) between points 0-1 (constant since this is a
+	 * rigid body) */
+	double length_ = 0;
+
+	/** Moment of inertia wrt point 0 */
+	double I0_ = 0;
 
    public:
 	/**  Creates a 3D representation of the body */

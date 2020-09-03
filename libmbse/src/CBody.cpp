@@ -17,18 +17,6 @@ using namespace mrpt::math;
 
 MRPT_TODO("Allow bodies with more than 2 points")
 
-// Constructor:
-CBody::CBody()
-	: name(),
-	  mass_matrices_cached_(false),
-	  mass_(0),
-	  cog_(0, 0),
-	  length_(0),
-	  I0_(0)
-{
-	points[0] = points[1] = static_cast<size_t>(-1);
-}
-
 void CBody::evaluateMassMatrix(
 	Matrix2d& M00, Matrix2d& M11, Matrix2d& M01) const
 {

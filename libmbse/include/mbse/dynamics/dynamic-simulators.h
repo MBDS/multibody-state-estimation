@@ -95,14 +95,16 @@ class CDynamicSimulatorBase
 
 	struct TParameters
 	{
-		ODE_integrator_t
-			ode_solver;  //!< Method for numerical integration of ODE system
-		double time_step;  //!< For fixed-time integrators, the fixed time step
+		TParameters() = default;
 
-		simul_callback_t
-			user_callback;  //!< Called AFTER each new simulation step
+		/**  Method for numerical integration of ODE system */
+		ODE_integrator_t ode_solver = ODE_Euler;
 
-		TParameters();
+		/** For fixed-time integrators, the fixed time step */
+		double time_step = 1e-3;
+
+		/** Called AFTER each new simulation step */
+		simul_callback_t user_callback;
 	};
 
 	TParameters params;  //!< The simulator parameters

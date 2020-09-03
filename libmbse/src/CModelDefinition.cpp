@@ -16,11 +16,6 @@
 using namespace mbse;
 using namespace std;
 
-CModelDefinition::CModelDefinition()
-	: already_added_fixed_len_constraints_(false)
-{
-}
-
 CBody& CModelDefinition::addBody(const std::string& name)
 {
 	ASSERTMSG_(

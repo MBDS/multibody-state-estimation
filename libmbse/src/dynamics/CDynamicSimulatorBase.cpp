@@ -77,15 +77,6 @@ void CDynamicSimulatorBase::prepare()
 	init_ = true;
 }
 
-static void do_nothing(TSimulationStateRef st) {}
-
-CDynamicSimulatorBase::TParameters::TParameters()
-	: ode_solver(ODE_Euler),
-	  time_step(1e-3),
-	  user_callback(simul_callback_t(do_nothing))
-{
-}
-
 /** Runs a dynamic simulation for a given time span */
 double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 {
@@ -143,7 +134,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 				// -------------------------------------------
 				case ODE_RK4:
 				{
-					q0 = arm_->q_;	// Make backup copy of state (velocities
+					q0 = arm_->q_;  // Make backup copy of state (velocities
 									// will be in "v1")
 
 					// k1 = f(t,y);
@@ -157,7 +148,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					arm_->dotq_ =
 						v1 +
 						t_step2 *
-							ddotq1;	 // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
+							ddotq1;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
 					arm_->q_ = q0 + t_step2 * v1;
 					v2 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq2);
@@ -167,7 +158,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					arm_->dotq_ =
 						v1 +
 						t_step2 *
-							ddotq2;	 // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
+							ddotq2;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
 					arm_->q_ = q0 + t_step2 * v2;
 					v3 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq3);
@@ -258,7 +249,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 		// User-callback:
 		// ------------------------------
 		sim_state.t = t;
-		params.user_callback(sim_state);
+		if (params.user_callback) params.user_callback(sim_state);
 	}
 
 	return t;
@@ -282,12 +273,10 @@ void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 			double ci = 0;
 			const CompressedRowSparseMatrix::row_t row_i =
 				arm_->dotPhi_q_.matrix[i];
-			for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
-					 row_i.begin();
-				 itCol != row_i.end(); ++itCol)
+			for (const auto& colVal : row_i)
 			{
-				const size_t col = itCol->first;
-				ci -= itCol->second * arm_->dotq_[col];
+				const size_t col = colVal.first;
+				ci -= colVal.second * arm_->dotq_[col];
 			}
 
 			// "-\dot{Phi_t}"

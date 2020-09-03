@@ -34,7 +34,7 @@ class CModelDefinition
 {
    public:
 	/** Constructor: creates an empty model */
-	CModelDefinition();
+	CModelDefinition() = default;
 
 	/** Completely erases all defined points, joints, bodies, parameters, etc of
 	 * this object and leaves it blank. */
@@ -123,7 +123,7 @@ class CModelDefinition
 
 	/** @} */  // end data --------------
 
-	mutable bool already_added_fixed_len_constraints_;  //!< Self-explanatory
+	mutable bool already_added_fixed_len_constraints_ = false;
 
 };  // end class CModelDefinition
 
