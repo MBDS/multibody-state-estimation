@@ -65,7 +65,7 @@ void CConstraintRelativeAngle::update(CAssembledRigidModel& arm) const
 	if (j.dot_dPhi_dx[1]) *j.dot_dPhi_dx[1] = 2 * Adotx;
 	if (j.dot_dPhi_dy[1]) *j.dot_dPhi_dy[1] = 2 * Adoty;
 
-	// Update Jacobian \{dPhiq*dq}_{\dot{q}}(i,:)
+	// Update Jacobian \{\partial Phiq*dq}_{\partial q}(i,:)
 	// --------------------------------------
 	if (j.dPhiqdq_dx[0]) *j.dPhiqdq_dx[0] = -2 * Adotx;
 	if (j.dPhiqdq_dy[0]) *j.dPhiqdq_dy[0] = -2 * Adoty;

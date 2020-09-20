@@ -49,7 +49,7 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = 2 * Ax * Adotx + 2 * Ay * Adoty;
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -65,7 +65,7 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	set(j.dot_dPhi_dx[1], 2 * Adotx);
 	set(j.dot_dPhi_dy[1], 2 * Adoty);
 
-	// Update Jacobian \{dPhiq*dq}_{\dot{q}}(i,:)
+	// Update Jacobian \{\partial Phiq*dq}_{\partial q}(i,:)
 	// --------------------------------------
 	set(j.dPhiqdq_dx[0], -2 * Adotx);
 	set(j.dPhiqdq_dy[0], -2 * Adoty);

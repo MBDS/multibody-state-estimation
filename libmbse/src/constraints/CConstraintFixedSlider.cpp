@@ -47,7 +47,7 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = Delta_.x * p.doty - Delta_.y * p.dotx;
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -59,7 +59,7 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 	if (j.dot_dPhi_dx[0]) *j.dot_dPhi_dx[0] = 0;
 	if (j.dot_dPhi_dy[0]) *j.dot_dPhi_dy[0] = 0;
 
-	// Update Jacobian \{dPhiq*dq}_{\dot{q}}(i,:)
+	// Update Jacobian \{\partial Phiq*dq}_{\partial q}(i,:)
 	// -------------------------------------
 	if (j.dPhiqdq_dx[0]) *j.dPhiqdq_dx[0] = -Delta_.y;
 	if (j.dPhiqdq_dy[0]) *j.dPhiqdq_dy[0] = Delta_.x;

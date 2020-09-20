@@ -42,7 +42,7 @@ void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 								  (pr[1].doty - pr[0].doty) * (p.x - pr[0].x) -
 								  (pr[1].y - pr[0].y) * (p.dotx - pr[0].dotx);
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -66,7 +66,7 @@ void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 	if (j.dot_dPhi_dx[2]) *j.dot_dPhi_dx[2] = p.doty - pr[0].doty;
 	if (j.dot_dPhi_dy[2]) *j.dot_dPhi_dy[2] = -p.dotx + pr[0].dotx;
 
-	// Update Jacobian \{dPhiq*dq}_{\dot{q}}(i,:)
+	// Update Jacobian \{\partial Phiq*dq}_{\partial q}(i,:)
 	// -------------------------------------
 	if (j.dPhiqdq_dx[0]) *j.dPhiqdq_dx[0] = pr[0].doty - pr[1].doty;
 	if (j.dPhiqdq_dy[0]) *j.dPhiqdq_dy[0] = pr[1].dotx - pr[0].dotx;
