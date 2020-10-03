@@ -81,9 +81,3 @@ if (BUILD_EXAMPLES)
 endif()
 
 
-# Show summary:
-# --------------------------------
-message(STATUS "${PROJECT_NAME} configuration:")
-message(STATUS " MRPT version       : ${MRPT_VERSION}")
-message(STATUS " GTSAM version      : ${GTSAM_VERSION}")
-message(STATUS " SuiteSparse_FOUND  : ${SuiteSparse_FOUND}")

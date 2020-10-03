@@ -103,3 +103,12 @@ install(
         ${CMAKE_BINARY_DIR}/cmake/${PROJECT_NAME}-config-version.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
+
+# Show summary:
+# --------------------------------
+message(STATUS "")
+message(STATUS "===== ${PROJECT_NAME} (v${${PROJECT_NAME}_VERSION}) configuration =====")
+message(STATUS " MRPT version       : ${MRPT_VERSION}")
+message(STATUS " GTSAM version      : ${GTSAM_VERSION}")
+message(STATUS " SuiteSparse_FOUND  : ${SuiteSparse_FOUND}")
+
