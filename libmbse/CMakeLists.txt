@@ -1,7 +1,3 @@
-if (POLICY CMP0048)
-    cmake_policy(SET CMP0048 NEW) # Allow project(xxx VERSION a.b.c)
-endif()
-
 project(mbse LANGUAGES CXX VERSION 0.1.0)
 
 file(GLOB_RECURSE LIBHDRS "src/*.h")
