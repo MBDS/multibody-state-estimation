@@ -67,7 +67,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 					   mrpt::math::TPoint2D(*sd.vel[0], *sd.vel[1]))));
 		}
 
-		timelog.enter("mbs.run_complete_timestep");
+		timelog().enter("mbs.run_complete_timestep");
 
 		// Integrate:
 		// ------------------------------
@@ -200,7 +200,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				}
 				ASSERTMSG_(iter<MAX_ITERS,"Trapezoidal convergence failed!")
 
-				timelog.registerUserMeasure("trapezoidal.iters",iter);
+				timelog().registerUserMeasure("trapezoidal.iters",iter);
 			}
 			break;
 #endif
@@ -209,7 +209,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				THROW_EXCEPTION("Unknown value for params.ode_solver");
 		};
 
-		timelog.leave("mbs.run_complete_timestep");
+		timelog().leave("mbs.run_complete_timestep");
 
 		// User-callback:
 		// ------------------------------

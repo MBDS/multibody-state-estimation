@@ -19,7 +19,7 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 	const double L = 0.5;  // [m]
 	const double massPerL = 1.0;  // [kg/m]
 
-	mbse::timelog.enable(false);  // avois clutter in cout
+	mbse::timelog().enable(false);  // avois clutter in cout
 
 	mbse::CModelDefinition model;
 	mbse::buildLongStringMBS(1, model, L, massPerL);

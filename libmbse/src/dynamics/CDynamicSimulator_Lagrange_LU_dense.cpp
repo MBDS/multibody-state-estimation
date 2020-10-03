@@ -30,19 +30,19 @@ CDynamicSimulator_Lagrange_LU_dense::CDynamicSimulator_Lagrange_LU_dense(
  * solve_ddotq() */
 void CDynamicSimulator_Lagrange_LU_dense::internal_prepare()
 {
-	timelog.enter("solver_prepare");
+	timelog().enter("solver_prepare");
 
 	// Build mass matrix now and don't touch it anymore, since it's constant
 	// with this formulation:
 	arm_->buildMassMatrix_dense(mass_);
 
-	timelog.leave("solver_prepare");
+	timelog().leave("solver_prepare");
 }
 
 void CDynamicSimulator_Lagrange_LU_dense::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	timelog.enter("solver_ddotq");
+	timelog().enter("solver_ddotq");
 
 	// [   M    Phi_q^t  ] [ ddot_q ] = [ Q ]
 	// [ Phi_q     0     ] [ lambda ]   [ c ]
@@ -62,7 +62,7 @@ void CDynamicSimulator_Lagrange_LU_dense::internal_solve_ddotq(
 	A.block(nDOFs, nDOFs, nConstraints, nConstraints).setZero();
 
 	// Update numeric values of the constraint Jacobians:
-	timelog.enter("solver_ddotq.update_jacob");
+	timelog().enter("solver_ddotq.update_jacob");
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	for (size_t i = 0; i < nConstraints; i++)
@@ -78,20 +78,20 @@ void CDynamicSimulator_Lagrange_LU_dense::internal_solve_ddotq(
 			A.coeffRef(nDOFs + i, col) = kv.second;
 		}
 	}
-	timelog.leave("solver_ddotq.update_jacob");
+	timelog().leave("solver_ddotq.update_jacob");
 
 	// Build the RHS vector:
 	// --------------------------
-	timelog.enter("solver_ddotq.build_rhs");
+	timelog().enter("solver_ddotq.build_rhs");
 	Eigen::VectorXd RHS(nTot);
 	this->build_RHS(&RHS[0], &RHS[nDOFs]);
-	timelog.leave("solver_ddotq.build_rhs");
+	timelog().leave("solver_ddotq.build_rhs");
 
 	// Solve linear system (using LU dense decomposition):
 	// -------------------------------------------------------------
-	timelog.enter("solver_ddotq.solve");
+	timelog().enter("solver_ddotq.solve");
 	const Eigen::VectorXd solution = A.partialPivLu().solve(RHS);
-	timelog.leave("solver_ddotq.solve");
+	timelog().leave("solver_ddotq.solve");
 
 	ddot_q = solution.head(nDOFs);
 	if (lagrangre) *lagrangre = solution.tail(nConstraints);
@@ -108,5 +108,5 @@ void CDynamicSimulator_Lagrange_LU_dense::internal_solve_ddotq(
 	mrpt::system::pause();
 #endif
 
-	timelog.leave("solver_ddotq");
+	timelog().leave("solver_ddotq");
 }

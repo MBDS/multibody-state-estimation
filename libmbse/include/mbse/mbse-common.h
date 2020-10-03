@@ -21,7 +21,7 @@
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
 
-#include <Eigen/Dense>	// provided by MRPT or standalone
+#include <Eigen/Dense>  // provided by MRPT or standalone
 #if EIGEN_VERSION_AT_LEAST(3, 1, 0)
 #include <Eigen/Sparse>
 #include <Eigen/UmfPackSupport>
@@ -34,7 +34,7 @@
 
 namespace mbse
 {
-extern mrpt::system::CTimeLogger timelog;
+extern mrpt::system::CTimeLogger& timelog();
 
 using dof_index_t = std::size_t;
 using point_index_t = std::size_t;

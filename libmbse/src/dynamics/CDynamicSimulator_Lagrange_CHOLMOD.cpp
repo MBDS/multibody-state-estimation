@@ -36,7 +36,7 @@ CDynamicSimulator_Lagrange_CHOLMOD::CDynamicSimulator_Lagrange_CHOLMOD(
  * solve_ddotq() */
 void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 {
-	timelog.enter("solver_prepare");
+	timelog().enter("solver_prepare");
 
 	const size_t nDOFs = arm_->q_.size();
 	const size_t nConstraints = arm_->Phi_.size();
@@ -182,7 +182,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	cholmod_free_sparse(&E_t, &cholmod_common_);
 	cholmod_free_sparse(&E, &cholmod_common_);
 
-	timelog.leave("solver_prepare");
+	timelog().leave("solver_prepare");
 }
 
 CDynamicSimulator_Lagrange_CHOLMOD::~CDynamicSimulator_Lagrange_CHOLMOD()
@@ -204,7 +204,7 @@ CDynamicSimulator_Lagrange_CHOLMOD::~CDynamicSimulator_Lagrange_CHOLMOD()
 void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	timelog.enter("solver_ddotq");
+	timelog().enter("solver_ddotq");
 
 	// [   M    Phi_q^t  ] [ ddot_q ] = [ Q ]
 	// [ Phi_q     0     ] [ lambda ]   [ c ]
@@ -216,7 +216,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	const size_t nConstraints = arm_->Phi_.size();
 
 	// Update numeric values of the constraint Jacobians:
-	timelog.enter("solver_ddotq.update_jacob");
+	timelog().enter("solver_ddotq.update_jacob");
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Insert Phi_q^t Jacobian in right-top block of augmented matrix:
@@ -237,20 +237,20 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 			}
 		}
 	}
-	timelog.leave("solver_ddotq.update_jacob");
+	timelog().leave("solver_ddotq.update_jacob");
 
 	// Compress sparse matrix Phi_q_t:
-	timelog.enter("solver_ddotq.ccs");
+	timelog().enter("solver_ddotq.ccs");
 	cholmod_sparse* Phi_q_t = cholmod_triplet_to_sparse(
 		Phi_q_t_tri_, Phi_q_t_tri_->nnz, &cholmod_common_);
 	ASSERTDEB_(Phi_q_t != NULL);
-	timelog.leave("solver_ddotq.ccs");
+	timelog().leave("solver_ddotq.ccs");
 
 	// Solve:
 	//   L   *   X   = B
 	//   Lm  *  E^t  = Phi_q^t
 	//
-	timelog.enter("solver_ddotq.solve_E");
+	timelog().enter("solver_ddotq.solve_E");
 	cholmod_sparse* E_t =
 		cholmod_spsolve(CHOLMOD_L /*Lx=b*/, Lm_, Phi_q_t, &cholmod_common_);
 	ASSERTDEB_(E_t != NULL);
@@ -258,26 +258,26 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	cholmod_sparse* E = cholmod_transpose(
 		E_t, 2 /* A' complex conjugate transpose */, &cholmod_common_);
 	ASSERTDEB_(E != NULL);
-	timelog.leave("solver_ddotq.solve_E");
+	timelog().leave("solver_ddotq.solve_E");
 
 	//  T = E * E^t
 	//  T = Lt * Lt^t
 	// Numeric factorization: E*E' = Lt*Lt' --> Lt=chol(E*E')
 	// ---------------------------------------------------------------
-	timelog.enter("solver_ddotq.numeric_factor");
+	timelog().enter("solver_ddotq.numeric_factor");
 	cholmod_factorize(E, Lt_, &cholmod_common_);
-	timelog.leave("solver_ddotq.numeric_factor");
+	timelog().leave("solver_ddotq.numeric_factor");
 
 	// static int k=0;
 	// if (!k++) mbse::save_matrix(E,"E.txt",&cholmod_common_);
 
 	// Update the RHS vectors:
 	// --------------------------
-	timelog.enter("solver_ddotq.build_rhs");
+	timelog().enter("solver_ddotq.build_rhs");
 	this->build_RHS(static_cast<double*>(Q_->x), static_cast<double*>(c_->x));
-	timelog.leave("solver_ddotq.build_rhs");
+	timelog().leave("solver_ddotq.build_rhs");
 
-	timelog.enter("solver_ddotq.solve");
+	timelog().enter("solver_ddotq.solve");
 	// Solve: Lm x2 = Q
 	cholmod_dense* x2 =
 		cholmod_solve(CHOLMOD_L /*Lx=b*/, Lm_, Q_, &cholmod_common_);
@@ -303,7 +303,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 
 	cholmod_dense* x =
 		cholmod_solve(CHOLMOD_Lt /*Ltx=b*/, Lm_, x2, &cholmod_common_);
-	timelog.leave("solver_ddotq.solve");
+	timelog().leave("solver_ddotq.solve");
 
 	// Copy result:
 	ddot_q.resize(nDOFs);
@@ -335,5 +335,5 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	cholmod_free_dense(&x, &cholmod_common_);
 	cholmod_free_dense(&l, &cholmod_common_);
 
-	timelog.leave("solver_ddotq");
+	timelog().leave("solver_ddotq");
 }

@@ -29,12 +29,12 @@ CDynamicSimulator_AugmentedLagrangian_Dense::
  * solve_ddotq() */
 void CDynamicSimulator_AugmentedLagrangian_Dense::internal_prepare()
 {
-	timelog.enter("solver_prepare");
+	timelog().enter("solver_prepare");
 
 	arm_->buildMassMatrix_dense(M_);
 	M_ldlt_.compute(M_);
 
-	timelog.leave("solver_prepare");
+	timelog().leave("solver_prepare");
 }
 
 CDynamicSimulator_AugmentedLagrangian_Dense::
@@ -51,7 +51,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 		throw std::runtime_error(
 			"This class can't solve for lagrange multipliers!");
 
-	timelog.enter("solver_ddotq");
+	timelog().enter("solver_ddotq");
 
 	// Iterative solution to the Augmented Lagrangian Formulation (ALF):
 	// ---------------------------------------------------------------------
@@ -91,7 +91,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	//                               \ ------------------------------------v
 	//                               --------------------------------------/
 	//                                                                    = b
-	timelog.enter("solver_ddotq.build_rhs");
+	timelog().enter("solver_ddotq.build_rhs");
 
 	arm_->dotPhi_q_.asDense(dotPhi_q_);
 
@@ -101,11 +101,11 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 		 2 * params_penalty.xi * params_penalty.w * arm_->dotPhi_ +
 		 params_penalty.w * params_penalty.w * arm_->Phi_);
 
-	timelog.leave("solver_ddotq.build_rhs");
+	timelog().leave("solver_ddotq.build_rhs");
 
 	// Solve linear system:
 	// -----------------------------------
-	timelog.enter("solver_ddotq.solve");
+	timelog().enter("solver_ddotq.solve");
 
 	Eigen::VectorXd RHS(nDepCoords);
 
@@ -130,12 +130,12 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 
 	ddot_q.swap(ddotq_next);
 
-	timelog.leave("solver_ddotq.solve");
+	timelog().leave("solver_ddotq.solve");
 
 	ASSERTDEBMSG_(
 		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq");
 
-	timelog.leave("solver_ddotq");
+	timelog().leave("solver_ddotq");
 }
 
 /** Integrators will call this after each time step */
@@ -183,6 +183,6 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 //	const Eigen::MatrixXd V = lu.kernel();
 //	arm_->dotq_ = (V*V.transpose()) * arm_->dotq_;
 
-	timelog.leave("solver.post_iteration");
-#endif  // 0	timelog.enter("solver.post_iteration");
+	timelog().leave("solver.post_iteration");
+#endif  // 0	timelog().enter("solver.post_iteration");
 }

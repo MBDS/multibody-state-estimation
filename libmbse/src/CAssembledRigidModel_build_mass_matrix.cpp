@@ -25,7 +25,7 @@ using namespace std;
 cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 	cholmod_common& c) const
 {
-	timelog.enter("buildMassMatrix_sparse_CHOLMOD");
+	timelog().enter("buildMassMatrix_sparse_CHOLMOD");
 	const size_t nDOFs = q_.size();
 	const size_t nConstr = Phi_.size();
 	const size_t DIM = 2;  // 2D, 3D
@@ -36,7 +36,7 @@ cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 	const int stype = 1;  // Symmetric, stored in upper triangular only.
 
 	// Build in triplet form:
-	timelog.enter("buildMassMatrix_sparse_CHOLMOD.triplet");
+	timelog().enter("buildMassMatrix_sparse_CHOLMOD.triplet");
 
 	cholmod_triplet* triplet_M = cholmod_allocate_triplet(
 		nDOFs, nDOFs, estimated_nnz, stype, CHOLMOD_REAL, &c);
@@ -71,15 +71,15 @@ cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 
 	}  // end for each body
 
-	timelog.leave("buildMassMatrix_sparse_CHOLMOD.triplet");
+	timelog().leave("buildMassMatrix_sparse_CHOLMOD.triplet");
 
 	// Convert to compressed form:
-	// timelog.enter("buildMassMatrix_sparse_CHOLMOD.ccs");
+	// timelog().enter("buildMassMatrix_sparse_CHOLMOD.ccs");
 	// cholmod_sparse *M = cholmod_triplet_to_sparse(triplet_M, triplet_M->nnz,
-	// &c); timelog.leave("buildMassMatrix_sparse_CHOLMOD.ccs"); ASSERT_(M)
+	// &c); timelog().leave("buildMassMatrix_sparse_CHOLMOD.ccs"); ASSERT_(M)
 	// cholmod_free_triplet(&triplet_M, &c); // Free triplet form
 
-	timelog.leave("buildMassMatrix_sparse_CHOLMOD");
+	timelog().leave("buildMassMatrix_sparse_CHOLMOD");
 
 	return triplet_M;
 }
@@ -89,7 +89,7 @@ cholmod_triplet* CAssembledRigidModel::buildMassMatrix_sparse_CHOLMOD(
 -------------------------------------------------------------------*/
 void CAssembledRigidModel::buildMassMatrix_dense(Eigen::MatrixXd& M) const
 {
-	timelog.enter("buildMassMatrix_dense");
+	timelog().enter("buildMassMatrix_dense");
 
 	const size_t nDOFs = q_.size();
 	ASSERT_(nDOFs > 0);
@@ -127,7 +127,7 @@ void CAssembledRigidModel::buildMassMatrix_dense(Eigen::MatrixXd& M) const
 		}
 	}  // end for each body
 
-	timelog.leave("buildMassMatrix_dense");
+	timelog().leave("buildMassMatrix_dense");
 }
 
 /* -------------------------------------------------------------------
@@ -136,7 +136,7 @@ void CAssembledRigidModel::buildMassMatrix_dense(Eigen::MatrixXd& M) const
 void CAssembledRigidModel::buildMassMatrix_sparse(
 	std::vector<Eigen::Triplet<double>>& tri) const
 {
-	timelog.enter("buildMassMatrix_sparse");
+	timelog().enter("buildMassMatrix_sparse");
 
 	const size_t nDOFs = q_.size();
 	ASSERT_(nDOFs > 0);
@@ -174,5 +174,5 @@ void CAssembledRigidModel::buildMassMatrix_sparse(
 		}
 	}  // end for each body
 
-	timelog.leave("buildMassMatrix_sparse");
+	timelog().leave("buildMassMatrix_sparse");
 }

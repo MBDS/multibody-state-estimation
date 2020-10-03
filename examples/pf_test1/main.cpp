@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 {
 	try
 	{
-		mbse::timelog.enable(false);
+		mbse::timelog().enable(false);
 
 		CModelDefinition model;
 
@@ -242,9 +242,9 @@ int main(int argc, char** argv)
 
 		if (INITIALIZE_UNIFORMLY)
 		{
-			mbse::timelog.enter("PF_unif_initialize");
+			mbse::timelog().enter("PF_unif_initialize");
 			pf_initialize_uniform_distribution(pf, model);
-			mbse::timelog.leave("PF_unif_initialize");
+			mbse::timelog().leave("PF_unif_initialize");
 		}
 
 #ifdef SHOW_GUI
@@ -436,9 +436,9 @@ int main(int argc, char** argv)
 						// Re-initialize:
 					case 'R':
 					case 'r':
-						mbse::timelog.enter("PF_unif_initialize");
+						mbse::timelog().enter("PF_unif_initialize");
 						pf_initialize_uniform_distribution(pf, model);
-						mbse::timelog.leave("PF_unif_initialize");
+						mbse::timelog().leave("PF_unif_initialize");
 						break;
 				};
 			}

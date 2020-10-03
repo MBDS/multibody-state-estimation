@@ -15,7 +15,11 @@
 using namespace mbse;
 using namespace Eigen;
 
-mrpt::system::CTimeLogger mbse::timelog("mbse_global");
+mrpt::system::CTimeLogger& mbse::timelog()
+{
+	static thread_local mrpt::system::CTimeLogger tl("mbse_global");
+	return tl;
+}
 
 bool mbse::save_matrix(
 	cholmod_sparse* tri, const char* filename, cholmod_common* c)

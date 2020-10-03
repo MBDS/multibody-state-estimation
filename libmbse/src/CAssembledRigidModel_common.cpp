@@ -405,7 +405,7 @@ mrpt::opengl::CSetOfObjects::Ptr
 void CAssembledRigidModel::evaluateEnergy(
 	CAssembledRigidModel::TEnergyValues& e) const
 {
-	timelog.enter("evaluateEnergy");
+	timelog().enter("evaluateEnergy");
 
 	e = TEnergyValues();  // Reset to zero
 
@@ -443,5 +443,5 @@ void CAssembledRigidModel::evaluateEnergy(
 
 	e.E_total = e.E_kin + e.E_pot;
 
-	timelog.leave("evaluateEnergy");
+	timelog().leave("evaluateEnergy");
 }

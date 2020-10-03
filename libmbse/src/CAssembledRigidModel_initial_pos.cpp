@@ -22,7 +22,7 @@ using namespace std;
 double CAssembledRigidModel::refinePosition(
 	const double maxPhiNorm, const size_t nItersMax)
 {
-	timelog.enter("refinePosition");
+	timelog().enter("refinePosition");
 
 	Eigen::MatrixXd Phi_q;
 	this->update_numeric_Phi_and_Jacobians();
@@ -30,7 +30,7 @@ double CAssembledRigidModel::refinePosition(
 	size_t iter = 0;
 	double phi_norm = Phi_.norm();
 
-	timelog.registerUserMeasure("refinePosition.init_phi_norm", phi_norm);
+	timelog().registerUserMeasure("refinePosition.init_phi_norm", phi_norm);
 
 	Eigen::FullPivLU<Eigen::MatrixXd> lu_Phiq;
 	bool rebuild_lu = true;
@@ -61,9 +61,9 @@ double CAssembledRigidModel::refinePosition(
 		phi_norm = new_phi_norm;
 	}
 
-	timelog.registerUserMeasure("refinePosition.num_iters", iter);
+	timelog().registerUserMeasure("refinePosition.num_iters", iter);
 
-	timelog.leave("refinePosition");
+	timelog().leave("refinePosition");
 
 	return phi_norm;
 }
@@ -75,7 +75,7 @@ double CAssembledRigidModel::finiteDisplacement(
 	const size_t nItersMax, bool also_correct_velocities,
 	std::vector<size_t>* out_idxs_d)
 {
-	timelog.enter("finiteDisplacement");
+	timelog().enter("finiteDisplacement");
 
 	Eigen::MatrixXd Phi_q;
 	this->update_numeric_Phi_and_Jacobians();
@@ -83,7 +83,7 @@ double CAssembledRigidModel::finiteDisplacement(
 	size_t iter = 0;
 	double phi_norm = Phi_.norm();
 
-	timelog.registerUserMeasure("finiteDisplacement.init_phi_norm", phi_norm);
+	timelog().registerUserMeasure("finiteDisplacement.init_phi_norm", phi_norm);
 
 	std::vector<bool> q_fixed;
 	q_fixed.assign(q_.size(), false);
@@ -127,15 +127,15 @@ double CAssembledRigidModel::finiteDisplacement(
 		phi_norm = new_phi_norm;
 	}
 
-	timelog.registerUserMeasure("finiteDisplacement.num_iters", iter);
+	timelog().registerUserMeasure("finiteDisplacement.num_iters", iter);
 
-	timelog.leave("finiteDisplacement");
+	timelog().leave("finiteDisplacement");
 
 	// Correct dependent velocities
 	// --------------------------------
 	if (also_correct_velocities)
 	{
-		timelog.enter("finiteDisplacement.dotq");
+		timelog().enter("finiteDisplacement.dotq");
 
 		Eigen::MatrixXd Phi_q;
 		this->getPhi_q_dense(Phi_q);
@@ -161,7 +161,7 @@ double CAssembledRigidModel::finiteDisplacement(
 		for (size_t i = 0; i < idxs_d.size(); i++)
 			dotq_[idxs_d[i]] = dotq_d[i];
 
-		timelog.leave("finiteDisplacement.dotq");
+		timelog().leave("finiteDisplacement.dotq");
 	}
 
 	// Return this precomputed list of dependent indices, to save time in the
@@ -178,7 +178,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 	const TComputeDependentParams& params,
 	TComputeDependentResults& out_results, const Eigen::VectorXd* ptr_ddotz)
 {
-	timelog.enter("computeDependentPosVelAcc");
+	timelog().enter("computeDependentPosVelAcc");
 
 	// Build list of coordinates indices:
 	std::vector<bool> q_fixed;
@@ -203,7 +203,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		size_t iter = 0;
 		double phi_norm = Phi_.norm();
 
-		timelog.registerUserMeasure(
+		timelog().registerUserMeasure(
 			"computeDependentPosVelAcc.init_phi_norm", phi_norm);
 
 		Eigen::FullPivLU<Eigen::MatrixXd> lu_Phiq;
@@ -237,7 +237,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 			phi_norm = new_phi_norm;
 		}
 
-		timelog.registerUserMeasure(
+		timelog().registerUserMeasure(
 			"computeDependentPosVelAcc.num_iters", iter);
 	}
 
@@ -246,7 +246,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 	// ------------------------------------------
 	if (update_dq)
 	{
-		timelog.enter("computeDependentPosVelAcc.dotq");
+		timelog().enter("computeDependentPosVelAcc.dotq");
 
 		Eigen::MatrixXd Phi_q;
 		this->getPhi_q_dense(Phi_q);
@@ -271,7 +271,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		for (size_t i = 0; i < idxs_d.size(); i++)
 			dotq_[idxs_d[i]] = dotq_d[i];
 
-		timelog.leave("computeDependentPosVelAcc.dotq");
+		timelog().leave("computeDependentPosVelAcc.dotq");
 	}
 
 	// ------------------------------------------
@@ -281,7 +281,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		(ptr_ddotz && out_results.ddotq) || (!ptr_ddotz && !out_results.ddotq));
 	if (ptr_ddotz)
 	{
-		timelog.enter("computeDependentPosVelAcc.ddotq");
+		timelog().enter("computeDependentPosVelAcc.ddotq");
 
 		const Eigen::VectorXd& ddotz = *ptr_ddotz;
 		Eigen::VectorXd& ddotq = *out_results.ddotq;
@@ -333,8 +333,8 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		for (size_t i = 0; i < idxs_d.size(); i++)
 			ddotq[idxs_d[i]] = ddotq_d[i];
 
-		timelog.leave("computeDependentPosVelAcc.ddotq");
+		timelog().leave("computeDependentPosVelAcc.ddotq");
 	}
 
-	timelog.leave("computeDependentPosVelAcc");
+	timelog().leave("computeDependentPosVelAcc");
 }

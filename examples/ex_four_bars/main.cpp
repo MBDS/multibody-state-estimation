@@ -244,12 +244,12 @@ int main(int argc, char** argv)
 			{
 				tictac_gui_refresh.Tic();
 
-				mbse::timelog.enter("update_3D_view");
+				mbse::timelog().enter("update_3D_view");
 				win3D.get3DSceneAndLock();
 				aMBS->update3DRepresentation(dynamic_rp);
 				win3D.unlockAccess3DScene();
 				win3D.repaint();
-				mbse::timelog.leave("update_3D_view");
+				mbse::timelog().leave("update_3D_view");
 
 				// Update 3D scene:
 				win3D.addTextMessage(
@@ -260,7 +260,7 @@ int main(int argc, char** argv)
 					0 /* txt ID */, fp);
 
 				const double simul_t =
-					mbse::timelog.getMeanTime("mbs.run_complete_timestep");
+					mbse::timelog().getMeanTime("mbs.run_complete_timestep");
 				const double simul_Hz = simul_t > 0 ? 1.0 / simul_t : 0;
 				win3D.addTextMessage(
 					10, 30,

@@ -30,13 +30,13 @@ CDynamicSimulator_Indep_dense::CDynamicSimulator_Indep_dense(
  * solve_ddotq() */
 void CDynamicSimulator_Indep_dense::internal_prepare()
 {
-	timelog.enter("solver_prepare");
+	timelog().enter("solver_prepare");
 
 	// Build mass matrix now and don't touch it anymore, since it's constant
 	// with this formulation:
 	arm_->buildMassMatrix_dense(mass_);
 
-	timelog.leave("solver_prepare");
+	timelog().leave("solver_prepare");
 }
 
 /** Compute dependent velocities and positions from the independent ones */
@@ -62,7 +62,7 @@ void CDynamicSimulator_Indep_dense::dq_plus_dz(
 void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 	double t, VectorXd& ddot_z, bool can_choose_indep_coords)
 {
-	timelog.enter("solver_ddotz");
+	timelog().enter("solver_ddotz");
 
 	const size_t nDepCoords = arm_->q_.size();
 	const size_t nConstraints = arm_->Phi_.size();
@@ -73,15 +73,15 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 	// -----------------------------------------------------------
 
 	// Determine number of DOFs:
-	timelog.enter("solver_ddotz.update_jacob");
+	timelog().enter("solver_ddotz.update_jacob");
 	arm_->update_numeric_Phi_and_Jacobians();
-	timelog.leave("solver_ddotz.update_jacob");
+	timelog().leave("solver_ddotz.update_jacob");
 
 	// Get Jacobian dPhi_dq
 	Eigen::MatrixXd Phiq(nConstraints, nDepCoords);
-	timelog.enter("solver_ddotz.get_dense_jacob");
+	timelog().enter("solver_ddotz.get_dense_jacob");
 	arm_->getPhi_q_dense(Phiq);
-	timelog.leave("solver_ddotz.get_dense_jacob");
+	timelog().leave("solver_ddotz.get_dense_jacob");
 
 	size_t nDOFs;
 	if (can_choose_indep_coords)
@@ -145,7 +145,7 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 	// Build the RHS vector:
 	//   RHS = Rt*Q - Rt*M*Sc;
 	// --------------------------
-	timelog.enter("solver_ddotz.build_rhs");
+	timelog().enter("solver_ddotz.build_rhs");
 	Eigen::VectorXd Q(nDepCoords);
 	Eigen::VectorXd c(nConstraints);
 
@@ -153,12 +153,12 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 
 	const Eigen::VectorXd RHS = R.transpose() * (Q - mass_ * S * c);
 
-	timelog.leave("solver_ddotz.build_rhs");
+	timelog().leave("solver_ddotz.build_rhs");
 
-	timelog.enter("solver_ddotz.solve");
+	timelog().enter("solver_ddotz.solve");
 	const Eigen::MatrixXd RtMR = R.transpose() * mass_ * R;
 	ddot_z = RtMR.llt().solve(RHS);
-	timelog.enter("solver_ddotz.solve");
+	timelog().enter("solver_ddotz.solve");
 
 #if 0
 	//A.saveToTextFile("A.txt");
@@ -176,5 +176,5 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 	mrpt::system::pause();
 #endif
 
-	timelog.leave("solver_ddotz");
+	timelog().leave("solver_ddotz");
 }

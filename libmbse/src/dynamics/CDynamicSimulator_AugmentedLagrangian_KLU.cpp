@@ -30,7 +30,7 @@ CDynamicSimulator_AugmentedLagrangian_KLU::
  * solve_ddotq() */
 void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 {
-	timelog.enter("solver_prepare");
+	timelog().enter("solver_prepare");
 
 	const size_t nDepCoords = arm_->q_.size();
 	const size_t nConstraints = arm_->Phi_.size();
@@ -154,7 +154,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 		M_.outerIndexPtr(), M_.innerIndexPtr(), M_.valuePtr(), symbolic_M_,
 		&common_);
 
-	timelog.leave("solver_prepare");
+	timelog().leave("solver_prepare");
 }
 
 CDynamicSimulator_AugmentedLagrangian_KLU::
@@ -177,7 +177,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 		throw std::runtime_error(
 			"This class can't solve for lagrange multipliers!");
 
-	timelog.enter("solver_ddotq");
+	timelog().enter("solver_ddotq");
 
 	// Iterative solution to the Augmented Lagrangian Formulation (ALF):
 	// ---------------------------------------------------------------------
@@ -204,7 +204,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	//
 
 	// Update numeric values of the constraint Jacobians:
-	timelog.enter("solver_ddotq.update_PhiqtPhiq");
+	timelog().enter("solver_ddotq.update_PhiqtPhiq");
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Move the updated Jacobian values to their places in the triplet form:
@@ -221,15 +221,15 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 		if (sdp.out_ptr1) *sdp.out_ptr1 = res;
 		if (sdp.out_ptr2) *sdp.out_ptr2 = res;
 	}
-	timelog.leave("solver_ddotq.update_PhiqtPhiq");
+	timelog().leave("solver_ddotq.update_PhiqtPhiq");
 
 	// Solve numeric sparse LU:
 	// -----------------------------------
-	timelog.enter("solver_ddotq.ccs");
+	timelog().enter("solver_ddotq.ccs");
 	A_.setFromTriplets(A_tri_.begin(), A_tri_.end());
-	timelog.leave("solver_ddotq.ccs");
+	timelog().leave("solver_ddotq.ccs");
 
-	timelog.enter("solver_ddotq.numeric_factor");
+	timelog().enter("solver_ddotq.numeric_factor");
 	if (numeric_) klu_free_numeric(&numeric_, &common_);
 
 	numeric_ = klu_factor(
@@ -239,7 +239,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	if (!numeric_)
 		THROW_EXCEPTION(
 			"Error: KLU couldn't numeric-factorize the augmented matrix.");
-	timelog.leave("solver_ddotq.numeric_factor");
+	timelog().leave("solver_ddotq.numeric_factor");
 
 	// Build the RHS vector:
 	// RHS = M*\ddot{q}_i -  Phi_q^t* alpha * [ \dot{Phi}_q * \dot{q} + 2 * xi *
@@ -247,7 +247,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	//                               \ ------------------------------------v
 	//                               --------------------------------------/
 	//                                                                    = b
-	timelog.enter("solver_ddotq.build_rhs");
+	timelog().enter("solver_ddotq.build_rhs");
 
 	// Evaluate "b":
 	// b = alpha * [ \dot{Phi}_q * \dot{q} + 2 * xi * omega * \dot{Phi} +
@@ -293,11 +293,11 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 		}
 	}
 
-	timelog.leave("solver_ddotq.build_rhs");
+	timelog().leave("solver_ddotq.build_rhs");
 
 	// Solve linear system:
 	// -----------------------------------
-	timelog.enter("solver_ddotq.solve");
+	timelog().enter("solver_ddotq.solve");
 
 	Eigen::VectorXd RHS(nDepCoords);
 
@@ -326,10 +326,10 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 
 	ddot_q.swap(ddotq_next);
 
-	timelog.leave("solver_ddotq.solve");
+	timelog().leave("solver_ddotq.solve");
 
 	ASSERTDEBMSG_(
 		((RHS.array() == RHS.array()).all()), "NaN found in result ddotq");
 
-	timelog.leave("solver_ddotq");
+	timelog().leave("solver_ddotq");
 }

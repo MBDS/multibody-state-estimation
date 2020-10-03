@@ -53,7 +53,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 
 	// 1) Executes probabilistic transition model:
 	// -----------------------------------------------------
-	timelog.enter("PF.1.forward_model");
+	timelog().enter("PF.1.forward_model");
 
 	ASSERT_ABOVE_(t_end, t_ini);
 	const double t_increment = t_end - t_ini;
@@ -161,11 +161,11 @@ void CMultiBodyParticleFilter::run_PF_step(
 
 	}  // end for each time_step
 
-	timelog.leave("PF.1.forward_model");
+	timelog().leave("PF.1.forward_model");
 
 	// 2) Update weights with sensor measurements:
 	// -----------------------------------------------------
-	timelog.enter("PF.2.sensor_likelihood");
+	timelog().enter("PF.2.sensor_likelihood");
 
 	const size_t nSensors = sensor_descriptions.size();
 
@@ -195,19 +195,19 @@ void CMultiBodyParticleFilter::run_PF_step(
 	//	double sensor_avrg_lik = mrpt::math::chi2
 	// CDF(nSensors,-mrpt::math::averageLogLikelihood(sensors_logw,sensors_loglik)
 	//);
-	timelog.leave("PF.2.sensor_likelihood");
+	timelog().leave("PF.2.sensor_likelihood");
 
 	//	cout << "Sensor lik: " << sensor_avrg_lik << endl;
 
 	// 3) Normalize weights:
 	// ---------------------------------------------------
-	timelog.enter("PF.3.renormalize_w");
+	timelog().enter("PF.3.renormalize_w");
 	this->normalizeWeights();
-	timelog.leave("PF.3.renormalize_w");
+	timelog().leave("PF.3.renormalize_w");
 
 	// 4) Resampling:
 	// -----------------------------------------------------
-	timelog.enter("PF.4.resampling");
+	timelog().enter("PF.4.resampling");
 
 	const double curESS = this->ESS();
 	out_info.resampling_done = false;
@@ -223,7 +223,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 
 		out_info.resampling_done = true;
 	}
-	timelog.leave("PF.4.resampling");
+	timelog().leave("PF.4.resampling");
 }
 
 CMultiBodyParticleFilter::TTransitionModelOptions::TTransitionModelOptions()

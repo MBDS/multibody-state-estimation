@@ -30,7 +30,7 @@ void CAssembledRigidModel::builGeneralizedForces(Eigen::VectorXd& Q) const
 -------------------------------------------------------------------*/
 void CAssembledRigidModel::builGeneralizedForces(double* q) const
 {
-	timelog.enter("builGeneralizedForces");
+	timelog().enter("builGeneralizedForces");
 
 	const size_t nDOFs = q_.size();
 	Eigen::Map<Eigen::VectorXd> Q(q, nDOFs);
@@ -112,5 +112,5 @@ void CAssembledRigidModel::builGeneralizedForces(double* q) const
 	ASSERT_EQUAL_(Q.cols(), Q_.cols());
 	Q += Q_;
 
-	timelog.leave("builGeneralizedForces");
+	timelog().leave("builGeneralizedForces");
 }

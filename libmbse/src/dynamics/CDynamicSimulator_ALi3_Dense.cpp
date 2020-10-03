@@ -29,7 +29,7 @@ CDynamicSimulator_ALi3_Dense::CDynamicSimulator_ALi3_Dense(
  * solve_ddotq() */
 void CDynamicSimulator_ALi3_Dense::internal_prepare()
 {
-	timelog.enter("solver_prepare");
+	timelog().enter("solver_prepare");
 
 	arm_->buildMassMatrix_dense(M_);
 	M_ldlt_.compute(M_);
@@ -37,7 +37,7 @@ void CDynamicSimulator_ALi3_Dense::internal_prepare()
 	const size_t nConstraints = arm_->Phi_.size();
 	Lambda_.setZero(nConstraints);
 
-	timelog.leave("solver_prepare");
+	timelog().leave("solver_prepare");
 }
 
 CDynamicSimulator_ALi3_Dense::~CDynamicSimulator_ALi3_Dense() {}
@@ -53,7 +53,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 
 	const size_t nDepCoords = arm_->q_.size();
 
-	timelog.enter("internal_integrate");
+	timelog().enter("internal_integrate");
 
 	Eigen::VectorXd Q(nDepCoords);
 
@@ -130,7 +130,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 								   Phi_q_.transpose() * dotPhi_q_ *
 								   arm_->dotq_);
 
-	timelog.leave("internal_integrate");
+	timelog().leave("internal_integrate");
 
 	return true;
 }
@@ -144,7 +144,7 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 		throw std::runtime_error(
 			"This class can't solve for lagrange multipliers!");
 
-	timelog.enter("solver_ddotq");
+	timelog().enter("solver_ddotq");
 
 	// Iterative solution to the Augmented Lagrangian Formulation (ALF):
 	// ---------------------------------------------------------------------
@@ -185,7 +185,7 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 
 	// Solve linear system:
 	// -----------------------------------
-	timelog.enter("solver_ddotq.solve");
+	timelog().enter("solver_ddotq.solve");
 
 	Eigen::VectorXd ddotq_next, ddotq_prev;
 
@@ -203,9 +203,9 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 
 	//	cout << "lamba: " << Lambda_.transpose() << endl;
 
-	timelog.leave("solver_ddotq.solve");
+	timelog().leave("solver_ddotq.solve");
 
-	timelog.leave("solver_ddotq");
+	timelog().leave("solver_ddotq");
 }
 
 /** Integrators will call this after each time step */
