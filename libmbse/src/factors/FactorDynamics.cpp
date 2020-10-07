@@ -9,8 +9,17 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mrpt/core/exceptions.h>
+#include <mrpt/core/common.h>
 #include <mbse/factors/FactorDynamics.h>
 #include <mbse/CAssembledRigidModel.h>
+
+#include <gtsam/config.h>
+#if defined(GTSAM_USE_TBB)
+#error "So far, MBDE is incompatible with GTSAM+TBB!"
+#endif
+MRPT_TODO(
+	"**IMPORTANT** Refactor CAssembledRigidModel to separate state and model "
+	"data to avoid multithread errors using GTSAM+TBB");
 
 #define USE_NUMERIC_JACOBIAN 1
 
