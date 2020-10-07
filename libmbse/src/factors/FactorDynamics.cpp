@@ -31,9 +31,9 @@ gtsam::NonlinearFactor::shared_ptr FactorDynamics::clone() const
 void FactorDynamics::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "FactorDynamics(" << keyFormatter(this->key1()) << ","
-			  << keyFormatter(this->key2()) << "," << keyFormatter(this->key3())
-			  << ")\n";
+	std::cout << s << "mbde::FactorDynamics(" << keyFormatter(this->key1())
+			  << "," << keyFormatter(this->key2()) << ","
+			  << keyFormatter(this->key3()) << ")\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
 	noiseModel_->print("  noise model: ");
 }

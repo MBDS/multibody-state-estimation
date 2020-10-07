@@ -25,9 +25,10 @@ gtsam::NonlinearFactor::shared_ptr FactorTrapInt::clone() const
 void FactorTrapInt::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "FactorTrapInt(" << keyFormatter(this->key1()) << ","
-			  << keyFormatter(this->key2()) << "," << keyFormatter(this->key3())
-			  << "," << keyFormatter(this->key4()) << ")\n";
+	std::cout << s << "mbde::FactorTrapInt(" << keyFormatter(this->key1())
+			  << "," << keyFormatter(this->key2()) << ","
+			  << keyFormatter(this->key3()) << "," << keyFormatter(this->key4())
+			  << ")\n";
 	gtsam::traits<double>::Print(timestep_, "  timestep: ");
 	noiseModel_->print("  noise model: ");
 }
@@ -54,9 +55,8 @@ gtsam::Vector FactorTrapInt::evaluateError(
 	ASSERT_EQUAL_(v_k.size(), x_k.size());
 	ASSERT_EQUAL_(v_kp1.size(), x_k.size());
 
-	gtsam::Vector err = x_kp1 - x_k -
-						0.5 * timestep_ * v_k -
-						0.5 * timestep_ * v_kp1;
+	gtsam::Vector err =
+		x_kp1 - x_k - 0.5 * timestep_ * v_k - 0.5 * timestep_ * v_kp1;
 
 	// Jacobian of err respect to[x_k x_kp1 v_k v_kp1]
 	if (H1)
