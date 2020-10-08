@@ -47,7 +47,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 	const std::vector<CVirtualSensor::Ptr>& sensor_descriptions,
 	const std::vector<double>& sensor_readings, TOutputInfo& out_info)
 {
-	mrpt::system::CTimeLoggerEntry tle(timelog, "run_PF_step");
+	mrpt::system::CTimeLoggerEntry tle(timelog(), "run_PF_step");
 
 	ASSERT_(sensor_descriptions.size() == sensor_readings.size());
 

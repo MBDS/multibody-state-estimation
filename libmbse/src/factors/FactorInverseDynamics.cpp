@@ -152,7 +152,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 		const gtsam::Vector x = p.q;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
 
 		mrpt::math::estimateJacobian(
 			x,
@@ -180,7 +180,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 		const gtsam::Vector x = p.dq;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
 
 		mrpt::math::estimateJacobian(
 			x,
@@ -212,7 +212,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 		const gtsam::Vector x = p.Q;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-6);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
 
 		mrpt::math::estimateJacobian(
 			x,
