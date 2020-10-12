@@ -235,6 +235,8 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
 	/** Compute dependent velocities and positions from the independent ones */
 	virtual void correct_dependent_q_dq() = 0;
 
+	virtual const std::vector<size_t>& independent_coordinate_indices() const;
+
    protected:
 	/** Wrapper for ddotq computation, from ddotz */
 	virtual void internal_solve_ddotq(
@@ -285,21 +287,27 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
 	CDynamicSimulator_Indep_dense(
 		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
-	virtual void dq_plus_dz(
+	void dq_plus_dz(
 		const Eigen::VectorXd& dq, const Eigen::VectorXd& dz,
-		Eigen::VectorXd& out_dq) const;
+		Eigen::VectorXd& out_dq) const override;
 	/** Compute dependent velocities and positions from the independent ones */
-	virtual void correct_dependent_q_dq();
+	void correct_dependent_q_dq() override;
+
+	const std::vector<size_t>& independent_coordinate_indices() const override
+	{
+		return indep_idxs_;
+	}
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotz(
-		double t, Eigen::VectorXd& ddot_z, bool can_choose_indep_coords);
+	void internal_prepare() override;
+	void internal_solve_ddotz(
+		double t, Eigen::VectorXd& ddot_z,
+		bool can_choose_indep_coords) override;
 
 	Eigen::MatrixXd mass_;  //!< The MBS constant mass matrix
-	std::vector<size_t>
-		indep_idxs_;  //!< The indices in "q" of those coordinates to be used
-					  //!< as "independent" (z)
+	/** The indices in "q" of those coordinates to be used as "independent" (z)
+	 */
+	std::vector<size_t> indep_idxs_;
 };
 
 class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
@@ -340,9 +348,10 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
 	TOrderingMethods ordering;
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = NULL) override;
 
 	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>

@@ -16,44 +16,53 @@
 
 namespace mbse
 {
-/** Factor for multibody forward (direct) dynamics in dependent coordinates,
+/** Factor for multibody forward (direct) dynamics in independent coordinates,
  * using a general dynamics solver.
  *
- * This implements: \f$ \text{error} = \ddot{q}_k -
- * \ddot{q}(q_k,\dot{q}_k,M,...) = 0\f$
+ * This implements: \f$ \text{error} = \ddot{z}_k -
+ * \ddot{z}(q_k,\dot{q}_k,M,...) = 0\f$
  *
- * Unknowns: \f$ q_k, \dot{q}_k, \ddot{q}_k \f$
+ * Unknowns: \f$ z_k, \dot{z}_k, \ddot{z}_k \f$
  *
  * Fixed data: multibody model (inertias, masses, etc.), external forces.
+ *
+ * Independent coordinates indices are taken from
+ * CDynamicSimulatorIndepBase::independent_coordinate_indices()
+ *
  */
-class FactorDynamics
+class FactorDynamicsIndep
 	: public gtsam::NoiseModelFactor3<
-		  state_t /* q_k */, state_t /* dq_k */, state_t /* ddq_k */>
+		  state_t /* z_k */, state_t /* dz_k */, state_t /* ddz_k */>
 {
    private:
-	using This = FactorDynamics;
+	using This = FactorDynamicsIndep;
 	using Base = gtsam::NoiseModelFactor3<state_t, state_t, state_t>;
 
-	CDynamicSimulatorBase* dynamic_solver_ = nullptr;
+	CDynamicSimulatorIndepBase* dynamic_solver_ = nullptr;
+	gtsam::Key key_q_k_;
+	const gtsam::Values* valuesForQk_ = nullptr;
 
    public:
 	// shorthand for a smart pointer to a factor
 	using shared_ptr = boost::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
-	FactorDynamics() = default;
+	FactorDynamicsIndep() = default;
 
 	/** Constructor */
-	FactorDynamics(
-		CDynamicSimulatorBase* dynamic_solver,
-		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
-		gtsam::Key key_dq_k, gtsam::Key key_ddq_k)
-		: Base(noiseModel, key_q_k, key_dq_k, key_ddq_k),
-		  dynamic_solver_(dynamic_solver)
+	FactorDynamicsIndep(
+		CDynamicSimulatorIndepBase* dynamic_solver,
+		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_z_k,
+		gtsam::Key key_dz_k, gtsam::Key key_ddz_k, gtsam::Key key_q_k,
+		const gtsam::Values& valuesForQk)
+		: Base(noiseModel, key_z_k, key_dz_k, key_ddz_k),
+		  dynamic_solver_(dynamic_solver),
+		  key_q_k_(key_q_k),
+		  valuesForQk_(&valuesForQk)
 	{
 	}
 
-	virtual ~FactorDynamics() override;
+	virtual ~FactorDynamicsIndep() override;
 
 	/// @return a deep copy of this factor
 	virtual gtsam::NonlinearFactor::shared_ptr clone() const override;
@@ -74,10 +83,10 @@ class FactorDynamics
 
 	/** vector of errors */
 	gtsam::Vector evaluateError(
-		const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-		boost::optional<gtsam::Matrix&> H1 = boost::none,
-		boost::optional<gtsam::Matrix&> H2 = boost::none,
-		boost::optional<gtsam::Matrix&> H3 = boost::none) const override;
+		const state_t& z_k, const state_t& dz_k, const state_t& ddz_k,
+		boost::optional<gtsam::Matrix&> de_dz = boost::none,
+		boost::optional<gtsam::Matrix&> de_dzp = boost::none,
+		boost::optional<gtsam::Matrix&> de_dzpp = boost::none) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 3; }
@@ -89,7 +98,8 @@ class FactorDynamics
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
 		ar& boost::serialization::make_nvp(
-			"FactorDynamics", boost::serialization::base_object<Base>(*this));
+			"FactorDynamicsIndep",
+			boost::serialization::base_object<Base>(*this));
 	}
 };
 
