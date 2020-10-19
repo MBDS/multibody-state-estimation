@@ -135,4 +135,16 @@ void removeColumns(MATRIX& m, const std::vector<std::size_t>& idxsToRemove)
 	unsafeRemoveColumns(m, idxs);
 }
 
+/** Extract a subset from a vector (e.g. to extract independent coordinates z
+ * from q) */
+template <class VECTOR>
+VECTOR subset(VECTOR& v, const std::vector<std::size_t>& idxsToExtract)
+{
+	VECTOR ret;
+	ret.resize(idxsToExtract.size());
+	for (size_t i = 0; i < idxsToExtract.size(); i++)
+		ret(i) = v(idxsToExtract[i]);
+	return ret;
+}
+
 }  // namespace mbse

@@ -62,15 +62,15 @@ void test_smoother()
 
 	// x1, *y1*, x2, y2
 	// 0   1     2   3
-	std::vector<size_t> indep_coord_indices;
-	indep_coord_indices.push_back(0);
+	std::vector<size_t> indepCoordIndices;
+	indepCoordIndices.push_back(0);
 
 	// Velocity prior: large sigma for all dq(i), except dq(i_indep)
 	gtsam::Vector prior_dq_sigmas;
 	const double large_std = 1e6;
 	const double small_std = 1e-3;
 	prior_dq_sigmas.setConstant(n, large_std);
-	for (auto idx : indep_coord_indices) prior_dq_sigmas(idx) = small_std;
+	for (auto idx : indepCoordIndices) prior_dq_sigmas(idx) = small_std;
 
 	auto noise_prior_dq = gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
 	auto noise_prior_q = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
@@ -98,7 +98,7 @@ void test_smoother()
 	aMBS->q_[1] = 0.1;
 	aMBS->q_[3] = 5;
 
-	aMBS->computeDependentPosVelAcc(indep_coord_indices, true, true, cdp, cdr);
+	aMBS->computeDependentPosVelAcc(indepCoordIndices, true, true, cdp, cdr);
 	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
 			  << "\n";
 	ASSERT_BELOW_(cdr.pos_final_phi, 1e-4);
