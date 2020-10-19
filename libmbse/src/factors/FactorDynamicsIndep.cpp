@@ -43,7 +43,7 @@ struct NumericJacobParams
 {
 	CAssembledRigidModel* arm = nullptr;
 	CDynamicSimulatorIndepBase* dynamic_solver = nullptr;
-	gtsam::Vector z, dz, ddz, q;
+	gtsam::Vector z, dz, ddz, q, dq;
 };
 
 static void num_err_wrt_z(
@@ -52,6 +52,8 @@ static void num_err_wrt_z(
 	// Set q & dq in the multibody model:
 	p.arm->q_ = p.q;
 	p.arm->dotq_ = p.dq;
+	// Overwrite "z":
+	// mbse::insert_subvector(new_z, p.arm->q_, p.arm->get)
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;

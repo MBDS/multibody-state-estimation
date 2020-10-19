@@ -44,7 +44,7 @@ static void num_err_wrt_state(
 	err = p.factor->evaluateError(q, dq, ddq);
 }
 
-TEST(Jacobians, dynamics)
+TEST(Jacobians, FactorDynamics)
 {
 	try
 	{
