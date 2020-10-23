@@ -57,5 +57,7 @@ mbse_define_test(dynamics-solvers)
 
 mbse_define_test(factor-euler-integrator)
 mbse_define_test(factor-trapezoidal-integrator)
+mbse_define_test(factor-icoords-dynamics-jacobian)
 mbse_define_test(factor-dynamics-jacobian)
 mbse_define_test(factor-gyroscope-jacobian)
+
