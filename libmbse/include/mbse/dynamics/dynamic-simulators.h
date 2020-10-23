@@ -235,7 +235,8 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
 	/** Compute dependent velocities and positions from the independent ones */
 	virtual void correct_dependent_q_dq() = 0;
 
-	virtual const std::vector<size_t>& independent_coordinate_indices() const;
+	virtual const std::vector<size_t>& independent_coordinate_indices()
+		const = 0;
 
    protected:
 	/** Wrapper for ddotq computation, from ddotz */

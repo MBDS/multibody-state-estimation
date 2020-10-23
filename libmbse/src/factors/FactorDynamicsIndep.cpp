@@ -43,43 +43,70 @@ struct NumericJacobParams
 {
 	CAssembledRigidModel* arm = nullptr;
 	CDynamicSimulatorIndepBase* dynamic_solver = nullptr;
-	gtsam::Vector z, dz, ddz, q, dq;
+	gtsam::Vector z, dz, ddz, q;
 };
 
 static void num_err_wrt_z(
 	const gtsam::Vector& new_z, const NumericJacobParams& p, gtsam::Vector& err)
 {
+	const auto& zIndices = p.dynamic_solver->independent_coordinate_indices();
+
 	// Set q & dq in the multibody model:
 	p.arm->q_ = p.q;
-	p.arm->dotq_ = p.dq;
-	// Overwrite "z":
-	// mbse::insert_subvector(new_z, p.arm->q_, p.arm->get)
+	// Overwrite "z" & "dz":
+	mbse::overwrite_subset(p.arm->q_, new_z, zIndices);
+	mbse::overwrite_subset(p.arm->dotq_, p.dz, zIndices);
+
+	// Ensure q and dq are updated after the change in "z":
+	CAssembledRigidModel::TComputeDependentParams cdp;
+	CAssembledRigidModel::TComputeDependentResults cdr;
+	cdp.nItersMax = 3;
+	p.arm->computeDependentPosVelAcc(
+		zIndices, true /*update_q*/, true /* update_dq*/, cdp, cdr);
+
+	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	Eigen::VectorXd qpp_predicted;
 	const double t = 0;  // wallclock time (useless?)
+	Eigen::VectorXd zpp_predicted;
 
-	p.dynamic_solver->solve_ddotz(t, qpp_predicted);
+	p.dynamic_solver->solve_ddotz(
+		t, zpp_predicted, false /* dont pick indep coords */);
 
 	// Evaluate error:
-	err = qpp_predicted - p.ddq;
+	err = zpp_predicted - p.ddz;
 }
 
 static void num_err_wrt_dz(
 	const gtsam::Vector& new_dz, const NumericJacobParams& p,
 	gtsam::Vector& err)
 {
+	const auto& zIndices = p.dynamic_solver->independent_coordinate_indices();
+
 	// Set q & dq in the multibody model:
 	p.arm->q_ = p.q;
-	p.arm->dotq_ = new_dq;
+	// Overwrite "z" & "dz":
+	mbse::overwrite_subset(p.arm->q_, p.z, zIndices);
+	mbse::overwrite_subset(p.arm->dotq_, new_dz, zIndices);
+
+	// Ensure q and dq are updated after the change in "z":
+	CAssembledRigidModel::TComputeDependentParams cdp;
+	CAssembledRigidModel::TComputeDependentResults cdr;
+	cdp.nItersMax = 3;
+	p.arm->computeDependentPosVelAcc(
+		zIndices, true /*update_q*/, true /* update_dq*/, cdp, cdr);
+
+	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	Eigen::VectorXd qpp_predicted;
 	const double t = 0;  // wallclock time (useless?)
-	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
+	Eigen::VectorXd zpp_predicted;
+
+	p.dynamic_solver->solve_ddotz(
+		t, zpp_predicted, false /* dont pick indep coords */);
 
 	// Evaluate error:
-	err = qpp_predicted - p.ddq;
+	err = zpp_predicted - p.ddz;
 }
 
 bool FactorDynamicsIndep::equals(
@@ -109,15 +136,17 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 
 	const auto& indepCoordIndices =
 		dynamic_solver_->independent_coordinate_indices();
-	ASSERT_EQUAL_(indepCoordIndices, z_k.size());
+	ASSERT_EQUAL_(indepCoordIndices.size(), z_k.size());
 
 	// Initial guess for "q":
-	arm.q_ = valuesForQk_->at<state_t>(key_q_k_);
+	const auto q_k = valuesForQk_->at<state_t>(key_q_k_);
+	arm.q_ = q_k;
 
 	// Replace with z and dz:
-	arm.set_z(z_k, indepCoordIndices);
-	arm.set_dotz(dz_k, indepCoordIndices);
-	dynamic_solver_->correct_dependent_q_dq();
+	mbse::overwrite_subset(arm.q_, z_k, indepCoordIndices);
+	mbse::overwrite_subset(arm.dotq_, dz_k, indepCoordIndices);
+	arm.finiteDisplacement(
+		indepCoordIndices, 1e-9, 6 /*max iters*/, true /* also solve dot{q} */);
 
 	// Predict accelerations:
 	Eigen::VectorXd zpp_predicted;
@@ -137,22 +166,22 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 		p.arm = &arm;
 		p.dynamic_solver = dynamic_solver_;
 		p.q = q_k;
-		p.dq = dq_k;
-		p.ddq = ddq_k;
+		p.z = z_k;
+		p.dz = dz_k;
+		p.ddz = ddz_k;
 
-		const gtsam::Vector x = p.q;
+		const gtsam::Vector x = p.z;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-7);
 
 		mrpt::math::estimateJacobian(
 			x,
 			std::function<void(
 				const gtsam::Vector& new_q, const NumericJacobParams& p,
-				gtsam::Vector& err)>(&num_err_wrt_q),
+				gtsam::Vector& err)>(&num_err_wrt_z),
 			x_incr, p, Hv);
 #else
 		Hv.setZero(n, n);
-
 #endif
 	}
 	// d err / d dz_k
@@ -164,18 +193,19 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 		p.arm = &arm;
 		p.dynamic_solver = dynamic_solver_;
 		p.q = q_k;
-		p.dq = dq_k;
-		p.ddq = ddq_k;
+		p.z = z_k;
+		p.dz = dz_k;
+		p.ddz = ddz_k;
 
-		const gtsam::Vector x = p.dq;
+		const gtsam::Vector x = p.dz;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-7);
 
 		mrpt::math::estimateJacobian(
 			x,
 			std::function<void(
 				const gtsam::Vector& new_q, const NumericJacobParams& p,
-				gtsam::Vector& err)>(&num_err_wrt_dq),
+				gtsam::Vector& err)>(&num_err_wrt_dz),
 			x_incr, p, Hv);
 #else
 		Hv.setZero(n, n);
@@ -185,7 +215,7 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 	if (de_dzpp)
 	{
 		auto& Hv = de_dzpp.value();
-		Hv = -Eigen::MatrixXd::Identity(n, n);
+		Hv = -Eigen::MatrixXd::Identity(d, d);
 	}
 	return err;
 

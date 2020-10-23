@@ -147,4 +147,15 @@ VECTOR subset(VECTOR& v, const std::vector<std::size_t>& idxsToExtract)
 	return ret;
 }
 
+/** Overwrite part of a vector (e.g. to set independent coordinates z in q) */
+template <class SUBVECTOR, class VECTOR>
+void overwrite_subset(
+	VECTOR& v, const SUBVECTOR& subvector,
+	const std::vector<std::size_t>& idxsToOverwrite)
+{
+	ASSERT_EQUAL_(idxsToOverwrite.size(), subvector.size());
+	for (size_t i = 0; i < idxsToOverwrite.size(); i++)
+		v(idxsToOverwrite[i]) = subvector(i);
+}
+
 }  // namespace mbse
