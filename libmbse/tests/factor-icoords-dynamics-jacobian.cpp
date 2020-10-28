@@ -56,6 +56,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 		const auto DDZ = alternative_symbol('a');
 		const auto DZ = alternative_symbol('v');
 		const auto Z = alternative_symbol('q');
+		const auto Q = gtsam::symbol_shorthand::Q;
 
 		using namespace mbse;
 
@@ -73,14 +74,17 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 		// Add factors:
 		// Create factor noises:
 		const auto n = aMBS->q_.size();
+		const auto indCoordsInd = dynSimul.independent_coordinate_indices();
 		const auto d = dynSimul.independent_coordinate_indices().size();
 		// const auto m = aMBS->Phi_q_.getNumRows();
 
 		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(d, 0.1);
 
+		gtsam::Values valuesForQ;
+
 		// Create a dummy factor:
 		auto factorDyn = boost::make_shared<FactorDynamicsIndep>(
-			&dynSimul, noise_dyn, Z(1), DZ(1), DDZ(1));
+			&dynSimul, noise_dyn, Z(1), DZ(1), DDZ(1), Q(1), valuesForQ);
 
 		// For different instants of time and mechanism positions and
 		// velocities, test the factor jacobian:
@@ -106,31 +110,37 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 			// Convert plain Eigen vectors into state_t classes (used as Values
 			// in GTSAM factor graphs):
 			const state_t q = state_t(aMBS->q_);
-			const state_t dotq = state_t(aMBS->dotq_);
-			const state_t ddotq = state_t(aMBS->ddotq_);
+			const state_t z = state_t(mbse::subset(aMBS->q_, indCoordsInd));
+			const state_t dotz =
+				state_t(mbse::subset(aMBS->dotq_, indCoordsInd));
+			const state_t ddotz =
+				state_t(mbse::subset(aMBS->ddotq_, indCoordsInd));
+
+			valuesForQ.insert(Q(1), q);
 
 			// Evaluate theoretical Jacobians:
 			gtsam::Matrix H[3];
-			timlog.enter("factorsDyn.theoretical_jacob");
+			timlog.enter("factorsDynIndep.theoretical_jacob");
 
-			factorDyn->evaluateError(q, dotq, ddotq, H[0], H[1], H[2]);
+			factorDyn->evaluateError(z, dotz, ddotz, H[0], H[1], H[2]);
 
-			timlog.leave("factorsDyn.theoretical_jacob");
+			timlog.leave("factorsDynIndep.theoretical_jacob");
 
 			// Evaluate numerical Jacobians:
 			gtsam::Matrix H_num[3];
 
-			timlog.enter("factorsDyn.numeric_jacob");
+			timlog.enter("factorsDyn.Indepnumeric_jacob");
 			for (int i = 0; i < 3; i++)
 			{
 				NumericJacobParams p;
-				p.q = q;
-				p.dq = dotq;
-				p.ddq = ddotq;
+				p.q0 = q;
+				p.z = z;
+				p.dz = dotz;
+				p.ddz = ddotz;
 				p.diff_variable = i;
 				p.factor = factorDyn.get();
 
-				const gtsam::Vector& x = i == 0 ? p.q : (i == 1 ? p.dq : p.ddq);
+				const gtsam::Vector& x = i == 0 ? p.z : (i == 1 ? p.dz : p.ddz);
 				const gtsam::Vector x_incr =
 					Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-9);
 
@@ -151,7 +161,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 					<< i << "] Numerical:\n"
 					<< H_num[i] << "\n";
 			}
-			timlog.leave("factorsDyn.numeric_jacob");
+			timlog.leave("factorsDyn.Indepnumeric_jacob");
 		}
 	}
 	catch (const std::exception& e)

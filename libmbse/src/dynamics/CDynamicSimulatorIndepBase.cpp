@@ -88,7 +88,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 			case ODE_RK4:
 			{
 				q0 = arm_->q_;  // Make backup copy of state (velocities will
-								  // be in "v1")
+								// be in "v1")
 
 				// k1 = f(t,y);
 				// cur_time = t;
@@ -214,7 +214,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 		// User-callback:
 		// ------------------------------
 		sim_state.t = t;
-		params.user_callback(sim_state);
+		if (params.user_callback) params.user_callback(sim_state);
 	}
 
 	return t;
