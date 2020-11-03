@@ -173,6 +173,9 @@ class CAssembledRigidModel
 		const size_t body_index, const mrpt::math::TPoint2D& relative_pt,
 		mrpt::math::TPoint2D& out_pt) const;
 
+	/** Print info for each coordinate in "q" */
+	void printCoordinates(std::ostream& o = std::cout);
+
    private:
 	/** Created upon call to getAs3DRepresentation(), this holds a list of the
 	 * 3D object associated to each body in the MBS, in the same order than in

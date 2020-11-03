@@ -12,6 +12,7 @@
 #include <mbse/constraints/CConstraintRelativeAngle.h>
 #include <mbse/constraints/CConstraintRelativeAngleAbsolute.h>
 #include <mrpt/opengl.h>
+#include <iostream>
 
 using namespace mbse;
 using namespace Eigen;
@@ -310,11 +311,11 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 
 #ifdef _DEBUG
 	ASSERT_(
-		ptr_q0 == &q_[0]);	// make sure the vectors didn't suffer mem
+		ptr_q0 == &q_[0]);  // make sure the vectors didn't suffer mem
 							// reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
-		&dotq_[0]);	 // make sure the vectors didn't suffer mem reallocation,
+		&dotq_[0]);  // make sure the vectors didn't suffer mem reallocation,
 					 // since we save pointers to these!
 #endif
 }
@@ -369,7 +370,7 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	ASSERTDEB_(L > 0);
 	const double Linv = 1.0 / L;
 
-	mrpt::math::TPoint2D u, v;	// unit vectors in X,Y,Z local to the body
+	mrpt::math::TPoint2D u, v;  // unit vectors in X,Y,Z local to the body
 
 	u = (q[1] - q[0]) * Linv;
 	v.x = -u.y;
@@ -433,7 +434,7 @@ void CAssembledRigidModel::evaluateEnergy(
 
 		// Potential energy:
 		mrpt::math::TPoint2D
-			global_cog;	 // current COG position, in global coords:
+			global_cog;  // current COG position, in global coords:
 		this->getPointOnBodyCurrentCoords(i, b.cog(), global_cog);
 
 		e.E_pot -= b.mass() * (this->gravity_[0] * global_cog.x +
@@ -444,4 +445,58 @@ void CAssembledRigidModel::evaluateEnergy(
 	e.E_total = e.E_kin + e.E_pot;
 
 	timelog().leave("evaluateEnergy");
+}
+
+static char dof2letter(const PointDOF p)
+{
+	switch (p)
+	{
+		case PointDOF::X:
+			return 'x';
+		case PointDOF::Y:
+			return 'y';
+		case PointDOF::Z:
+			return 'z';
+		default:
+			return '?';
+	};
+}
+
+void CAssembledRigidModel::printCoordinates(std::ostream& o)
+{
+	MRPT_START
+
+	ASSERT_EQUAL_(static_cast<size_t>(q_.size()), DOFs_.size() + rDOFs_.size());
+
+	o << "[CAssembledRigidModel] |q|=" << q_.size() << ", " << DOFs_.size()
+	  << " natural, " << rDOFs_.size() << " relative coordinates.\n";
+
+	o << "Natural coordinates:\n";
+	for (size_t i = 0; i < DOFs_.size(); i++)
+	{
+		o << " q[" << i << "]: " << dof2letter(DOFs_[i].point_dof)
+		  << DOFs_[i].point_index << "\n";
+	}
+	if (!rDOFs_.empty())
+	{
+		o << "Relative coordinates:\n";
+		for (size_t i = 0; i < rDOFs_.size(); i++)
+		{
+			o << " q[" << (i + DOFs_.size()) << "]: ";
+			const auto& relConstr = rDOFs_[i];
+			if (std::holds_alternative<RelativeAngleAbsoluteDOF>(relConstr))
+			{
+				const auto& c = std::get<RelativeAngleAbsoluteDOF>(relConstr);
+				o << "relativeAngle(" << c.point_idx0 << " - " << c.point_idx1
+				  << ")";
+			}
+			else
+			{
+				o << "???";
+			}
+			o << "\n";
+		}
+	}
+
+	MRPT_END
 }

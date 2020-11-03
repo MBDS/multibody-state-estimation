@@ -62,12 +62,23 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 
 		// Create the multibody object:
 		CModelDefinition model;
-		mbse::buildFourBarsMBS(model);
+		std::vector<RelativeDOF> rDOFs;
 
-		std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
+		mbse::buildFourBarsMBS(model);
+		// Add an extra relative coordinate:
+		rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
+
+		std::shared_ptr<CAssembledRigidModel> aMBS =
+			model.assembleRigidMBS(rDOFs);
 		aMBS->setGravityVector(0, -9.81, 0);
 
+		aMBS->printCoordinates();
+
 		CDynamicSimulator_Indep_dense dynSimul(aMBS);
+
+		// Enforce the use of the theta angle as independent coordinate:
+		dynSimul.independent_coordinate_indices({4});
+
 		// Must be called before solve_ddotq():
 		dynSimul.prepare();
 
@@ -76,6 +87,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 		const auto n = aMBS->q_.size();
 		const auto indCoordsInd = dynSimul.independent_coordinate_indices();
 		const auto d = dynSimul.independent_coordinate_indices().size();
+		EXPECT_GT(d, 0);
 		// const auto m = aMBS->Phi_q_.getNumRows();
 
 		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(d, 0.1);

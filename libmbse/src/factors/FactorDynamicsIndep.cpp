@@ -139,7 +139,7 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 	ASSERT_EQUAL_(indepCoordIndices.size(), z_k.size());
 
 	// Initial guess for "q":
-	const auto q_k = valuesForQk_->at<state_t>(key_q_k_);
+	const Eigen::VectorXd q_k = valuesForQk_->at<state_t>(key_q_k_);
 	arm.q_ = q_k;
 
 	// Replace with z and dz:

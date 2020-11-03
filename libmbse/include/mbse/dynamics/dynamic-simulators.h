@@ -237,6 +237,8 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
 
 	virtual const std::vector<size_t>& independent_coordinate_indices()
 		const = 0;
+	virtual void independent_coordinate_indices(
+		const std::vector<size_t>& idxs) = 0;
 
    protected:
 	/** Wrapper for ddotq computation, from ddotz */
@@ -297,6 +299,11 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
 	const std::vector<size_t>& independent_coordinate_indices() const override
 	{
 		return indep_idxs_;
+	}
+	void independent_coordinate_indices(
+		const std::vector<size_t>& idxs) override
+	{
+		indep_idxs_ = idxs;
 	}
 
    private:
