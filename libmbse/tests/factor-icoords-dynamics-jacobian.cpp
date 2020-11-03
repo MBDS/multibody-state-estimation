@@ -128,7 +128,10 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 			const state_t ddotz =
 				state_t(mbse::subset(aMBS->ddotq_, indCoordsInd));
 
-			valuesForQ.insert(Q(1), q);
+			if (valuesForQ.exists(Q(1)))
+				valuesForQ.at<mbse::state_t>(Q(1)) = q;
+			else
+				valuesForQ.insert(Q(1), q);
 
 			// Evaluate theoretical Jacobians:
 			gtsam::Matrix H[3];
