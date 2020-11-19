@@ -63,7 +63,7 @@ static void num_err_wrt_q(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
@@ -80,7 +80,7 @@ static void num_err_wrt_dq(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	p.dynamic_solver->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
@@ -114,7 +114,7 @@ gtsam::Vector FactorDynamics::evaluateError(
 
 	// Predict accelerations:
 	Eigen::VectorXd qpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 
 	dynamic_solver_->solve_ddotq(t, qpp_predicted);
 
