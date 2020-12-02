@@ -44,19 +44,14 @@ static void num_err_wrt_state(
 	err = p.factor->evaluateError(z, dz, ddz);
 }
 
-auto alternative_symbol(const char c)
-{
-	return [c](std::uint64_t j) { return gtsam::Symbol(c, j); };
-}
-
 TEST(Jacobians, FactorDynamicsIndepCoords)
 {
 	try
 	{
-		const auto DDZ = alternative_symbol('a');
-		const auto DZ = alternative_symbol('v');
-		const auto Z = alternative_symbol('q');
-		const auto Q = gtsam::symbol_shorthand::Q;
+		const auto Q = gtsam::SymbolGenerator('q');
+		const auto Z = gtsam::SymbolGenerator('z');
+		const auto DZ = gtsam::SymbolGenerator('w');
+		const auto DDZ = gtsam::SymbolGenerator('e');
 
 		using namespace mbse;
 
@@ -101,9 +96,9 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 		// For different instants of time and mechanism positions and
 		// velocities, test the factor jacobian:
 		const double t_end = 3.0;  // end simulation time
-		const double t_steps = 1.0;  // "large steps" to run the tests at
+		const double t_steps = 1.0;	 // "large steps" to run the tests at
 
-		dynSimul.params.time_step = 0.001;  // integrators timesteps
+		dynSimul.params.time_step = 0.001;	// integrators timesteps
 
 		mrpt::system::CTimeLogger timlog;
 		timlog.enable(false);
@@ -129,7 +124,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 				state_t(mbse::subset(aMBS->ddotq_, indCoordsInd));
 
 			if (valuesForQ.exists(Q(1)))
-				valuesForQ.at<mbse::state_t>(Q(1)) = q;
+				valuesForQ.update(Q(1), q);
 			else
 				valuesForQ.insert(Q(1), q);
 

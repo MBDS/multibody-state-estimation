@@ -311,11 +311,11 @@ void CAssembledRigidModel::copyStateFrom(const CAssembledRigidModel& o)
 
 #ifdef _DEBUG
 	ASSERT_(
-		ptr_q0 == &q_[0]);  // make sure the vectors didn't suffer mem
+		ptr_q0 == &q_[0]);	// make sure the vectors didn't suffer mem
 							// reallocation, since we save pointers to these!
 	ASSERT_(
 		ptr_dotq0 ==
-		&dotq_[0]);  // make sure the vectors didn't suffer mem reallocation,
+		&dotq_[0]);	 // make sure the vectors didn't suffer mem reallocation,
 					 // since we save pointers to these!
 #endif
 }
@@ -370,7 +370,7 @@ void CAssembledRigidModel::getPointOnBodyCurrentCoords(
 	ASSERTDEB_(L > 0);
 	const double Linv = 1.0 / L;
 
-	mrpt::math::TPoint2D u, v;  // unit vectors in X,Y,Z local to the body
+	mrpt::math::TPoint2D u, v;	// unit vectors in X,Y,Z local to the body
 
 	u = (q[1] - q[0]) * Linv;
 	v.x = -u.y;
@@ -434,7 +434,7 @@ void CAssembledRigidModel::evaluateEnergy(
 
 		// Potential energy:
 		mrpt::math::TPoint2D
-			global_cog;  // current COG position, in global coords:
+			global_cog;	 // current COG position, in global coords:
 		this->getPointOnBodyCurrentCoords(i, b.cog(), global_cog);
 
 		e.E_pot -= b.mass() * (this->gravity_[0] * global_cog.x +
@@ -487,8 +487,8 @@ void CAssembledRigidModel::printCoordinates(std::ostream& o)
 			if (std::holds_alternative<RelativeAngleAbsoluteDOF>(relConstr))
 			{
 				const auto& c = std::get<RelativeAngleAbsoluteDOF>(relConstr);
-				o << "relativeAngle(" << c.point_idx0 << " - " << c.point_idx1
-				  << ")";
+				o << "relativeAngleWrtGround(" << c.point_idx0 << " - "
+				  << c.point_idx1 << ")";
 			}
 			else
 			{
