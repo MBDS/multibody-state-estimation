@@ -67,7 +67,7 @@ static void num_err_wrt_z(
 	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
 	p.dynamic_solver->solve_ddotz(
@@ -99,7 +99,7 @@ static void num_err_wrt_dz(
 	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
 	p.dynamic_solver->solve_ddotz(
@@ -136,7 +136,9 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 
 	const auto& indepCoordIndices =
 		dynamic_solver_->independent_coordinate_indices();
-	ASSERT_EQUAL_(indepCoordIndices.size(), z_k.size());
+	ASSERT_EQUAL_(
+		static_cast<size_t>(indepCoordIndices.size()),
+		static_cast<size_t>(z_k.size()));
 
 	// Initial guess for "q":
 	const Eigen::VectorXd q_k = valuesForQk_->at<state_t>(key_q_k_);
@@ -145,12 +147,14 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 	// Replace with z and dz:
 	mbse::overwrite_subset(arm.q_, z_k, indepCoordIndices);
 	mbse::overwrite_subset(arm.dotq_, dz_k, indepCoordIndices);
-	arm.finiteDisplacement(
+
+	const double fdErr = arm.finiteDisplacement(
 		indepCoordIndices, 1e-9, 6 /*max iters*/, true /* also solve dot{q} */);
+	ASSERT_LT_(fdErr, 1e-3);
 
 	// Predict accelerations:
 	Eigen::VectorXd zpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	dynamic_solver_->solve_ddotz(
 		t, zpp_predicted, false /* dont auto select indep coords*/);
 

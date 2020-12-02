@@ -18,7 +18,7 @@ namespace mbse
  * CAssembledRigidModel that models a CModelDefinition */
 struct TSymbolicAssembledModel
 {
-	const CModelDefinition& model;  //!< My "parent" model
+	const CModelDefinition& model;	//!< My "parent" model
 
 	/** Info on Natural Coordinate DOFs in the problem (same lenth than q_) */
 	std::vector<NaturalCoordinateDOF> DOFs;
@@ -37,7 +37,7 @@ struct TSymbolicAssembledModel
 
 class CAssembledRigidModel
 {
-	friend class CModelDefinition;  // So that class can create instances of
+	friend class CModelDefinition;	// So that class can create instances of
 									// this class.
 
    public:
@@ -78,11 +78,11 @@ class CAssembledRigidModel
 	double finiteDisplacement(
 		const std::vector<size_t>& idxs_fixed, const double maxPhiNorm = 1e-13,
 		const size_t nItersMax = 10, bool also_correct_velocities = false,
-		std::vector<size_t>* out_idxs_d = NULL);
+		std::vector<size_t>* out_idxs_d = nullptr);
 
 	struct TEnergyValues
 	{
-		double E_total;  //!< Total energy (sum of all other variables)
+		double E_total;	 //!< Total energy (sum of all other variables)
 
 		double E_kin;  //!< Kinetic energy
 		double E_pot;  //!< Potential energy
@@ -107,7 +107,7 @@ class CAssembledRigidModel
 
 		double pos_final_phi;  //!< Output for the final Phi(q) after refining
 							   //!< positions (only valid if update_q=true).
-		Eigen::VectorXd* ddotq;  //!< Output for ddot{q}, only used if !=NULL
+		Eigen::VectorXd* ddotq;	 //!< Output for ddot{q}, only used if !=NULL
 								 //!< AND the input ddotz!=NULL
 	};
 
@@ -187,9 +187,9 @@ class CAssembledRigidModel
    public:
 	/** @name State vector itself
 		@{ */
-	Eigen::VectorXd q_;  //!< State vector q with all the unknowns
-	Eigen::VectorXd dotq_;  //!< Velocity vector \dot{q} for all the unknowns
-	Eigen::VectorXd ddotq_;  //!< The previously computed acceleration vector
+	Eigen::VectorXd q_;	 //!< State vector q with all the unknowns
+	Eigen::VectorXd dotq_;	//!< Velocity vector \dot{q} for all the unknowns
+	Eigen::VectorXd ddotq_;	 //!< The previously computed acceleration vector
 							 //!< \ddot{q} for all the unknowns
 
 	/** External generalized forces (gravity NOT to be included) */
@@ -291,10 +291,10 @@ class CAssembledRigidModel
 		const Point2& pt, const CBody::TRenderParams& rp) const;
 
    public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // Required for aligned mem allocator (only
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW	 // Required for aligned mem allocator (only
 									 // needed in classes containing fixed-size
 									 // Eigen matrices)
 
-};  // end class CAssembledRigidModel
+};	// end class CAssembledRigidModel
 
 }  // namespace mbse

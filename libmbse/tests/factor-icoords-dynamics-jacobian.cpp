@@ -42,6 +42,12 @@ static void num_err_wrt_state(
 
 	// Evaluate error:
 	err = p.factor->evaluateError(z, dz, ddz);
+
+	std::cout << "[NumDiff] evaluating for: "
+			  << "  z:" << z.transpose() << " "
+			  << " dz:" << dz.transpose() << " "
+			  << "ddz:" << ddz.transpose() << " => err:" << err.transpose()
+			  << "\n";
 }
 
 TEST(Jacobians, FactorDynamicsIndepCoords)
@@ -67,8 +73,6 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 			model.assembleRigidMBS(rDOFs);
 		aMBS->setGravityVector(0, -9.81, 0);
 
-		aMBS->printCoordinates();
-
 		CDynamicSimulator_Indep_dense dynSimul(aMBS);
 
 		// Enforce the use of the theta angle as independent coordinate:
@@ -79,11 +83,17 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 
 		// Add factors:
 		// Create factor noises:
-		const auto n = aMBS->q_.size();
+		// const auto n = aMBS->q_.size();
 		const auto indCoordsInd = dynSimul.independent_coordinate_indices();
 		const auto d = dynSimul.independent_coordinate_indices().size();
 		EXPECT_GT(d, 0);
 		// const auto m = aMBS->Phi_q_.getNumRows();
+
+		// Debug print outs:
+		aMBS->printCoordinates();
+		std::cout << "independent coordinate indices: ";
+		for (const auto i : indCoordsInd) std::cout << i << ", ";
+		std::cout << "\n";
 
 		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(d, 0.1);
 
@@ -109,11 +119,6 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 			dynSimul.run(t, t_next);
 			t = t_next;
 
-			std::cout << "Evaluating test for t=" << t << "\n";
-			std::cout << "q  =" << aMBS->q_.transpose() << "\n";
-			std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
-			std::cout << "ddq =" << aMBS->ddotq_.transpose() << "\n";
-
 			// Convert plain Eigen vectors into state_t classes (used as Values
 			// in GTSAM factor graphs):
 			const state_t q = state_t(aMBS->q_);
@@ -127,6 +132,15 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 				valuesForQ.update(Q(1), q);
 			else
 				valuesForQ.insert(Q(1), q);
+
+			std::cout << "Evaluating test for t=" << t << "\n";
+			std::cout << "q  =" << aMBS->q_.transpose() << "\n";
+			std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
+			std::cout << "ddq =" << aMBS->ddotq_.transpose() << "\n";
+			std::cout << "z   = " << z.transpose() << "\n";
+			std::cout << "dz  = " << dotz.transpose() << "\n";
+			std::cout << "ddz = " << ddotz.transpose() << "\n";
+			// valuesForQ.print("valuesForQ:");
 
 			// Evaluate theoretical Jacobians:
 			gtsam::Matrix H[3];
@@ -152,12 +166,12 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 
 				const gtsam::Vector& x = i == 0 ? p.z : (i == 1 ? p.dz : p.ddz);
 				const gtsam::Vector x_incr =
-					Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-9);
+					Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
 
 				mrpt::math::estimateJacobian(
 					x,
 					std::function<void(
-						const gtsam::Vector& new_q, const NumericJacobParams& p,
+						const gtsam::Vector& new_z, const NumericJacobParams& p,
 						gtsam::Vector& err)>(&num_err_wrt_state),
 					x_incr, p, H_num[i]);
 
