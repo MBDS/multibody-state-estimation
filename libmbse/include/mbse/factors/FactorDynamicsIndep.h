@@ -60,6 +60,12 @@ class FactorDynamicsIndep
 		  key_q_k_(key_q_k),
 		  valuesForQk_(&valuesForQk)
 	{
+		MRPT_START
+		ASSERTMSG_(
+			!dynamic_solver->can_choose_indep_coords_,
+			"Passed `dynamic_solver` must be configured NOT to dynamically "
+			"choose DOF z variables for use within this factor.");
+		MRPT_END
 	}
 
 	virtual ~FactorDynamicsIndep() override;

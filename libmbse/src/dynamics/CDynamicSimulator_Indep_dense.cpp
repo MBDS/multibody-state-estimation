@@ -60,7 +60,7 @@ void CDynamicSimulator_Indep_dense::dq_plus_dz(
 // method: R matrix projection (as in section 5.2.3 of "J. García De Jalon &
 // Bayo" book.
 void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
-	double t, VectorXd& ddot_z, bool can_choose_indep_coords)
+	double t, VectorXd& ddot_z)
 {
 	timelog().enter("solver_ddotz");
 
@@ -84,7 +84,7 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 	timelog().leave("solver_ddotz.get_dense_jacob");
 
 	size_t nDOFs;
-	if (can_choose_indep_coords)
+	if (can_choose_indep_coords_)
 	{
 		Eigen::FullPivLU<Eigen::MatrixXd> lu_Phiq;
 		lu_Phiq.compute(Phiq);
@@ -101,8 +101,6 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 		for (size_t i = 0; i < nDOFs; i++)
 			indep_idxs_[i] =
 				lu_Phiq.permutationQ().indices()[nDepCoords - nDOFs + i];
-
-		// cout << "nDOFs: " << nDOFs << ": " << indep_idxs_ << endl;
 	}
 	else
 	{

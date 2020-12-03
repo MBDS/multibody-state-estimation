@@ -77,7 +77,6 @@ double CAssembledRigidModel::finiteDisplacement(
 {
 	timelog().enter("finiteDisplacement");
 
-	Eigen::MatrixXd Phi_q;
 	this->update_numeric_Phi_and_Jacobians();
 
 	size_t iter = 0;
@@ -90,33 +89,36 @@ double CAssembledRigidModel::finiteDisplacement(
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
 	const size_t nDepCoords = q_.size() - z_indices.size();
-	std::vector<size_t> idxs_d;  // make a list with the rest of indices
+	std::vector<size_t> idxs_d;	 // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
 	for (int i = 0; i < q_.size(); i++)
 		if (!q_fixed[i]) idxs_d.push_back(i);
+	ASSERT_EQUAL_(idxs_d.size(), nDepCoords);
 
 	Eigen::FullPivLU<Eigen::MatrixXd> lu_Phiq;
 	bool rebuild_lu = true;
 
 	// Non-linear Newton iterations:
+	Eigen::MatrixXd Phi_q;
 	for (; iter < nItersMax && phi_norm > maxPhiNorm; iter++)
 	{
 		if (rebuild_lu)
 		{
 			this->getPhi_q_dense(Phi_q);
-
 			mbse::removeColumns(Phi_q, z_indices);
-
 			lu_Phiq.compute(Phi_q);
 			rebuild_lu = false;
 		}
 		// Solve for increment:
+
 		const Eigen::VectorXd qi_incr = lu_Phiq.solve(Phi_);
 
-		for (size_t i = 0; i < nDepCoords; i++) q_[idxs_d[i]] -= qi_incr[i];
+		for (size_t i = 0; i < nDepCoords; i++) q_[idxs_d.at(i)] -= qi_incr[i];
 
 		// Re-evaluate error:
+		MRPT_TODO(
+			"Possible optimization: eval Phi() then, if needed, Jacobians");
 		this->update_numeric_Phi_and_Jacobians();
 
 		const double new_phi_norm = Phi_.norm();
@@ -159,7 +161,7 @@ double CAssembledRigidModel::finiteDisplacement(
 		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
 
 		for (size_t i = 0; i < idxs_d.size(); i++)
-			dotq_[idxs_d[i]] = dotq_d[i];
+			dotq_[idxs_d.at(i)] = dotq_d[i];
 
 		timelog().leave("finiteDisplacement.dotq");
 	}
@@ -186,7 +188,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
 	const size_t nDepCoords = q_.size() - z_indices.size();
-	std::vector<size_t> idxs_d;  // make a list with the rest of indices
+	std::vector<size_t> idxs_d;	 // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
 	for (int i = 0; i < q_.size(); i++)
@@ -223,8 +225,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 			// Solve for increment:
 			const Eigen::VectorXd qi_incr = lu_Phiq.solve(Phi_);
 
-			for (size_t i = 0; i < nDepCoords; i++)
-				q_[idxs_d[i]] -= qi_incr[i];
+			for (size_t i = 0; i < nDepCoords; i++) q_[idxs_d[i]] -= qi_incr[i];
 
 			// Re-evaluate error:
 			this->update_numeric_Phi_and_Jacobians();
@@ -268,8 +269,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		mbse::removeColumns(Phi_q, z_indices);
 		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
 
-		for (size_t i = 0; i < idxs_d.size(); i++)
-			dotq_[idxs_d[i]] = dotq_d[i];
+		for (size_t i = 0; i < idxs_d.size(); i++) dotq_[idxs_d[i]] = dotq_d[i];
 
 		timelog().leave("computeDependentPosVelAcc.dotq");
 	}
@@ -305,8 +305,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 				r -= Phiq(i, z_indices[j]) * ddotz[j];
 
 			// Part 2: - dot{Phi_q} * dotq)
-			const CompressedRowSparseMatrix::row_t& row_i =
-				dotPhi_q_.matrix[i];
+			const CompressedRowSparseMatrix::row_t& row_i = dotPhi_q_.matrix[i];
 			for (CompressedRowSparseMatrix::row_t::const_iterator it =
 					 row_i.begin();
 				 it != row_i.end(); ++it)

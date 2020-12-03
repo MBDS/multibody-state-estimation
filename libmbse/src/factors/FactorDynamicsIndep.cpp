@@ -70,8 +70,7 @@ static void num_err_wrt_z(
 	const double t = 0;	 // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
-	p.dynamic_solver->solve_ddotz(
-		t, zpp_predicted, false /* dont pick indep coords */);
+	p.dynamic_solver->solve_ddotz(t, zpp_predicted);
 
 	// Evaluate error:
 	err = zpp_predicted - p.ddz;
@@ -102,8 +101,7 @@ static void num_err_wrt_dz(
 	const double t = 0;	 // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
-	p.dynamic_solver->solve_ddotz(
-		t, zpp_predicted, false /* dont pick indep coords */);
+	p.dynamic_solver->solve_ddotz(t, zpp_predicted);
 
 	// Evaluate error:
 	err = zpp_predicted - p.ddz;
@@ -155,8 +153,7 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 	// Predict accelerations:
 	Eigen::VectorXd zpp_predicted;
 	const double t = 0;	 // wallclock time (useless?)
-	dynamic_solver_->solve_ddotz(
-		t, zpp_predicted, false /* dont auto select indep coords*/);
+	dynamic_solver_->solve_ddotz(t, zpp_predicted);
 
 	// Evaluate error:
 	gtsam::Vector err = zpp_predicted - ddz_k;

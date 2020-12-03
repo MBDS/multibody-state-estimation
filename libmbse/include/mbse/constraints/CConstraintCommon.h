@@ -76,6 +76,13 @@ class CConstraintCommon
 			: x(X), y(Y), dotx(DOTX), doty(DOTY)
 		{
 		}
+		std::string asString() const
+		{
+			using namespace std::string_literals;
+			return "(x,y)=("s + std::to_string(x) + " , "s + std::to_string(y) +
+				   ") " + "(vx,vy)=("s + std::to_string(dotx) + " , "s +
+				   std::to_string(doty) + ")";
+		}
 	};
 
 	/** Returns all constant references to X,Y coordinates and velocities of a
@@ -143,6 +150,22 @@ class CConstraintCommon
 
 	/** The indices of each point in the state vector "q" */
 	mutable std::array<Point2ToDOF, NUM_POINTS> pointDOFs_;
+
+	std::string pointDOFsAsString() const
+	{
+		std::string ret;
+		for (size_t i = 0; i < NUM_POINTS; i++)
+		{
+			ret += "point[";
+			ret += std::to_string(i);
+			ret += "]: dof_x=";
+			ret += std::to_string(pointDOFs_[i].dof_x);
+			ret += " dof_y=";
+			ret += std::to_string(pointDOFs_[i].dof_y);
+			ret += "\n";
+		}
+		return ret;
+	}
 
 	std::array<size_t, NUM_RELATIVE_COORDS> relativeCoordIndexInQ_;
 

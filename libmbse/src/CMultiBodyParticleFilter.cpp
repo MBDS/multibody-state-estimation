@@ -63,10 +63,10 @@ void CMultiBodyParticleFilter::run_PF_step(
 	const double t_step2 = t_step * 0.5;
 	const double t_step6 = t_step / 6.0;
 
-	Eigen::VectorXd q0;  // Backup of state.
+	Eigen::VectorXd q0;	 // Backup of state.
 	Eigen::VectorXd k1, k2, k3, k4;
-	Eigen::VectorXd v1, v2, v3, v4;  // \dot{q}
-	Eigen::VectorXd ddotz1, ddotz2, ddotz3, ddotz4;  // \ddot{q}
+	Eigen::VectorXd v1, v2, v3, v4;	 // \dot{q}
+	Eigen::VectorXd ddotz1, ddotz2, ddotz3, ddotz4;	 // \ddot{q}
 	Eigen::VectorXd q_incr, dotz_incr;
 	Eigen::VectorXd dotz_noise;
 
@@ -94,8 +94,10 @@ void CMultiBodyParticleFilter::run_PF_step(
 				// cur_time = t;
 				v1 = part->num_model.dotq_;
 				// No change needed: part->num_model.q_ = q0;
-				part->dyn_simul->solve_ddotz(
-					t, ddotz1, true /* can choose indep. coords */);
+
+				part->dyn_simul->can_choose_indep_coords_ = true;
+				part->dyn_simul->solve_ddotz(t, ddotz1);
+				part->dyn_simul->can_choose_indep_coords_ = false;
 
 				// k2 = f(t+At/2,y+At/2*k1)
 				// cur_time = t + t_step2;
@@ -107,9 +109,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 				part->dyn_simul->correct_dependent_q_dq();
 
 				v2 = part->num_model.dotq_;
-				part->dyn_simul->solve_ddotz(
-					t + t_step2, ddotz2,
-					false /* don't change again the indep. coords */);
+				part->dyn_simul->solve_ddotz(t + t_step2, ddotz2);
 
 				// k3 = f(t+At/2,y+At/2*k2)
 				// cur_time = t + t_step2;
@@ -122,9 +122,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 				part->dyn_simul->correct_dependent_q_dq();
 
 				v3 = part->num_model.dotq_;
-				part->dyn_simul->solve_ddotz(
-					t + t_step2, ddotz3,
-					false /* don't change again the indep. coords */);
+				part->dyn_simul->solve_ddotz(t + t_step2, ddotz3);
 
 				// k4 = f(t+At  ,y+At*k3)
 				// cur_time = t + t_step;
@@ -135,9 +133,7 @@ void CMultiBodyParticleFilter::run_PF_step(
 				part->dyn_simul->correct_dependent_q_dq();
 
 				v4 = part->num_model.dotq_;
-				part->dyn_simul->solve_ddotz(
-					t + t_step, ddotz4,
-					false /* don't change again the indep. coords */);
+				part->dyn_simul->solve_ddotz(t + t_step, ddotz4);
 
 				// Runge-Kutta 4th order formula:
 				q_incr = t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
@@ -217,9 +213,9 @@ void CMultiBodyParticleFilter::run_PF_step(
 	{
 		// printf("[PF] Resampling particles (ESS was %.02f)\n", curESS);
 
-		size_t nNewParts = nParts;  // std::max(40.0, nParts*0.95 );
+		size_t nNewParts = nParts;	// std::max(40.0, nParts*0.95 );
 
-		this->performResampling(PF_options, nNewParts);  // Resample
+		this->performResampling(PF_options, nNewParts);	 // Resample
 
 		out_info.resampling_done = true;
 	}

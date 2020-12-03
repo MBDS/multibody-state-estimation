@@ -28,13 +28,10 @@ CDynamicSimulatorIndepBase::CDynamicSimulatorIndepBase(
 // Virtual destructor: requird for virtual bases
 CDynamicSimulatorIndepBase::~CDynamicSimulatorIndepBase() {}
 
-/** Solve for the current independent accelerations
- *  You MUST call prepare() before this method. */
-void CDynamicSimulatorIndepBase::solve_ddotz(
-	double t, VectorXd& ddot_z, bool can_choose_indep_coords)
+void CDynamicSimulatorIndepBase::solve_ddotz(double t, VectorXd& ddot_z)
 {
 	ASSERT_(init_);
-	this->internal_solve_ddotz(t, ddot_z, can_choose_indep_coords);
+	this->internal_solve_ddotz(t, ddot_z);
 }
 
 // Run simulation:
@@ -75,8 +72,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 		{
 			case ODE_Euler:
 			{
-				this->internal_solve_ddotz(
-					t, ddotz1, true /* can choose indep. coords */);
+				this->internal_solve_ddotz(t, ddotz1);
 				arm_->q_ += t_step * arm_->dotq_;
 				// arm_->dotq_ += t_step * ddotz1;
 				this->dq_plus_dz(arm_->dotq_, t_step * ddotz1, arm_->dotq_);
@@ -87,15 +83,16 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 
 			case ODE_RK4:
 			{
-				q0 = arm_->q_;  // Make backup copy of state (velocities will
+				q0 = arm_->q_;	// Make backup copy of state (velocities will
 								// be in "v1")
 
 				// k1 = f(t,y);
 				// cur_time = t;
 				v1 = arm_->dotq_;
 				// No change needed: arm_->q_ = q0;
-				this->internal_solve_ddotz(
-					t, ddotz1, true /* can choose indep. coords */);
+				can_choose_indep_coords_ = true;
+				this->internal_solve_ddotz(t, ddotz1);
+				can_choose_indep_coords_ = false;  // don't change indep. coords
 
 				// k2 = f(t+At/2,y+At/2*k1)
 				// cur_time = t + t_step2;
@@ -106,9 +103,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				this->correct_dependent_q_dq();
 
 				v2 = arm_->dotq_;
-				this->internal_solve_ddotz(
-					t + t_step2, ddotz2,
-					false /* don't change again the indep. coords */);
+				this->internal_solve_ddotz(t + t_step2, ddotz2);
 
 				// k3 = f(t+At/2,y+At/2*k2)
 				// cur_time = t + t_step2;
@@ -120,9 +115,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				this->correct_dependent_q_dq();
 
 				v3 = arm_->dotq_;
-				this->internal_solve_ddotz(
-					t + t_step2, ddotz3,
-					false /* don't change again the indep. coords */);
+				this->internal_solve_ddotz(t + t_step2, ddotz3);
 
 				// k4 = f(t+At  ,y+At*k3)
 				// cur_time = t + t_step;
@@ -132,9 +125,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 				this->correct_dependent_q_dq();
 
 				v4 = arm_->dotq_;
-				this->internal_solve_ddotz(
-					t + t_step, ddotz4,
-					false /* don't change again the indep. coords */);
+				this->internal_solve_ddotz(t + t_step, ddotz4);
 
 				// Runge-Kutta 4th order formula:
 				arm_->q_ = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
@@ -162,7 +153,9 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 
 				// First attempt:
 				Eigen::VectorXd ddz0;
-				this->internal_solve_ddotz(ddz0, true /* can choose indep. coords */);
+				this->can_choose_indep_coords_=true;
+				this->internal_solve_ddotz(ddz0, true);
+				this->can_choose_indep_coords_=false;
 
 				Eigen::VectorXd  q_new =  q0 + t_step*dq0 + 0.5*t_step_sq*ddq0;
 				Eigen::VectorXd dq_new;
@@ -182,7 +175,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 					q_old = q_new;
 
 					// Solve at the new predicted state "t=k+1":
-					this->internal_solve_ddotz(ddotz1, false /* don't choose indep. coords */);
+					this->internal_solve_ddotz(ddotz1);
 					//this->solve_ddotq(ddotq1);
 
 					// integrator (trapezoidal rule)

@@ -133,13 +133,15 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 			else
 				valuesForQ.insert(Q(1), q);
 
-			std::cout << "Evaluating test for t=" << t << "\n";
+			std::cout << "=================================================\n"
+						 "Evaluating test for t="
+					  << t << "\n";
 			std::cout << "q  =" << aMBS->q_.transpose() << "\n";
 			std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
 			std::cout << "ddq =" << aMBS->ddotq_.transpose() << "\n";
 			std::cout << "z   = " << z.transpose() << "\n";
 			std::cout << "dz  = " << dotz.transpose() << "\n";
-			std::cout << "ddz = " << ddotz.transpose() << "\n";
+			std::cout << "ddz = " << ddotz.transpose() << std::endl;
 			// valuesForQ.print("valuesForQ:");
 
 			// Evaluate theoretical Jacobians:
@@ -176,14 +178,15 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 					x_incr, p, H_num[i]);
 
 				// Check:
+				std::cout << "H[" << i << "] Theoretical:\n"
+						  << H[i]
+						  << "\n"
+							 "H_num["
+						  << i << "] Numerical:\n"
+						  << H_num[i] << "\n";
+
 				EXPECT_NEAR(
-					(H[i] - H_num[i]).array().abs().maxCoeff(), 0.0, 1e-2)
-					<< "H[" << i << "] Theoretical:\n"
-					<< H[i]
-					<< "\n"
-					   "H_num["
-					<< i << "] Numerical:\n"
-					<< H_num[i] << "\n";
+					(H[i] - H_num[i]).array().abs().maxCoeff(), 0.0, 1e-2);
 			}
 			timlog.leave("factorsDyn.Indepnumeric_jacob");
 		}
