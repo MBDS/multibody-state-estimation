@@ -138,7 +138,7 @@ void removeColumns(MATRIX& m, const std::vector<std::size_t>& idxsToRemove)
 /** Extract a subset from a vector (e.g. to extract independent coordinates z
  * from q) */
 template <class VECTOR>
-VECTOR subset(VECTOR& v, const std::vector<std::size_t>& idxsToExtract)
+VECTOR subset(const VECTOR& v, const std::vector<std::size_t>& idxsToExtract)
 {
 	VECTOR ret;
 	ret.resize(idxsToExtract.size());
