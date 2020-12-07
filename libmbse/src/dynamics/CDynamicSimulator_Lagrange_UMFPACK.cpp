@@ -23,8 +23,8 @@ CDynamicSimulator_Lagrange_UMFPACK::CDynamicSimulator_Lagrange_UMFPACK(
 	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering(orderAMD),
-	  numeric_(NULL),
-	  symbolic_(NULL)
+	  numeric_(nullptr),
+	  symbolic_(nullptr)
 {
 }
 
@@ -123,12 +123,12 @@ CDynamicSimulator_Lagrange_UMFPACK::~CDynamicSimulator_Lagrange_UMFPACK()
 	if (symbolic_)
 	{
 		umfpack_di_free_symbolic(&symbolic_);
-		symbolic_ = NULL;
+		symbolic_ = nullptr;
 	}
 	if (numeric_)
 	{
 		umfpack_di_free_numeric(&numeric_);
-		numeric_ = NULL;
+		numeric_ = nullptr;
 	}
 }
 
@@ -181,7 +181,7 @@ void CDynamicSimulator_Lagrange_UMFPACK::internal_solve_ddotq(
 	if (numeric_)
 	{
 		umfpack_di_free_numeric(&numeric_);
-		numeric_ = NULL;
+		numeric_ = nullptr;
 	}
 	int errorCode = umfpack_di_numeric(
 		A_.outerIndexPtr(), A_.innerIndexPtr(), A_.valuePtr(), symbolic_,

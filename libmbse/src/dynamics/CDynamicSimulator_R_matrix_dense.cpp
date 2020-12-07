@@ -42,7 +42,7 @@ void CDynamicSimulator_R_matrix_dense::internal_prepare()
 void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
-	if (lagrangre != NULL)
+	if (lagrangre != nullptr)
 	{
 		THROW_EXCEPTION("This class can't compute lagrange multipliers");
 	}

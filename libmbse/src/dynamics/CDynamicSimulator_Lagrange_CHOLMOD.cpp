@@ -25,10 +25,10 @@ CDynamicSimulator_Lagrange_CHOLMOD::CDynamicSimulator_Lagrange_CHOLMOD(
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering_M(orderAMD),
 	  ordering_EEt(orderAMD),
-	  mass_tri_(NULL),
-	  mass_(NULL),
-	  Lm_(NULL),
-	  Phi_q_t_tri_(NULL)
+	  mass_tri_(nullptr),
+	  mass_(nullptr),
+	  Lm_(nullptr),
+	  Phi_q_t_tri_(nullptr)
 {
 }
 
@@ -51,14 +51,14 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// Build mass matrix now and don't touch it anymore, since it's constant
 	// with this formulation:
 	mass_tri_ = arm_->buildMassMatrix_sparse_CHOLMOD(cholmod_common_);
-	ASSERT_(mass_tri_ != NULL);
+	ASSERT_(mass_tri_ != nullptr);
 
 	// 1) M = Lm * Lm^t
 	//  Analize Mass matrix and build symbolic decomposition:
 	// ---------------------------------------
 	cholmod_sparse* mass_ =
 		cholmod_triplet_to_sparse(mass_tri_, mass_tri_->nnz, &cholmod_common_);
-	ASSERT_(mass_ != NULL);
+	ASSERT_(mass_ != nullptr);
 
 	cholmod_common_.nmethods = 1;
 	switch (this->ordering_M)
@@ -86,7 +86,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// save_matrix( mass_, "M.txt",  &cholmod_common_);
 
 	Lm_ = cholmod_analyze(mass_, &cholmod_common_);
-	ASSERT_(Lm_ != NULL);
+	ASSERT_(Lm_ != nullptr);
 
 	if (cholmod_common_.status != CHOLMOD_OK)
 		THROW_EXCEPTION("CHOLMOD couldn't symbolic factorize M");
@@ -123,10 +123,10 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// Allocate RHS vectors:
 	Q_ =
 		cholmod_allocate_dense(nDOFs, 1, nDOFs, CHOLMOD_REAL, &cholmod_common_);
-	ASSERT_(Q_ != NULL);
+	ASSERT_(Q_ != nullptr);
 	c_ = cholmod_allocate_dense(
 		nConstraints, 1, nConstraints, CHOLMOD_REAL, &cholmod_common_);
-	ASSERT_(c_ != NULL);
+	ASSERT_(c_ != nullptr);
 
 	// Build the structure of E once so we can build its symbolic decomposition
 	// just once now:
@@ -134,7 +134,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	// Compress sparse matrix Phi_q_t:
 	cholmod_sparse* Phi_q_t = cholmod_triplet_to_sparse(
 		Phi_q_t_tri_, Phi_q_t_tri_->nnz, &cholmod_common_);
-	ASSERTDEB_(Phi_q_t != NULL);
+	ASSERTDEB_(Phi_q_t != nullptr);
 
 	// Solve:
 	//   L   *   X   = B
@@ -142,10 +142,10 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	//
 	cholmod_sparse* E_t =
 		cholmod_spsolve(CHOLMOD_L /*Lx=b*/, Lm_, Phi_q_t, &cholmod_common_);
-	ASSERTDEB_(E_t != NULL);
+	ASSERTDEB_(E_t != nullptr);
 	cholmod_sparse* E = cholmod_transpose(
 		E_t, 2 /* A' complex conjugate transpose */, &cholmod_common_);
-	ASSERTDEB_(E != NULL);
+	ASSERTDEB_(E != nullptr);
 
 	//  T = E * E^t
 	//  T = Lt * Lt^t
@@ -174,7 +174,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_prepare()
 	};
 
 	Lt_ = cholmod_analyze(E, &cholmod_common_);
-	ASSERT_(Lt_ != NULL);
+	ASSERT_(Lt_ != nullptr);
 
 	if (cholmod_common_.status != CHOLMOD_OK)
 		THROW_EXCEPTION("CHOLMOD couldn't symbolic factorize EE'");
@@ -243,7 +243,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	timelog().enter("solver_ddotq.ccs");
 	cholmod_sparse* Phi_q_t = cholmod_triplet_to_sparse(
 		Phi_q_t_tri_, Phi_q_t_tri_->nnz, &cholmod_common_);
-	ASSERTDEB_(Phi_q_t != NULL);
+	ASSERTDEB_(Phi_q_t != nullptr);
 	timelog().leave("solver_ddotq.ccs");
 
 	// Solve:
@@ -253,11 +253,11 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	timelog().enter("solver_ddotq.solve_E");
 	cholmod_sparse* E_t =
 		cholmod_spsolve(CHOLMOD_L /*Lx=b*/, Lm_, Phi_q_t, &cholmod_common_);
-	ASSERTDEB_(E_t != NULL);
+	ASSERTDEB_(E_t != nullptr);
 
 	cholmod_sparse* E = cholmod_transpose(
 		E_t, 2 /* A' complex conjugate transpose */, &cholmod_common_);
-	ASSERTDEB_(E != NULL);
+	ASSERTDEB_(E != nullptr);
 	timelog().leave("solver_ddotq.solve_E");
 
 	//  T = E * E^t
@@ -281,7 +281,7 @@ void CDynamicSimulator_Lagrange_CHOLMOD::internal_solve_ddotq(
 	// Solve: Lm x2 = Q
 	cholmod_dense* x2 =
 		cholmod_solve(CHOLMOD_L /*Lx=b*/, Lm_, Q_, &cholmod_common_);
-	ASSERTDEB_(x2 != NULL);
+	ASSERTDEB_(x2 != nullptr);
 
 	// Solve: l2 = Lt \ (E*x2-c)
 	double one[2] = {1, 0}, m1[2] = {-1, 0};  // Scalars: 1 and -1

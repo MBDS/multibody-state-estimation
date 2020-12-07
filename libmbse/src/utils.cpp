@@ -27,7 +27,7 @@ bool mbse::save_matrix(
 	FILE* f = mrpt::system::os::fopen(filename, "wt");
 	if (!f) return false;
 
-	const int ret = cholmod_write_sparse(f, tri, NULL, NULL, c);
+	const int ret = cholmod_write_sparse(f, tri, nullptr, nullptr, c);
 
 	fclose(f);
 
@@ -42,7 +42,7 @@ bool mbse::save_matrix_dense(
 
 	cholmod_dense* d = cholmod_sparse_to_dense(tri, c);
 
-	const int ret = cholmod_write_dense(f, d, NULL, c);
+	const int ret = cholmod_write_dense(f, d, nullptr, c);
 
 	cholmod_free_dense(&d, c);
 

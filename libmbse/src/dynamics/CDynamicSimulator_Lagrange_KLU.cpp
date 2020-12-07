@@ -22,8 +22,8 @@ CDynamicSimulator_Lagrange_KLU::CDynamicSimulator_Lagrange_KLU(
 	const std::shared_ptr<CAssembledRigidModel> arm_ptr)
 	: CDynamicSimulatorBase(arm_ptr),
 	  ordering(orderCOLAMD),  // COLAMD is more efficient than AMD
-	  numeric_(NULL),
-	  symbolic_(NULL)
+	  numeric_(nullptr),
+	  symbolic_(nullptr)
 {
 	klu_defaults(&common_);
 }

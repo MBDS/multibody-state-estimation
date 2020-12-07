@@ -76,7 +76,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 				const CompressedRowSparseMatrix::row_t& row_r =
 					arm_->Phi_q_.matrix[row];
 
-				const double *Phi_r_i = NULL, *Phi_r_j = NULL;
+				const double *Phi_r_i = nullptr, *Phi_r_j = nullptr;
 
 				for (CompressedRowSparseMatrix::row_t::const_iterator itCol =
 						 row_r.begin();
@@ -105,7 +105,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_prepare()
 				sdp.out_ptr1 = const_cast<double*>(&(A_tri_.back().value()));
 
 				// And also (j,i) if i!=j:
-				sdp.out_ptr2 = NULL;
+				sdp.out_ptr2 = nullptr;
 				if (i != j)
 				{
 					A_tri_.push_back( Eigen::Triplet<double>(j,i, 1.0 /* a dummy value, it'll be updated later on by reference */ ) );
@@ -187,7 +187,7 @@ void CDynamicSimulator_AugmentedLagrangian_KLU::internal_solve_ddotq(
 	// Get "Q":
 	// KLU leaves solution in the same place than the input RHS vector:
 	Eigen::VectorXd ddotq_prev(nDepCoords), ddotq_next(nDepCoords);
-	this->build_RHS(&ddotq_prev[0] /* Q */, NULL /* we don't need "c" */);
+	this->build_RHS(&ddotq_prev[0] /* Q */, nullptr /* we don't need "c" */);
 
 	klu_solve(symbolic_M_, numeric_M_, M_.cols(), 1, &ddotq_prev[0], &common_);
 

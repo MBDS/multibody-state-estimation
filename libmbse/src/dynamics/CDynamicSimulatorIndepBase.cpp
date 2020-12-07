@@ -218,7 +218,7 @@ void CDynamicSimulatorIndepBase::internal_solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
 	ASSERTMSG_(
-		lagrangre == NULL,
+		lagrangre == nullptr,
 		"This solver uses independent coordinates, so it can't determine the "
 		"lagrange multipliers as requested!");
 

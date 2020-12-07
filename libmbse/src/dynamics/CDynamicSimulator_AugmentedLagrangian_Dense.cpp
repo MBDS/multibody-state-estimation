@@ -61,7 +61,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	// Get "Q":
 	// KLU leaves solution in the same place than the input RHS vector:
 	Eigen::VectorXd ddotq_prev(nDepCoords), ddotq_next(nDepCoords);
-	this->build_RHS(&ddotq_prev[0] /* Q */, NULL /* we don't need "c" */);
+	this->build_RHS(&ddotq_prev[0] /* Q */, nullptr /* we don't need "c" */);
 
 	ddotq_prev = M_ldlt_.solve(ddotq_prev);
 

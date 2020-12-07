@@ -103,12 +103,12 @@ class CAssembledRigidModel
 
 	struct TComputeDependentResults
 	{
-		TComputeDependentResults() : pos_final_phi(0), ddotq(NULL) {}
+		TComputeDependentResults() : pos_final_phi(0), ddotq(nullptr) {}
 
 		double pos_final_phi;  //!< Output for the final Phi(q) after refining
 							   //!< positions (only valid if update_q=true).
-		Eigen::VectorXd* ddotq;	 //!< Output for ddot{q}, only used if !=NULL
-								 //!< AND the input ddotz!=NULL
+		Eigen::VectorXd* ddotq;	 //!< Output for ddot{q}, only used if !=nullptr
+								 //!< AND the input ddotz!=nullptr
 	};
 
 	/** Update dependent coordinates, velocities and accelerations from current
@@ -117,7 +117,7 @@ class CAssembledRigidModel
 		const std::vector<size_t>& z_indices, bool update_q, bool update_dq,
 		const TComputeDependentParams& params,
 		TComputeDependentResults& out_results,
-		const Eigen::VectorXd* ddotz = NULL);
+		const Eigen::VectorXd* ddotz = nullptr);
 
 	/** Form a dense matrix from the sparse Jacobian dPhi_dq \note This method
 	 * does NOT call update_numeric_Phi_and_Jacobians(), do it if required

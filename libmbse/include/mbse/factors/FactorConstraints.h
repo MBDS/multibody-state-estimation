@@ -16,11 +16,8 @@
 
 namespace mbse
 {
-/** Factor for contraints
- * Here the constraints equation Phi(q)=0 is implmented
+/** Factor for generalized coordinate contraints Phi(q)=0.
  */
-
-// Create derived class "ConstraintsFactor" from superclass "NoiseModelFactor3"
 class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 {
    private:

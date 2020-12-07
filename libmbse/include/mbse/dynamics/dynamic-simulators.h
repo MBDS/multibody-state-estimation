@@ -119,7 +119,8 @@ class CDynamicSimulatorBase
 	 *  You MUST call prepare() before this method.
 	 */
 	virtual void solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr);
 
 	/** Integrators will call this before solve_ddotq() once per time step */
 	virtual void pre_iteration(double t) {}
@@ -173,7 +174,7 @@ class CDynamicSimulatorBase
 	/** Solve for the current accelerations */
 	virtual void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
-		Eigen::VectorXd* lagrangre = NULL) = 0;
+		Eigen::VectorXd* lagrangre = nullptr) = 0;
 
 	/** Implement a especific combination of dynamic formulation + integrator.
 	 *  \return false if it's not implemented, so it should fallback to generic
@@ -218,7 +219,7 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
 	 * \return The actual final time of the simulation, which will always be >=
 	 * t_end. It may be >t_end due the fixed time step of some integrators.
 	 */
-	virtual double run(const double t_ini, const double t_end);
+	double run(const double t_ini, const double t_end) override;
 
 	/** Solve for the current independent accelerations
 	 *  You MUST call prepare() before this method.
@@ -246,8 +247,9 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
 
    protected:
 	/** Wrapper for ddotq computation, from ddotz */
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	/** Solve for the current accelerations of independent coords */
 	virtual void internal_solve_ddotz(double t, Eigen::VectorXd& ddot_z) = 0;
@@ -264,9 +266,10 @@ class CDynamicSimulator_Lagrange_LU_dense : public CDynamicSimulatorBase
 		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	Eigen::MatrixXd mass_;	//!< The MBS constant mass matrix
 };
@@ -278,9 +281,10 @@ class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
 		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	Eigen::MatrixXd mass_;	//!< The MBS constant mass matrix
 };
@@ -335,9 +339,10 @@ class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
 		ordering_EEt;  //!< The ordering algorithm for factorizing E*E'
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	cholmod_common cholmod_common_;
 	cholmod_triplet* mass_tri_;
@@ -364,7 +369,7 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
 	void internal_prepare() override;
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
-		Eigen::VectorXd* lagrangre = NULL) override;
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>
@@ -390,9 +395,10 @@ class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
 	TOrderingMethods ordering;
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>
@@ -442,16 +448,17 @@ class CDynamicSimulator_AugmentedLagrangian_KLU
 	const Eigen::SparseMatrix<double>& getA() const { return A_; }
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	struct TSparseDotProduct
 	{
 		std::vector<std::pair<const double*, const double*>> lst_terms;
 		double *out_ptr1,
 			*out_ptr2;	//!< Store the result of the dot product in these
-						//!< pointers, if they are not NULL.
+						//!< pointers, if they are not nullptr.
 	};
 
 	std::vector<Eigen::Triplet<double>> A_tri_,
@@ -475,12 +482,13 @@ class CDynamicSimulator_AugmentedLagrangian_Dense
 	virtual ~CDynamicSimulator_AugmentedLagrangian_Dense();
 
 	/** Integrators will call this after each time step */
-	virtual void post_iteration(double t);
+	void post_iteration(double t) override;
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	Eigen::MatrixXd M_;	 //!< The MBS constant mass matrix
 	Eigen::LDLT<Eigen::MatrixXd> M_ldlt_;
@@ -498,19 +506,20 @@ class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
 	virtual ~CDynamicSimulator_ALi3_Dense();
 
 	/** Integrators will call this after each time step */
-	virtual void post_iteration(double t);
+	void post_iteration(double t) override;
 
    private:
-	virtual void internal_prepare();
-	virtual void internal_solve_ddotq(
-		double t, Eigen::VectorXd& ddot_q, Eigen::VectorXd* lagrangre = NULL);
+	void internal_prepare() override;
+	void internal_solve_ddotq(
+		double t, Eigen::VectorXd& ddot_q,
+		Eigen::VectorXd* lagrangre = nullptr) override;
 
 	/** Implement a especific combination of dynamic formulation + integrator.
 	 *  \return false if it's not implemented, so it should fallback to generic
 	 * integrator + internal_solve_ddotq()
 	 */
-	virtual bool internal_integrate(
-		double t, double dt, const ODE_integrator_t integr);
+	bool internal_integrate(
+		double t, double dt, const ODE_integrator_t integr) override;
 
 	Eigen::MatrixXd M_;	 //!< The MBS constant mass matrix
 	Eigen::LDLT<Eigen::MatrixXd> M_ldlt_;

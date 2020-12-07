@@ -83,7 +83,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 
 		// phi_0 = phi(q,l,x);
 		// Get "Q" (may be dynamic)
-		this->build_RHS(&Q[0] /* Q */, NULL /* we don't need "c" */);
+		this->build_RHS(&Q[0] /* Q */, nullptr /* we don't need "c" */);
 		// Q = Qg +[0;0;0;0;-k_m*(q(5)-L_0)-c_m*qp(5)];
 
 		Eigen::VectorXd RHS =
@@ -154,7 +154,7 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 	// Get "Q":
 	// KLU leaves solution in the same place than the input RHS vector:
 	Eigen::VectorXd Q(nDepCoords);
-	this->build_RHS(&Q[0] /* Q */, NULL /* we don't need "c" */);
+	this->build_RHS(&Q[0] /* Q */, nullptr /* we don't need "c" */);
 
 	// 2) Iterate:
 	// ---------------------------

@@ -32,17 +32,17 @@ using namespace mrpt::math;
 //						EXPERIMENT CONFIGURATION
 // ===================================================================
 const size_t NUM_PARTS =
-	getenv("PF_NUM_SAMPLES") != NULL ? atoi(getenv("PF_NUM_SAMPLES")) : 500;
+	getenv("PF_NUM_SAMPLES") != nullptr ? atoi(getenv("PF_NUM_SAMPLES")) : 500;
 
 // PF's sensor model: 1 sigma of the assumed noise (in meters)
 const double PF_MOTION_MODEL_NOISE_XY =
-	getenv("PF_MOTION_MODEL_NOISE_XY") != NULL
+	getenv("PF_MOTION_MODEL_NOISE_XY") != nullptr
 		? atof(getenv("PF_MOTION_MODEL_NOISE_XY"))
 		: 1;
 
 // Gyro's assumed noise (1 sigma) (deg/s)
 const double PF_SENSOR_NOISE_STD = DEG2RAD(
-	getenv("PF_SENSOR_NOISE_STD") != NULL
+	getenv("PF_SENSOR_NOISE_STD") != nullptr
 		? atof(getenv("PF_SENSOR_NOISE_STD"))
 		: 10.0);  // PF's sensor model: 1 sigma of the assumed noise (in meters)
 
@@ -51,16 +51,16 @@ const double REAL_SENSOR_STD = DEG2RAD(0.3);
 
 // Time step lenght (in seconds):
 const double SIMUL_STEP =
-	getenv("SIMUL_STEP") != NULL ? atof(getenv("SIMUL_STEP")) : 5e-3;
+	getenv("SIMUL_STEP") != nullptr ? atof(getenv("SIMUL_STEP")) : 5e-3;
 
 const int DRAW_DECIMATION = 1;
 const int DRAW_DELAY_MS =
-	getenv("DRAW_DELAY_MS") != NULL ? atoi(getenv("DRAW_DELAY_MS")) : 1;
+	getenv("DRAW_DELAY_MS") != nullptr ? atoi(getenv("DRAW_DELAY_MS")) : 1;
 
 // Optionally: modify mass of body #1 by a factor different than 1.0 to force
 // the PF to track an incorrectly modeled system:
 const double IMPERFECT_PF_MODEL_ERROR =
-	getenv("IMPERFECT_PF_MODEL_ERROR") != NULL
+	getenv("IMPERFECT_PF_MODEL_ERROR") != nullptr
 		? atof(getenv("IMPERFECT_PF_MODEL_ERROR"))
 		: 1;
 
