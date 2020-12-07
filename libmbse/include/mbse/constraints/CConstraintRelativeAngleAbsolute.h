@@ -47,6 +47,8 @@ class CConstraintRelativeAngleAbsolute
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
 
    protected:
+	/** Proxy for length between the two points */
+	mutable double L_ = .0, Lsqr_ = .0;
 };
 
 }  // namespace mbse

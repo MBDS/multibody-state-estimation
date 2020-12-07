@@ -35,7 +35,17 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 
 	const double Ax = p[1].x - p[0].x;
 	const double Ay = p[1].y - p[0].y;
-	const double L = std::sqrt(Ax * Ax + Ay * Ay);
+
+	// Always recalculating L leads to failed numerical Jacobian tests,
+	// since it introduces fake dependencies between (x,y) coordinates.
+	const double Lsqr_now = Ax * Ax + Ay * Ay;
+	if (Lsqr_ == 0 || std::abs(Lsqr_ / Lsqr_now - 1.0) > 0.02)
+	{
+		// Update cached values
+		Lsqr_ = Lsqr_now;
+		L_ = std::sqrt(Lsqr_);
+	}
+	const double L = L_;
 
 	const double Adotx = p[1].dotx - p[0].dotx;
 	const double Adoty = p[1].doty - p[0].doty;
