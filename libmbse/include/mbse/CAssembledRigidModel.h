@@ -230,6 +230,14 @@ class CAssembledRigidModel
 	/** Jacobian d(Phiq*dq)_dq (as a sparse matrix) */
 	CompressedRowSparseMatrix dPhiqdq_dq_;
 
+	/** Jacobian-related tensor-vector product: Phiqq*dotq (as a sparse matrix)
+	 */
+	CompressedRowSparseMatrix Phiqq_times_dq;
+
+	/** Jacobian-related tensor-vector product (as a sparse matrix):
+	 * (d dotPhi_q / d dotq) * dotq  */
+	CompressedRowSparseMatrix d_dotPhiq_ddq_times_dq;
+
 	/** The list of all constraints (of different kinds/classes).
 	 * \note This list DOES include constant-distance constraints (not like
 	 * in the original list in the parent CModelDefinition)

@@ -68,7 +68,7 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 		boost::optional<gtsam::Matrix&> H2 = boost::none) const override;
 
 	/** numberof variable attached to this factor */
-	std::size_t size() const { return 1; }
+	std::size_t size() const { return 2; }
 
    private:
 	/** Serialization function */
@@ -77,7 +77,7 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
 		ar& boost::serialization::make_nvp(
-			"FactorConstraints",
+			"FactorConstraintsVel",
 			boost::serialization::base_object<Base>(*this));
 	}
 };

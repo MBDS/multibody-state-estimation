@@ -158,4 +158,22 @@ void overwrite_subset(
 		v(idxsToOverwrite[i]) = subvector(i);
 }
 
+/** Builds the selector, boolean (1s and 0s) matrix of independent indices. See
+ * paper, sect. 6.7. */
+template <typename MATRIX = Eigen::MatrixXd>
+MATRIX selector_matrix(
+	const std::vector<size_t>& indCoordsIndices, const size_t n)
+{
+	const size_t d = indCoordsIndices.size();
+	ASSERT_(d > 0);
+	ASSERT_(n > 0);
+	MATRIX m = MATRIX::Zero(d, n);
+	for (size_t i = 0; i < d; i++)
+	{
+		const auto idx = indCoordsIndices[i];
+		m(i, idx) = 1.0;
+	}
+	return m;
+}
+
 }  // namespace mbse

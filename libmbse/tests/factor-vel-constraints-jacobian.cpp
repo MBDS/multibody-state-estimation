@@ -15,41 +15,30 @@
 #include <mbse/CAssembledRigidModel.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/factorTesting.h>
-#include <mbse/factors/FactorConstraintsIndep.h>
+#include <mbse/factors/FactorConstraintsVel.h>
 
 using namespace std;
 using namespace mbse;
 
-TEST(Jacobians, FactorConstraintsIndep)
+TEST(Jacobians, FactorVelConstraints)
 {
-	MRPT_START
-
 	// for use in EXPECT_CORRECT_FACTOR_JACOBIANS
-	const auto name_ = "FactorConstraintsIndep";
+	const auto name_ = "FactorVelConstraints";
 #define EXPECT ASSERT_
 
 	using gtsam::symbol_shorthand::A;
 	using gtsam::symbol_shorthand::Q;
 	using gtsam::symbol_shorthand::V;
-	using gtsam::symbol_shorthand::Z;
 	using namespace mbse;
 
 	// Create the multibody object:
 	CModelDefinition model;
-	std::vector<RelativeDOF> rDOFs;
-
 	mbse::buildFourBarsMBS(model);
-	// Add an extra relative coordinate:
-	rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
 
-	auto aMBS = model.assembleRigidMBS(rDOFs);
+	auto aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);
 
-	CDynamicSimulator_Indep_dense dynSimul(aMBS);
-
-	// Enforce the use of the theta angle as independent coordinate:
-	dynSimul.independent_coordinate_indices({4});
-
+	CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
 	// Must be called before solve_ddotq():
 	dynSimul.prepare();
 
@@ -64,25 +53,22 @@ TEST(Jacobians, FactorConstraintsIndep)
 	// Create factor noises:
 	// const auto n = aMBS->q_.size();
 	const auto m = aMBS->Phi_q_.getNumRows();
-	const auto indCoordsInd = dynSimul.independent_coordinate_indices();
-	const auto d = indCoordsInd.size();
-	EXPECT_GT(d, 0);
 
-	auto noise = gtsam::noiseModel::Isotropic::Sigma(m + d, 0.1);
+	auto noise = gtsam::noiseModel::Isotropic::Sigma(m, 0.1);
 
 	// Create a dummy factor:
-	const auto factor =
-		FactorConstraintsIndep(aMBS, indCoordsInd, noise, Z(1), Q(1));
+	const auto factor = FactorConstraintsVel(aMBS, noise, Q(1), V(1));
 
 	// Convert plain Eigen vectors into state_t classes (used as Values
 	// in GTSAM factor graphs):
 	const state_t q = state_t(aMBS->q_);
-	const state_t z = state_t(mbse::subset(q, indCoordsInd));
+	const state_t dotq = state_t(aMBS->dotq_);
+	const state_t ddotq = state_t(aMBS->ddotq_);
 
 	gtsam::Values values;
 	values.insert(Q(1), q);
-	values.insert(Z(1), z);
+	values.insert(V(1), dotq);
+	values.insert(A(1), ddotq);
 
 	EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-9, 1e-3);
-	MRPT_END
 }

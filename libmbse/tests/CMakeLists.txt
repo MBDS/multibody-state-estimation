@@ -61,5 +61,6 @@ mbse_define_test(factor-dynamics-jacobian)
 mbse_define_test(factor-dynamics-icoords-jacobian)
 mbse_define_test(factor-constraints-jacobian)
 mbse_define_test(factor-constraints-icoords-jacobian)
+mbse_define_test(factor-vel-constraints-jacobian)
+mbse_define_test(factor-vel-constraints-icoords-jacobian)
 mbse_define_test(factor-gyroscope-jacobian)
-

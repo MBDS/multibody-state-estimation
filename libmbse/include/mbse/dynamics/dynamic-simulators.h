@@ -26,7 +26,7 @@ struct TPointState
 	mrpt::math::TPoint2D pos, vel;
 };
 
-typedef std::pair<double, TPointState> timestamped_point_t;
+using timestamped_point_t = std::pair<double, TPointState>;
 
 enum TOrderingMethods
 {

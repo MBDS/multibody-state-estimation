@@ -103,8 +103,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 			TSensorData& sd = *it;
 			sd.log.push_back(timestamped_point_t(
 				t, TPointState(
-					   mrpt::math::TPoint2D(*sd.pos[0], *sd.pos[1]),
-					   mrpt::math::TPoint2D(*sd.vel[0], *sd.vel[1]))));
+					   {*sd.pos[0], *sd.pos[1]}, {*sd.vel[0], *sd.vel[1]})));
 		}
 
 		timelog().enter("mbs.run_complete_timestep");
@@ -128,13 +127,14 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 					this->internal_solve_ddotq(t, ddotq1);
 					arm_->q_ += t_step * arm_->dotq_;
 					arm_->dotq_ += t_step * ddotq1;
+					arm_->ddotq_ = ddotq1;
 				}
 				break;
 
 				// -------------------------------------------
 				case ODE_RK4:
 				{
-					q0 = arm_->q_;  // Make backup copy of state (velocities
+					q0 = arm_->q_;	// Make backup copy of state (velocities
 									// will be in "v1")
 
 					// k1 = f(t,y);
@@ -145,20 +145,16 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 
 					// k2 = f(t+At/2,y+At/2*k1)
 					// cur_time = t + t_step2;
-					arm_->dotq_ =
-						v1 +
-						t_step2 *
-							ddotq1;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
+					// \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_1
+					arm_->dotq_ = v1 + t_step2 * ddotq1;
 					arm_->q_ = q0 + t_step2 * v1;
 					v2 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq2);
 
 					// k3 = f(t+At/2,y+At/2*k2)
 					// cur_time = t + t_step2;
-					arm_->dotq_ =
-						v1 +
-						t_step2 *
-							ddotq2;  // \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
+					// \dot{q}= \dot{q}_0 + At/2 * \ddot{q}_2
+					arm_->dotq_ = v1 + t_step2 * ddotq2;
 					arm_->q_ = q0 + t_step2 * v2;
 					v3 = arm_->dotq_;
 					this->internal_solve_ddotq(t + t_step2, ddotq3);
@@ -172,8 +168,9 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 
 					// Runge-Kutta 4th order formula:
 					arm_->q_ = q0 + t_step6 * (v1 + 2 * v2 + 2 * v3 + v4);
-					arm_->dotq_ = v1 + t_step6 * (ddotq1 + 2 * ddotq2 +
-												  2 * ddotq3 + ddotq4);
+					arm_->ddotq_ =
+						(ddotq1 + 2 * ddotq2 + 2 * ddotq3 + ddotq4) / 6.0;
+					arm_->dotq_ = v1 + t_step * arm_->ddotq_;
 				}
 				break;
 
@@ -228,6 +225,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 						// Solve at the new predicted state "t=k+1":
 						arm_->q_ = q_new;
 						arm_->dotq_ = dq_new;
+						arm_->ddotq_ = ddq_mid;
 					}
 
 					ASSERTMSG_(

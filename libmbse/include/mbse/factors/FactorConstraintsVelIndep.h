@@ -16,14 +16,18 @@
 
 namespace mbse
 {
-/** Factor for generalized *independent* coordinate contraints Phi(q)=0.
+/** Factor for contraints velocity (independent coordinates).
+ * Here the constraints equation Phiq(q)*dotq=0 is implemented; for fixed
+ * constraints, Phit(q)=0.
  */
-class FactorConstraintsIndep
-	: public gtsam::NoiseModelFactor2<state_t /*z_t*/, state_t /*q_t*/>
+class FactorConstraintsVelIndep
+	: public gtsam::NoiseModelFactor3<
+		  state_t /*Q*/, state_t /*dotQ*/, state_t /*dotZ*/>
 {
    private:
-	using This = FactorConstraintsIndep;
-	using Base = gtsam::NoiseModelFactor2<state_t /*z_t*/, state_t /*q_t*/>;
+	using This = FactorConstraintsVelIndep;
+	using Base = gtsam::NoiseModelFactor3<
+		state_t /*Q*/, state_t /*dotQ*/, state_t /*dotZ*/>;
 
 	// Class parameters (pointer to type "CConstraintBase")
 	CAssembledRigidModel::Ptr arm_;
@@ -35,16 +39,16 @@ class FactorConstraintsIndep
 	using shared_ptr = boost::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
-	FactorConstraintsIndep() = default;
+	FactorConstraintsVelIndep() = default;
 
 	/** Construcotr */
-	FactorConstraintsIndep(
+	FactorConstraintsVelIndep(
 		const CAssembledRigidModel::Ptr& arm,
 		const std::vector<size_t>& indCoordsIndices,
-		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_z_k,
-		gtsam::Key key_q_k);
+		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
+		gtsam::Key key_dotq_k, gtsam::Key key_z_k);
 
-	virtual ~FactorConstraintsIndep() override;
+	virtual ~FactorConstraintsVelIndep() override;
 
 	// @return a deep copy of this factor
 	virtual gtsam::NonlinearFactor::shared_ptr clone() const override;
@@ -62,12 +66,13 @@ class FactorConstraintsIndep
 	/** implement functions needed to derive from Factor */
 	/** vector of errors */
 	gtsam::Vector evaluateError(
-		const state_t& z_k, const state_t& q_k,
-		boost::optional<gtsam::Matrix&> de_dz = boost::none,
-		boost::optional<gtsam::Matrix&> de_dq = boost::none) const override;
+		const state_t& q_k, const state_t& dotq_k, const state_t& dotz_k,
+		boost::optional<gtsam::Matrix&> de_dq = boost::none,
+		boost::optional<gtsam::Matrix&> de_dqp = boost::none,
+		boost::optional<gtsam::Matrix&> de_dzp = boost::none) const override;
 
 	/** numberof variable attached to this factor */
-	std::size_t size() const { return 2; }
+	std::size_t size() const { return 3; }
 
    private:
 	/** Serialization function */
@@ -76,7 +81,7 @@ class FactorConstraintsIndep
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
 		ar& boost::serialization::make_nvp(
-			"FactorConstraintsIndep",
+			"FactorConstraintsVelIndep",
 			boost::serialization::base_object<Base>(*this));
 	}
 };

@@ -15,7 +15,7 @@
 #include <mbse/CAssembledRigidModel.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/factorTesting.h>
-#include <mbse/factors/FactorConstraintsIndep.h>
+#include <mbse/factors/FactorConstraintsVelIndep.h>
 
 using namespace std;
 using namespace mbse;

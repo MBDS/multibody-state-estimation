@@ -224,6 +224,9 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 		pointDOFs_[ip] = a.getPoints2DOFs()[point_index[ip]];
 	}
 
+	MRPT_TODO("Add Phiqq_times_dq");
+	MRPT_TODO("Add d_dotPhiq_ddq_times_dq");
+
 	// Alloc new rows in the list of constraints:
 	for (size_t ic = 0; ic < NUM_JACOB_ROWS; ic++)
 	{
