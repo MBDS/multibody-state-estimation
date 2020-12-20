@@ -58,7 +58,7 @@ gtsam::Vector FactorConstraints::evaluateError(
 	if (H1)
 	{
 		auto& Hv = H1.value();
-		Hv = arm_->getPhi_q_dense();
+		Hv = arm_->Phi_q_.asDense();
 	}
 
 	return err;

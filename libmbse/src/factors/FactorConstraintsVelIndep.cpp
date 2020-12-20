@@ -43,7 +43,7 @@ void FactorConstraintsVelIndep::print(
 {
 	std::cout << s << "mbde::FactorConstraintsVelIndep("
 			  << keyFormatter(this->key1()) << "," << keyFormatter(this->key2())
-			  << ")\n";
+			  << "," << keyFormatter(this->key3()) << ")\n";
 	noiseModel_->print("  noise model: ");
 }
 
@@ -66,8 +66,6 @@ gtsam::Vector FactorConstraintsVelIndep::evaluateError(
 	if (n < 1) throw std::runtime_error("Empty state vector q_k!");
 	const auto d = dotz_k.size();
 	if (d < 1) throw std::runtime_error("Empty state vector dotz_k!");
-	const auto m = arm_->Phi_.rows();
-	if (m < 1) throw std::runtime_error("Empty Phi() vector!");
 
 	ASSERT_EQUAL_(dotq_k.size(), q_k.size());
 	ASSERT_(q_k.size() > 0);
@@ -79,32 +77,41 @@ gtsam::Vector FactorConstraintsVelIndep::evaluateError(
 	// Update Jacobian and Hessian tensor:
 	arm_->update_numeric_Phi_and_Jacobians();
 
+	const auto m = arm_->Phi_.rows();
+	if (m < 1) throw std::runtime_error("Empty Phi() vector!");
+
 	// Evaluate error:
-	const Eigen::MatrixXd Phi_q = arm_->getPhi_q_dense();
-	const Eigen::MatrixXd dPhiqdq_dq = arm_->getdPhiqdq_dq_dense();
+	const Eigen::MatrixXd Phi_q = arm_->Phi_q_.asDense();
+	const Eigen::MatrixXd dPhiqdq_dq = arm_->dPhiqdq_dq_.asDense();
 
 	gtsam::Vector err = gtsam::Vector::Zero(m + d);
 	err.head(m) = Phi_q * dotq_k;
 	err.tail(d) = mbse::subset(dotq_k, indCoordsIndices_) - dotz_k;
 
 	// Get the Jacobians required for optimization:
+	// (Section 6.8 of the paper)
 	// d err / d q_k
 	if (de_dq)
 	{
 		auto& Hv = de_dq.value();
-		Hv = dPhiqdq_dq;
+		Hv.resize(m + d, n);
+		Hv.block(0, 0, m, n) = arm_->Phiqq_times_dq_.asDense();
+		Hv.block(m, 0, d, n).setZero();
 	}
 
 	if (de_dqp)
 	{
 		auto& Hv = de_dqp.value();
-		Hv = Phi_q;
+		Hv.resize(m + d, n);
+		Hv.block(0, 0, m, n) = arm_->Phi_q_.asDense();
+		Hv.block(m, 0, d, n) = matrix_Iidx_;
 	}
 
 	if (de_dzp)
 	{
-		auto& Hv = de_dqp.value();
-		Hv = Phi_q;
+		auto& Hv = de_dzp.value();
+		Hv.setZero(m + d, d);
+		Hv.block(m, 0, d, d) = -gtsam::Matrix::Identity(d, d);
 	}
 
 	return err;

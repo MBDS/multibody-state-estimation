@@ -40,7 +40,7 @@ double CAssembledRigidModel::refinePosition(
 	{
 		if (rebuild_lu)
 		{
-			this->getPhi_q_dense(Phi_q);
+			Phi_q = Phi_q_.asDense();
 
 			lu_Phiq.compute(Phi_q);
 			rebuild_lu = false;
@@ -89,7 +89,7 @@ double CAssembledRigidModel::finiteDisplacement(
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
 	const size_t nDepCoords = q_.size() - z_indices.size();
-	std::vector<size_t> idxs_d;	 // make a list with the rest of indices
+	std::vector<size_t> idxs_d;  // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
 	for (int i = 0; i < q_.size(); i++)
@@ -105,7 +105,7 @@ double CAssembledRigidModel::finiteDisplacement(
 	{
 		if (rebuild_lu)
 		{
-			this->getPhi_q_dense(Phi_q);
+			this->Phi_q_.asDense(Phi_q);
 			mbse::removeColumns(Phi_q, z_indices);
 			lu_Phiq.compute(Phi_q);
 			rebuild_lu = false;
@@ -140,7 +140,7 @@ double CAssembledRigidModel::finiteDisplacement(
 		timelog().enter("finiteDisplacement.dotq");
 
 		Eigen::MatrixXd Phi_q;
-		this->getPhi_q_dense(Phi_q);
+		this->Phi_q_.asDense(Phi_q);
 
 		// qd = Phi_d \ (-Phi_i * dot{q}_i)
 		//      -------------v-------------
@@ -188,7 +188,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
 	const size_t nDepCoords = q_.size() - z_indices.size();
-	std::vector<size_t> idxs_d;	 // make a list with the rest of indices
+	std::vector<size_t> idxs_d;  // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
 	for (int i = 0; i < q_.size(); i++)
@@ -215,7 +215,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		{
 			if (rebuild_lu)
 			{
-				this->getPhi_q_dense(Phi_q);
+				this->Phi_q_.asDense(Phi_q);
 
 				mbse::removeColumns(Phi_q, z_indices);
 
@@ -250,7 +250,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		timelog().enter("computeDependentPosVelAcc.dotq");
 
 		Eigen::MatrixXd Phi_q;
-		this->getPhi_q_dense(Phi_q);
+		this->Phi_q_.asDense(Phi_q);
 
 		// qd = Phi_d \ (-Phi_i * dot{q}_i)
 		//      -------------v-------------
@@ -289,7 +289,7 @@ void CAssembledRigidModel::computeDependentPosVelAcc(
 		const size_t nConstraints = this->Phi_.size();
 
 		Eigen::MatrixXd Phiq;
-		this->getPhi_q_dense(Phiq);
+		this->Phi_q_.asDense(Phiq);
 
 		// ddot{qd} = Phiq_d \ (-Phiq_i * ddot{q}_i - dot{Phi_q} * dotq)
 		//                     ----------------------v-------------------

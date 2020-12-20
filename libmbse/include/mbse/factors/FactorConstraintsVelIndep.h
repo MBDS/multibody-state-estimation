@@ -46,7 +46,7 @@ class FactorConstraintsVelIndep
 		const CAssembledRigidModel::Ptr& arm,
 		const std::vector<size_t>& indCoordsIndices,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
-		gtsam::Key key_dotq_k, gtsam::Key key_z_k);
+		gtsam::Key key_dotq_k, gtsam::Key key_dotz_k);
 
 	virtual ~FactorConstraintsVelIndep() override;
 

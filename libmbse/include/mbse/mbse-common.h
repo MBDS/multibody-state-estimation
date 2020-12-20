@@ -175,6 +175,15 @@ struct CompressedRowSparseMatrix
 				M(row, row_val.first) = row_val.second;
 			}
 	}
+
+	/** Create a dense version of this sparse matrix */
+	template <class MATRIX = Eigen::MatrixXd>
+	MATRIX asDense() const
+	{
+		MATRIX m;
+		asDense(m);
+		return m;
+	}
 };
 
 }  // namespace mbse

@@ -80,7 +80,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::internal_solve_ddotq(
 	// Update numeric values of the constraint Jacobians:
 	arm_->update_numeric_Phi_and_Jacobians();
 
-	arm_->getPhi_q_dense(Phi_q_);
+	arm_->Phi_q_.asDense(Phi_q_);
 	A_ = M_ + params_penalty.alpha * Phi_q_.transpose() * Phi_q_;
 
 	A_lu_.compute(A_);
@@ -158,7 +158,7 @@ void CDynamicSimulator_AugmentedLagrangian_Dense::post_iteration(double t)
 	{
 		// Update numeric values of the constraint Jacobians:
 		arm_->update_numeric_Phi_and_Jacobians();
-		arm_->getPhi_q_dense(Phi_q_);
+		arm_->Phi_q_.asDense(Phi_q_);
 
 		Lambda += params_penalty.alpha * arm_->Phi_;
 

@@ -20,18 +20,24 @@
 using namespace std;
 using namespace mbse;
 
-TEST(Jacobians, FactorConstraintsIndep)
+MRPT_TODO(
+	"Enhance factor tests to also run with other mechanism types with more "
+	"constraint types.");
+
+TEST(Jacobians, FactorVelConstraintsIndep)
 {
 	MRPT_START
 
 	// for use in EXPECT_CORRECT_FACTOR_JACOBIANS
-	const auto name_ = "FactorConstraintsIndep";
+	const auto name_ = "FactorVelConstraintsIndep";
 #define EXPECT ASSERT_
 
-	using gtsam::symbol_shorthand::A;
-	using gtsam::symbol_shorthand::Q;
-	using gtsam::symbol_shorthand::V;
-	using gtsam::symbol_shorthand::Z;
+	const auto Q = gtsam::SymbolGenerator('q');
+	const auto dotQ = gtsam::SymbolGenerator('v');
+	// const auto ddotQ = gtsam::SymbolGenerator('a');
+	// const auto Z = gtsam::SymbolGenerator('z');
+	const auto dotZ = gtsam::SymbolGenerator('x');
+	// const auto ddotZ = gtsam::SymbolGenerator('c');
 	using namespace mbse;
 
 	// Create the multibody object:
@@ -71,17 +77,19 @@ TEST(Jacobians, FactorConstraintsIndep)
 	auto noise = gtsam::noiseModel::Isotropic::Sigma(m + d, 0.1);
 
 	// Create a dummy factor:
-	const auto factor =
-		FactorConstraintsIndep(aMBS, indCoordsInd, noise, Z(1), Q(1));
+	const auto factor = FactorConstraintsVelIndep(
+		aMBS, indCoordsInd, noise, Q(1), dotQ(1), dotZ(1));
 
 	// Convert plain Eigen vectors into state_t classes (used as Values
 	// in GTSAM factor graphs):
 	const state_t q = state_t(aMBS->q_);
-	const state_t z = state_t(mbse::subset(q, indCoordsInd));
+	const state_t dotq = state_t(aMBS->dotq_);
+	const state_t dotz = state_t(mbse::subset(dotq, indCoordsInd));
 
 	gtsam::Values values;
 	values.insert(Q(1), q);
-	values.insert(Z(1), z);
+	values.insert(dotQ(1), dotq);
+	values.insert(dotZ(1), dotz);
 
 	EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-9, 1e-3);
 	MRPT_END

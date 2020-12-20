@@ -90,7 +90,7 @@ gtsam::Vector FactorConstraintsIndep::evaluateError(
 	{
 		auto& Hv = de_dq.value();
 		Hv.resize(m + d, n);
-		Hv.block(0, 0, m, n) = arm_->getPhi_q_dense();
+		Hv.block(0, 0, m, n) = arm_->Phi_q_.asDense();
 		// Build "I_idx", as called in the paper (sect. 6.7)
 		Hv.block(m, 0, d, n) = matrix_Iidx_;
 	}

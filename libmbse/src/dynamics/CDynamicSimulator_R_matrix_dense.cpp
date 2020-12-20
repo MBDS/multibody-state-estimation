@@ -69,7 +69,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	timelog().enter("solver_ddotq.get_dense_jacob");
 
 	Eigen::MatrixXd Phiq(nConstraints, nDepCoords);
-	arm_->getPhi_q_dense(Phiq);
+	arm_->Phi_q_.asDense(Phiq);
 
 	timelog().leave("solver_ddotq.get_dense_jacob");
 

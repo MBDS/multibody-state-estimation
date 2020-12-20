@@ -75,7 +75,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 	const int iter_max = 20;
 
 	arm_->update_numeric_Phi_and_Jacobians();
-	arm_->getPhi_q_dense(Phi_q_);
+	arm_->Phi_q_.asDense(Phi_q_);
 
 	while (err > tol_dyn && iter < iter_max)
 	{
@@ -106,7 +106,7 @@ bool CDynamicSimulator_ALi3_Dense::internal_integrate(
 
 		// phi_0 = phi(q,l,x);
 		arm_->update_numeric_Phi_and_Jacobians();
-		arm_->getPhi_q_dense(Phi_q_);
+		arm_->Phi_q_.asDense(Phi_q_);
 
 		Lambda_ += params_penalty.alpha * arm_->Phi_;
 		err = Aq.norm();
@@ -171,7 +171,7 @@ void CDynamicSimulator_ALi3_Dense::internal_solve_ddotq(
 	// Update numeric values of the constraint Jacobians:
 	arm_->update_numeric_Phi_and_Jacobians();
 
-	arm_->getPhi_q_dense(Phi_q_);
+	arm_->Phi_q_.asDense(Phi_q_);
 	A_ = M_ + params_penalty.alpha * Phi_q_.transpose() * Phi_q_;
 
 	A_lu_.compute(A_);

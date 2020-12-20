@@ -49,26 +49,33 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = 2 * Ax * Adotx + 2 * Ay * Adoty;
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
 	set(j.dPhi_dx[0], -2 * Ax);
 	set(j.dPhi_dy[0], -2 * Ay);
-	set(j.dPhi_dx[1], 2 * Ax);
-	set(j.dPhi_dy[1], 2 * Ay);
+	set(j.dPhi_dx[1], +2 * Ax);
+	set(j.dPhi_dy[1], +2 * Ay);
 
 	// Update Jacobian \dot{dPhi_dq}(i,:)
 	// ----------------------------------
 	set(j.dot_dPhi_dx[0], -2 * Adotx);
 	set(j.dot_dPhi_dy[0], -2 * Adoty);
-	set(j.dot_dPhi_dx[1], 2 * Adotx);
-	set(j.dot_dPhi_dy[1], 2 * Adoty);
+	set(j.dot_dPhi_dx[1], +2 * Adotx);
+	set(j.dot_dPhi_dy[1], +2 * Adoty);
 
 	// Update Jacobian \{\partial Phiq*dq}_{\partial q}(i,:)
 	// --------------------------------------
 	set(j.dPhiqdq_dx[0], -2 * Adotx);
 	set(j.dPhiqdq_dy[0], -2 * Adoty);
-	set(j.dPhiqdq_dx[1], 2 * Adotx);
-	set(j.dPhiqdq_dy[1], 2 * Adoty);
+	set(j.dPhiqdq_dx[1], +2 * Adotx);
+	set(j.dPhiqdq_dy[1], +2 * Adoty);
+
+	// Update  Phiqq*dotq
+	// --------------------------------------
+	set(j.Phiqq_times_dq_dx[0], -2 * Adotx);
+	set(j.Phiqq_times_dq_dy[0], -2 * Adoty);
+	set(j.Phiqq_times_dq_dx[1], +2 * Adotx);
+	set(j.Phiqq_times_dq_dy[1], +2 * Adoty);
 }

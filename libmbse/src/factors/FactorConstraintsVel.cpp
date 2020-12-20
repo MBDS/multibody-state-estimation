@@ -64,7 +64,7 @@ static void num_err_wrt_q(
 	p.arm->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
-	const Eigen::MatrixXd Phi_q = p.arm->getPhi_q_dense();
+	const Eigen::MatrixXd Phi_q = p.arm->Phi_q_.asDense();
 	err = Phi_q * p.arm->dotq_;
 }
 
@@ -79,7 +79,7 @@ static void num_err_wrt_dq(
 	p.arm->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
-	const Eigen::MatrixXd Phi_q = p.arm->getPhi_q_dense();
+	const Eigen::MatrixXd Phi_q = p.arm->Phi_q_.asDense();
 	err = Phi_q * p.arm->dotq_;
 }
 #endif
@@ -105,8 +105,8 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:
-	const Eigen::MatrixXd Phi_q = arm_->getPhi_q_dense();
-	const Eigen::MatrixXd dPhiqdq_dq = arm_->getdPhiqdq_dq_dense();
+	const Eigen::MatrixXd Phi_q = arm_->Phi_q_.asDense();
+	const Eigen::MatrixXd dPhiqdq_dq = arm_->dPhiqdq_dq_.asDense();
 
 	gtsam::Vector err = Phi_q * dotq_k;
 

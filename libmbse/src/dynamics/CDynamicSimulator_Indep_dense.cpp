@@ -80,7 +80,7 @@ void CDynamicSimulator_Indep_dense::internal_solve_ddotz(
 	// Get Jacobian dPhi_dq
 	Eigen::MatrixXd Phiq(nConstraints, nDepCoords);
 	timelog().enter("solver_ddotz.get_dense_jacob");
-	arm_->getPhi_q_dense(Phiq);
+	arm_->Phi_q_.asDense(Phiq);
 	timelog().leave("solver_ddotz.get_dense_jacob");
 
 	size_t nDOFs;

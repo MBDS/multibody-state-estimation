@@ -18,7 +18,7 @@ namespace mbse
  * CAssembledRigidModel that models a CModelDefinition */
 struct TSymbolicAssembledModel
 {
-	const CModelDefinition& model;	//!< My "parent" model
+	const CModelDefinition& model;  //!< My "parent" model
 
 	/** Info on Natural Coordinate DOFs in the problem (same lenth than q_) */
 	std::vector<NaturalCoordinateDOF> DOFs;
@@ -37,7 +37,7 @@ struct TSymbolicAssembledModel
 
 class CAssembledRigidModel
 {
-	friend class CModelDefinition;	// So that class can create instances of
+	friend class CModelDefinition;  // So that class can create instances of
 									// this class.
 
    public:
@@ -82,7 +82,7 @@ class CAssembledRigidModel
 
 	struct TEnergyValues
 	{
-		double E_total;	 //!< Total energy (sum of all other variables)
+		double E_total;  //!< Total energy (sum of all other variables)
 
 		double E_kin;  //!< Kinetic energy
 		double E_pot;  //!< Potential energy
@@ -107,7 +107,7 @@ class CAssembledRigidModel
 
 		double pos_final_phi;  //!< Output for the final Phi(q) after refining
 							   //!< positions (only valid if update_q=true).
-		Eigen::VectorXd* ddotq;	 //!< Output for ddot{q}, only used if !=nullptr
+		Eigen::VectorXd* ddotq;  //!< Output for ddot{q}, only used if !=nullptr
 								 //!< AND the input ddotz!=nullptr
 	};
 
@@ -118,44 +118,6 @@ class CAssembledRigidModel
 		const TComputeDependentParams& params,
 		TComputeDependentResults& out_results,
 		const Eigen::VectorXd* ddotz = nullptr);
-
-	/** Form a dense matrix from the sparse Jacobian dPhi_dq \note This method
-	 * does NOT call update_numeric_Phi_and_Jacobians(), do it if required
-	 * beforehand */
-	inline void getPhi_q_dense(Eigen::MatrixXd& Phi_q) const
-	{
-		Phi_q_.asDense(Phi_q);
-	}
-	inline Eigen::MatrixXd getPhi_q_dense() const
-	{
-		Eigen::MatrixXd m;
-		Phi_q_.asDense(m);
-		return m;
-	}
-
-	/// like getPhi_q_dense() for dotPhi_q
-	inline void getdotPhi_q_dense(Eigen::MatrixXd& dotPhi_q) const
-	{
-		dotPhi_q_.asDense(dotPhi_q);
-	}
-	inline Eigen::MatrixXd getdotPhi_q_dense() const
-	{
-		Eigen::MatrixXd m;
-		dotPhi_q_.asDense(m);
-		return m;
-	}
-
-	/// like getPhi_q_dense() for dotPhi_q
-	inline void getdPhiqdq_dq_dense(Eigen::MatrixXd& dPhiqdq_dq) const
-	{
-		dPhiqdq_dq_.asDense(dPhiqdq_dq);
-	}
-	inline Eigen::MatrixXd getdPhiqdq_dq_dense() const
-	{
-		Eigen::MatrixXd m;
-		dPhiqdq_dq_.asDense(m);
-		return m;
-	}
 
 	/** Retrieves the current coordinates of a point, which may include either
 	 * fixed or variable components */
@@ -185,20 +147,6 @@ class CAssembledRigidModel
 	Eigen::Vector3d gravity_;  //!< The gravity vector (default: [0 -9.81 0])
 
    public:
-	/** @name State vector itself
-		@{ */
-	Eigen::VectorXd q_;	 //!< State vector q with all the unknowns
-	Eigen::VectorXd dotq_;	//!< Velocity vector \dot{q} for all the unknowns
-	Eigen::VectorXd ddotq_;	 //!< The previously computed acceleration vector
-							 //!< \ddot{q} for all the unknowns
-
-	/** External generalized forces (gravity NOT to be included) */
-	Eigen::VectorXd Q_;
-	/**  @} */
-
-	/** @name Other main data, and values computed as a function of the state
-	   vector.
-		@{ */
 	const CModelDefinition& parent_;  //!< A reference to the parent MBS. Use
 									  //!< to access the data of bodies, etc.
 
@@ -216,33 +164,76 @@ class CAssembledRigidModel
 	/** Maps: indices in rDOFs_ ==> indices in "q_" */
 	std::vector<dof_index_t> relCoordinate2Index_;
 
-	/** The vector of numerical values of Phi, the vector of constraint
-	 * functions Phi=0 */
-	Eigen::VectorXd Phi_;
-	Eigen::VectorXd dotPhi_;  //!< numerical values of \dot{\Phi}
+	/** The list of all constraints (of different kinds/classes).
+	 * \note This list DOES include constant-distance constraints (not like
+	 * in the original list in the parent CModelDefinition)
+	 */
+	std::vector<CConstraintBase::Ptr> constraints_;
 
-	/** Jacobian dPhi_dq (as a sparse matrix) */
+	/** @name State vector itself
+		@{ */
+	Eigen::VectorXd q_;  //!< State vector q with all the unknowns
+	Eigen::VectorXd dotq_;  //!< Velocity vector \dot{q} for all the unknowns
+	Eigen::VectorXd ddotq_;  //!< The previously computed acceleration vector
+							 //!< \ddot{q} for all the unknowns
+
+	/** External generalized forces (gravity NOT to be included) */
+	Eigen::VectorXd Q_;
+	/**  @} */
+
+	/** @name Other vectors and matrices, computed as a function of the state
+	 * vector.
+	 * \note You must call update_numeric_Phi_and_Jacobians() to update
+	 * all these fields after updating q,dotq, ddotq.
+	 *
+	 *  @{ */
+
+	/** The vector of numerical values of Phi, the vector of constraint
+	 * functions Phi=0.
+	 *
+	 * Dimensions: m x 1
+	 */
+	Eigen::VectorXd Phi_;
+
+	/** Numerical values of \dot{\Phi}
+	 *
+	 * Dimensions: m x 1
+	 */
+	Eigen::VectorXd dotPhi_;
+
+	void defineSparseMatricesColumnCount(const size_t nDOFs)
+	{
+		Phi_q_.ncols = nDOFs;
+		dotPhi_q_.ncols = nDOFs;
+		dPhiqdq_dq_.ncols = nDOFs;
+		Phiqq_times_dq_.ncols = nDOFs;
+		d_dotPhiq_ddq_times_dq_.ncols = nDOFs;
+	}
+
+	/** Jacobian dPhi_dq (as a sparse matrix)
+	 *
+	 * Dimensions: m x n
+	 */
 	CompressedRowSparseMatrix Phi_q_;
 
-	/** Jacobian d(dPhi_dq)_dt (as a sparse matrix) */
+	/** Jacobian d(dPhi_dq)_dt (as a sparse matrix)
+	 *
+	 * Dimensions: m x n
+	 */
 	CompressedRowSparseMatrix dotPhi_q_;
 
 	/** Jacobian d(Phiq*dq)_dq (as a sparse matrix) */
 	CompressedRowSparseMatrix dPhiqdq_dq_;
 
 	/** Jacobian-related tensor-vector product: Phiqq*dotq (as a sparse matrix)
+	 *
+	 *  Dimensions: m x n
 	 */
-	CompressedRowSparseMatrix Phiqq_times_dq;
+	CompressedRowSparseMatrix Phiqq_times_dq_;
 
 	/** Jacobian-related tensor-vector product (as a sparse matrix):
 	 * (d dotPhi_q / d dotq) * dotq  */
-	CompressedRowSparseMatrix d_dotPhiq_ddq_times_dq;
-
-	/** The list of all constraints (of different kinds/classes).
-	 * \note This list DOES include constant-distance constraints (not like
-	 * in the original list in the parent CModelDefinition)
-	 */
-	std::vector<CConstraintBase::Ptr> constraints_;
+	CompressedRowSparseMatrix d_dotPhiq_ddq_times_dq_;
 
 	/** @} */
 
@@ -299,10 +290,10 @@ class CAssembledRigidModel
 		const Point2& pt, const CBody::TRenderParams& rp) const;
 
    public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW	 // Required for aligned mem allocator (only
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // Required for aligned mem allocator (only
 									 // needed in classes containing fixed-size
 									 // Eigen matrices)
 
-};	// end class CAssembledRigidModel
+};  // end class CAssembledRigidModel
 
 }  // namespace mbse
