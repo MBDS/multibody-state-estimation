@@ -18,7 +18,7 @@ namespace mbse
  * CAssembledRigidModel that models a CModelDefinition */
 struct TSymbolicAssembledModel
 {
-	const CModelDefinition& model;  //!< My "parent" model
+	const CModelDefinition& model;	//!< My "parent" model
 
 	/** Info on Natural Coordinate DOFs in the problem (same lenth than q_) */
 	std::vector<NaturalCoordinateDOF> DOFs;
@@ -37,7 +37,7 @@ struct TSymbolicAssembledModel
 
 class CAssembledRigidModel
 {
-	friend class CModelDefinition;  // So that class can create instances of
+	friend class CModelDefinition;	// So that class can create instances of
 									// this class.
 
    public:
@@ -82,7 +82,7 @@ class CAssembledRigidModel
 
 	struct TEnergyValues
 	{
-		double E_total;  //!< Total energy (sum of all other variables)
+		double E_total;	 //!< Total energy (sum of all other variables)
 
 		double E_kin;  //!< Kinetic energy
 		double E_pot;  //!< Potential energy
@@ -107,7 +107,7 @@ class CAssembledRigidModel
 
 		double pos_final_phi;  //!< Output for the final Phi(q) after refining
 							   //!< positions (only valid if update_q=true).
-		Eigen::VectorXd* ddotq;  //!< Output for ddot{q}, only used if !=nullptr
+		Eigen::VectorXd* ddotq;	 //!< Output for ddot{q}, only used if !=nullptr
 								 //!< AND the input ddotz!=nullptr
 	};
 
@@ -172,9 +172,9 @@ class CAssembledRigidModel
 
 	/** @name State vector itself
 		@{ */
-	Eigen::VectorXd q_;  //!< State vector q with all the unknowns
-	Eigen::VectorXd dotq_;  //!< Velocity vector \dot{q} for all the unknowns
-	Eigen::VectorXd ddotq_;  //!< The previously computed acceleration vector
+	Eigen::VectorXd q_;	 //!< State vector q with all the unknowns
+	Eigen::VectorXd dotq_;	//!< Velocity vector \dot{q} for all the unknowns
+	Eigen::VectorXd ddotq_;	 //!< The previously computed acceleration vector
 							 //!< \ddot{q} for all the unknowns
 
 	/** External generalized forces (gravity NOT to be included) */
@@ -205,9 +205,6 @@ class CAssembledRigidModel
 	{
 		Phi_q_.ncols = nDOFs;
 		dotPhi_q_.ncols = nDOFs;
-		dPhiqdq_dq_.ncols = nDOFs;
-		Phiqq_times_dq_.ncols = nDOFs;
-		d_dotPhiq_ddq_times_dq_.ncols = nDOFs;
 	}
 
 	/** Jacobian dPhi_dq (as a sparse matrix)
@@ -216,24 +213,11 @@ class CAssembledRigidModel
 	 */
 	CompressedRowSparseMatrix Phi_q_;
 
-	/** Jacobian d(dPhi_dq)_dt (as a sparse matrix)
+	/** Jacobian d((d Phi / dq))/dt (as a sparse matrix)
 	 *
 	 * Dimensions: m x n
 	 */
 	CompressedRowSparseMatrix dotPhi_q_;
-
-	/** Jacobian d(Phiq*dq)_dq (as a sparse matrix) */
-	CompressedRowSparseMatrix dPhiqdq_dq_;
-
-	/** Jacobian-related tensor-vector product: Phiqq*dotq (as a sparse matrix)
-	 *
-	 *  Dimensions: m x n
-	 */
-	CompressedRowSparseMatrix Phiqq_times_dq_;
-
-	/** Jacobian-related tensor-vector product (as a sparse matrix):
-	 * (d dotPhi_q / d dotq) * dotq  */
-	CompressedRowSparseMatrix d_dotPhiq_ddq_times_dq_;
 
 	/** @} */
 
@@ -290,10 +274,10 @@ class CAssembledRigidModel
 		const Point2& pt, const CBody::TRenderParams& rp) const;
 
    public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW  // Required for aligned mem allocator (only
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW	 // Required for aligned mem allocator (only
 									 // needed in classes containing fixed-size
 									 // Eigen matrices)
 
-};  // end class CAssembledRigidModel
+};	// end class CAssembledRigidModel
 
 }  // namespace mbse

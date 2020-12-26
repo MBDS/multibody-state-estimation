@@ -104,23 +104,4 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 		set(j.dot_dPhi_drel[0], L * cosTh * w);
 	else
 		set(j.dot_dPhi_drel[0], L * sinTh * w);
-
-	// Update Jacobian \{\partial Phiq*dq}_{\partial q}(i,:)
-	// --------------------------------------
-	if (useCos)
-	{
-		set(j.dPhiqdq_dx[0], -1);
-		set(j.dPhiqdq_dx[1], 1);
-		set(j.dPhiqdq_dy[0], 0);
-		set(j.dPhiqdq_dy[1], 0);
-		set(j.dPhiqdq_drel[0], L * sinTh);
-	}
-	else
-	{
-		set(j.dPhiqdq_dx[0], 0);
-		set(j.dPhiqdq_dx[1], 0);
-		set(j.dPhiqdq_dy[0], -1);
-		set(j.dPhiqdq_dy[1], 1);
-		set(j.dPhiqdq_drel[0], -L * cosTh);
-	}
 }

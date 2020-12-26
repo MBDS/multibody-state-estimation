@@ -90,10 +90,11 @@ class CConstraintCommon
 	 * (generalized coordinates) */
 	PointRef actual_coords(const CAssembledRigidModel& arm, size_t idx) const
 	{
-		return {actual_coord(arm, idx, PointDOF::X),
-				actual_coord(arm, idx, PointDOF::Y),
-				actual_vel(arm, idx, PointDOF::X),
-				actual_vel(arm, idx, PointDOF::Y)};
+		return {
+			actual_coord(arm, idx, PointDOF::X),
+			actual_coord(arm, idx, PointDOF::Y),
+			actual_vel(arm, idx, PointDOF::X),
+			actual_vel(arm, idx, PointDOF::Y)};
 	}
 
 	struct RelCoordRef
@@ -108,8 +109,9 @@ class CConstraintCommon
 	RelCoordRef actual_rel_coords(
 		const CAssembledRigidModel& arm, size_t idxRelativeCoord) const
 	{
-		return {arm.q_[relativeCoordIndexInQ_[idxRelativeCoord]],
-				arm.dotq_[relativeCoordIndexInQ_[idxRelativeCoord]]};
+		return {
+			arm.q_[relativeCoordIndexInQ_[idxRelativeCoord]],
+			arm.dotq_[relativeCoordIndexInQ_[idxRelativeCoord]]};
 	}
 
    protected:
@@ -177,14 +179,6 @@ class CConstraintCommon
 		array_dptr_t dot_dPhi_dx, dot_dPhi_dy;
 		array_relative_dptr_t dot_dPhi_drel;  //!< Jacobians wrt rel coords
 
-		/** Pointers to entries in the sparse Jacobian d(Phiq*dq)_d{\dot{q}) */
-		array_dptr_t dPhiqdq_dx, dPhiqdq_dy;
-		array_relative_dptr_t dPhiqdq_drel;  //!< Jacobians wrt rel coords
-
-		/** Pointers to entries in the sparse Jacobian Phiqq*dotq */
-		array_dptr_t Phiqq_times_dq_dx, Phiqq_times_dq_dy;
-		array_relative_dptr_t Phiqq_times_dq_drel;  //!< wrt rel coords
-
 		JacobRowEntries()
 		{
 			dPhi_dx.fill(nullptr);
@@ -194,14 +188,6 @@ class CConstraintCommon
 			dot_dPhi_dx.fill(nullptr);
 			dot_dPhi_dy.fill(nullptr);
 			dot_dPhi_drel.fill(nullptr);
-
-			dPhiqdq_dx.fill(nullptr);
-			dPhiqdq_dy.fill(nullptr);
-			dPhiqdq_drel.fill(nullptr);
-
-			Phiqq_times_dq_dx.fill(nullptr);
-			Phiqq_times_dq_dy.fill(nullptr);
-			Phiqq_times_dq_drel.fill(nullptr);
 		}
 	};
 
@@ -230,8 +216,6 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 		pointDOFs_[ip] = a.getPoints2DOFs()[point_index[ip]];
 	}
 
-	MRPT_TODO("Add d_dotPhiq_ddq_times_dq");
-
 	// Alloc new rows in the list of constraints:
 	for (size_t ic = 0; ic < NUM_JACOB_ROWS; ic++)
 	{
@@ -242,8 +226,6 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 
 		auto& Phi_q = a.Phi_q_.matrix;
 		auto& dotPhi_q = a.dotPhi_q_.matrix;
-		auto& dPhiqdq_dq = a.dPhiqdq_dq_.matrix;
-		auto& Phiqq_times_dq = a.Phiqq_times_dq_.matrix;
 
 		for (size_t ip = 0; ip < NUM_POINTS; ip++)
 		{
@@ -260,10 +242,6 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 			// Add columns to sparse row in \dot{Phi_q}:
 			j.dot_dPhi_dx[ip] = &dotPhi_q[jRow][idxX];
 			j.dot_dPhi_dy[ip] = &dotPhi_q[jRow][idxY];
-
-			// Add columns to sparse row in Phiqq*dotq
-			j.Phiqq_times_dq_dx[ip] = &Phiqq_times_dq[jRow][idxX];
-			j.Phiqq_times_dq_dy[ip] = &Phiqq_times_dq[jRow][idxY];
 		}
 
 		for (size_t irc = 0; irc < NUM_RELATIVE_COORDS; irc++)
@@ -275,12 +253,6 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 
 			// Add columns to sparse row in \dot{Phi_q}:
 			j.dot_dPhi_drel[irc] = &dotPhi_q[jRow][idxRel];
-
-			// Add columns to sparse row in d(Phiq*dq)_dq
-			j.dPhiqdq_drel[irc] = &dPhiqdq_dq[jRow][idxRel];
-
-			// Add columns to sparse row in Phiqq*dotq
-			j.Phiqq_times_dq_drel[irc] = &Phiqq_times_dq[jRow][idxRel];
 		}
 	}
 }

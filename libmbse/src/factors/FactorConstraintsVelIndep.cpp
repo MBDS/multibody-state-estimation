@@ -82,7 +82,7 @@ gtsam::Vector FactorConstraintsVelIndep::evaluateError(
 
 	// Evaluate error:
 	const Eigen::MatrixXd Phi_q = arm_->Phi_q_.asDense();
-	const Eigen::MatrixXd dPhiqdq_dq = arm_->dPhiqdq_dq_.asDense();
+	const Eigen::MatrixXd dPhiqdq_dq = Phi_q;
 
 	gtsam::Vector err = gtsam::Vector::Zero(m + d);
 	err.head(m) = Phi_q * dotq_k;
@@ -95,7 +95,8 @@ gtsam::Vector FactorConstraintsVelIndep::evaluateError(
 	{
 		auto& Hv = de_dq.value();
 		Hv.resize(m + d, n);
-		Hv.block(0, 0, m, n) = arm_->Phiqq_times_dq_.asDense();
+		// Phi_qq*dq = \dot{Phi_q}
+		Hv.block(0, 0, m, n) = arm_->dotPhi_q_.asDense();
 		Hv.block(m, 0, d, n).setZero();
 	}
 

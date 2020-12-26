@@ -106,7 +106,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 
 	// Evaluate error:
 	const Eigen::MatrixXd Phi_q = arm_->Phi_q_.asDense();
-	const Eigen::MatrixXd dPhiqdq_dq = arm_->dPhiqdq_dq_.asDense();
+	const Eigen::MatrixXd dPhiqdq_dq = arm_->dotPhi_q_.asDense();
 
 	gtsam::Vector err = Phi_q * dotq_k;
 
