@@ -134,7 +134,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 				// -------------------------------------------
 				case ODE_RK4:
 				{
-					q0 = arm_->q_;	// Make backup copy of state (velocities
+					q0 = arm_->q_;  // Make backup copy of state (velocities
 									// will be in "v1")
 
 					// k1 = f(t,y);
@@ -253,7 +253,6 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 	return t;
 }
 
-/** Runs a dynamic simulation for a given time span */
 void CDynamicSimulatorBase::build_RHS(double* Q, double* c)
 {
 	const size_t nConstraints = arm_->Phi_.size();

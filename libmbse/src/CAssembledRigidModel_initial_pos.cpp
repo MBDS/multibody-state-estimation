@@ -173,8 +173,7 @@ double CAssembledRigidModel::finiteDisplacement(
 	return phi_norm;
 }
 
-/** Update dependent coordinates, velocities and accelerations from current
- * independent ones and current state */
+MRPT_TODO("Split into several methods?");
 void CAssembledRigidModel::computeDependentPosVelAcc(
 	const std::vector<size_t>& z_indices, bool update_q, bool update_dq,
 	const TComputeDependentParams& params,

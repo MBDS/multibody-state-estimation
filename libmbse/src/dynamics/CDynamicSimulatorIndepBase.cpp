@@ -83,7 +83,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 
 			case ODE_RK4:
 			{
-				q0 = arm_->q_;	// Make backup copy of state (velocities will
+				q0 = arm_->q_;  // Make backup copy of state (velocities will
 								// be in "v1")
 
 				// k1 = f(t,y);
@@ -201,6 +201,13 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 			default:
 				THROW_EXCEPTION("Unknown value for params.ode_solver");
 		};
+
+		// Save last ddotq:
+		CAssembledRigidModel::TComputeDependentResults cdr;
+		cdr.ddotq = &arm_->ddotq_;
+		arm_->computeDependentPosVelAcc(
+			independent_coordinate_indices(), false /*update q*/,
+			false /*update dq*/, {}, cdr, &ddotz1);
 
 		timelog().leave("mbs.run_complete_timestep");
 
