@@ -1,4 +1,4 @@
-/*+-------------------------------------------------------------------------+
+﻿/*+-------------------------------------------------------------------------+
   |            Multi Body State Estimation (mbse) C++ library               |
   |                                                                         |
   | Copyright (C) 2014-2020 University of Almeria                           |
@@ -66,14 +66,34 @@ class CConstraintCommon
 		};
 	}
 
+	/** Get references to the point accelerations (either fixed zero or
+	 * variables in q) */
+	const double& actual_acc(
+		const CAssembledRigidModel& arm, size_t idx, const PointDOF dof) const
+	{
+		switch (dof)
+		{
+			case PointDOF::X:
+				return (pointDOFs_[idx].dof_x != INVALID_DOF)
+						   ? arm.ddotq_[pointDOFs_[idx].dof_x]
+						   : dummy_zero_;
+			case PointDOF::Y:
+				return (pointDOFs_[idx].dof_y != INVALID_DOF)
+						   ? arm.ddotq_[pointDOFs_[idx].dof_y]
+						   : dummy_zero_;
+			default:
+				throw std::invalid_argument("actual_acc(): Invalid dof");
+		};
+	}
+
 	struct PointRef
 	{
-		const double &x, &y, &dotx, &doty;
+		const double &x, &y, &dotx, &doty, &ddotx, &ddoty;
 
 		PointRef(
 			const double& X, const double& Y, const double& DOTX,
-			const double& DOTY)
-			: x(X), y(Y), dotx(DOTX), doty(DOTY)
+			const double& DOTY, const double& DDOTX, const double& DDOTY)
+			: x(X), y(Y), dotx(DOTX), doty(DOTY), ddotx(DDOTX), ddoty(DDOTY)
 		{
 		}
 		std::string asString() const
@@ -81,7 +101,8 @@ class CConstraintCommon
 			using namespace std::string_literals;
 			return "(x,y)=("s + std::to_string(x) + " , "s + std::to_string(y) +
 				   ") " + "(vx,vy)=("s + std::to_string(dotx) + " , "s +
-				   std::to_string(doty) + ")";
+				   std::to_string(doty) + ")" + "(ax,ay)=("s +
+				   std::to_string(ddotx) + " , "s + std::to_string(ddoty) + ")";
 		}
 	};
 
@@ -90,17 +111,21 @@ class CConstraintCommon
 	 * (generalized coordinates) */
 	PointRef actual_coords(const CAssembledRigidModel& arm, size_t idx) const
 	{
-		return {
-			actual_coord(arm, idx, PointDOF::X),
-			actual_coord(arm, idx, PointDOF::Y),
-			actual_vel(arm, idx, PointDOF::X),
-			actual_vel(arm, idx, PointDOF::Y)};
+		return {actual_coord(arm, idx, PointDOF::X),
+				actual_coord(arm, idx, PointDOF::Y),
+				actual_vel(arm, idx, PointDOF::X),
+				actual_vel(arm, idx, PointDOF::Y),
+				actual_acc(arm, idx, PointDOF::X),
+				actual_acc(arm, idx, PointDOF::Y)};
 	}
 
 	struct RelCoordRef
 	{
-		const double &x, &dotx;
-		RelCoordRef(const double& X, const double& DOTX) : x(X), dotx(DOTX) {}
+		const double &x, &dotx, &ddotx;
+		RelCoordRef(const double& X, const double& DOTX, const double& DDOTX)
+			: x(X), dotx(DOTX), ddotx(DDOTX)
+		{
+		}
 	};
 
 	/** Gets constant references to a relative coordinate and its velocity.
@@ -109,9 +134,8 @@ class CConstraintCommon
 	RelCoordRef actual_rel_coords(
 		const CAssembledRigidModel& arm, size_t idxRelativeCoord) const
 	{
-		return {
-			arm.q_[relativeCoordIndexInQ_[idxRelativeCoord]],
-			arm.dotq_[relativeCoordIndexInQ_[idxRelativeCoord]]};
+		const auto idx = relativeCoordIndexInQ_.at(idxRelativeCoord);
+		return {arm.q_[idx], arm.dotq_[idx], arm.ddotq_[idx]};
 	}
 
    protected:
@@ -179,6 +203,14 @@ class CConstraintCommon
 		array_dptr_t dot_dPhi_dx, dot_dPhi_dy;
 		array_relative_dptr_t dot_dPhi_drel;  //!< Jacobians wrt rel coords
 
+		/** Pointers to entries in the sparse Jacobian Phiqq_times_ddq */
+		array_dptr_t Phiqq_times_ddq_dx, Phiqq_times_ddq_dy;
+		array_relative_dptr_t Phiqq_times_ddq_drel;
+
+		/** Pointers to entries in the sparse Jacobian dotPhiqq_times_dq */
+		array_dptr_t dotPhiqq_times_dq_dx, dotPhiqq_times_dq_dy;
+		array_relative_dptr_t dotPhiqq_times_dq_drel;
+
 		JacobRowEntries()
 		{
 			dPhi_dx.fill(nullptr);
@@ -188,6 +220,14 @@ class CConstraintCommon
 			dot_dPhi_dx.fill(nullptr);
 			dot_dPhi_dy.fill(nullptr);
 			dot_dPhi_drel.fill(nullptr);
+
+			Phiqq_times_ddq_dx.fill(nullptr);
+			Phiqq_times_ddq_dy.fill(nullptr);
+			Phiqq_times_ddq_drel.fill(nullptr);
+
+			dotPhiqq_times_dq_dx.fill(nullptr);
+			dotPhiqq_times_dq_dy.fill(nullptr);
+			dotPhiqq_times_dq_drel.fill(nullptr);
 		}
 	};
 
@@ -226,6 +266,8 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 
 		auto& Phi_q = a.Phi_q_.matrix;
 		auto& dotPhi_q = a.dotPhi_q_.matrix;
+		auto& Phiqq_times_ddq = a.Phiqq_times_ddq_.matrix;
+		auto& dotPhiqq_times_dq = a.dotPhiqq_times_dq_.matrix;
 
 		for (size_t ip = 0; ip < NUM_POINTS; ip++)
 		{
@@ -242,6 +284,14 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 			// Add columns to sparse row in \dot{Phi_q}:
 			j.dot_dPhi_dx[ip] = &dotPhi_q[jRow][idxX];
 			j.dot_dPhi_dy[ip] = &dotPhi_q[jRow][idxY];
+
+			// Add columns to sparse row in Phiqq_times_ddq:
+			j.Phiqq_times_ddq_dx[ip] = &Phiqq_times_ddq[jRow][idxX];
+			j.Phiqq_times_ddq_dy[ip] = &Phiqq_times_ddq[jRow][idxY];
+
+			// Add columns to sparse row in dotPhiqq_times_dq:
+			j.dotPhiqq_times_dq_dx[ip] = &dotPhiqq_times_dq[jRow][idxX];
+			j.dotPhiqq_times_dq_dy[ip] = &dotPhiqq_times_dq[jRow][idxY];
 		}
 
 		for (size_t irc = 0; irc < NUM_RELATIVE_COORDS; irc++)
@@ -253,6 +303,12 @@ void CConstraintCommon<NUM_POINTS, NUM_RELATIVE_COORDS, NUM_JACOB_ROWS>::
 
 			// Add columns to sparse row in \dot{Phi_q}:
 			j.dot_dPhi_drel[irc] = &dotPhi_q[jRow][idxRel];
+
+			// Add columns to sparse row in Phiqq_times_ddq:
+			j.Phiqq_times_ddq_drel[irc] = &Phiqq_times_ddq[jRow][idxRel];
+
+			// Add columns to sparse row in dotPhiqq_times_dq:
+			j.dotPhiqq_times_dq_drel[irc] = &dotPhiqq_times_dq[jRow][idxRel];
 		}
 	}
 }

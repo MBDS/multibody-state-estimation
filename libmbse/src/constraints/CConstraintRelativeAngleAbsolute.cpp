@@ -56,6 +56,7 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 
 	const double theta = angle.x;
 	const double w = angle.dotx;
+	const double angAcc = angle.ddotx;
 
 	const double sinTh = std::sin(theta), cosTh = std::cos(theta);
 
@@ -71,7 +72,7 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 	arm.dotPhi_[idx_constr_[0]] =
 		useCos ? Adotx + L * sinTh * w : Adoty - L * cosTh * w;
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -104,4 +105,26 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 		set(j.dot_dPhi_drel[0], L * cosTh * w);
 	else
 		set(j.dot_dPhi_drel[0], L * sinTh * w);
+
+	// Update Phiqq_times_ddq
+	// ----------------------------------
+	set(j.Phiqq_times_ddq_dx[0], 0);
+	set(j.Phiqq_times_ddq_dy[0], 0);
+	set(j.Phiqq_times_ddq_dx[1], 0);
+	set(j.Phiqq_times_ddq_dy[1], 0);
+	if (useCos)
+		set(j.Phiqq_times_ddq_drel[0], L * cosTh * angAcc);
+	else
+		set(j.Phiqq_times_ddq_drel[0], L * sinTh * angAcc);
+
+	// Update dotPhiqq_times_dq
+	// ----------------------------------
+	set(j.dotPhiqq_times_dq_dx[0], 0);
+	set(j.dotPhiqq_times_dq_dy[0], 0);
+	set(j.dotPhiqq_times_dq_dx[1], 0);
+	set(j.dotPhiqq_times_dq_dy[1], 0);
+	if (useCos)
+		set(j.dotPhiqq_times_dq_drel[0], -L * w * w * sinTh);
+	else
+		set(j.dotPhiqq_times_dq_drel[0], L * w * w * cosTh);
 }

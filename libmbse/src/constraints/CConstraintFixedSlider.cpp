@@ -47,7 +47,7 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = Delta_.x * p.doty - Delta_.y * p.dotx;
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -58,6 +58,21 @@ void CConstraintFixedSlider::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	if (j.dot_dPhi_dx[0]) *j.dot_dPhi_dx[0] = 0;
 	if (j.dot_dPhi_dy[0]) *j.dot_dPhi_dy[0] = 0;
+
+	// Update Phiqq_times_ddq
+	// ----------------------------------
+	MRPT_TODO("Write actual values!");
+	set(j.Phiqq_times_ddq_dx[0], 0);
+	set(j.Phiqq_times_ddq_dy[0], 0);
+	set(j.Phiqq_times_ddq_dx[1], 0);
+	set(j.Phiqq_times_ddq_dy[1], 0);
+
+	// Update dotPhiqq_times_dq_dx
+	// ----------------------------------
+	set(j.dotPhiqq_times_dq_dx[0], 0);
+	set(j.dotPhiqq_times_dq_dy[0], 0);
+	set(j.dotPhiqq_times_dq_dx[1], 0);
+	set(j.dotPhiqq_times_dq_dy[1], 0);
 }
 
 /** Creates a 3D representation of the constraint, if applicable (e.g. the line

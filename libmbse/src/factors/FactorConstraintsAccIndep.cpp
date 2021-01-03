@@ -72,6 +72,7 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	// Set q in the multibody model:
 	arm_->q_ = q_k;
 	arm_->dotq_ = dotq_k;
+	arm_->ddotq_ = ddotq_k;
 
 	// Update Jacobian and Hessian tensor:
 	arm_->update_numeric_Phi_and_Jacobians();
@@ -93,11 +94,12 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	// d err / d q_k
 	if (de_dq)
 	{
-		// PENDING!
 		auto& Hv = de_dq.value();
 		Hv.resize(m + d, n);
-		// Phi_qq*dq = \dot{Phi_q}
-		Hv.block(0, 0, m, n) = arm_->dotPhi_q_.asDense();
+		// first block = 	\dotPhiqq(\q_t) \dq_t + \Phiqq(\q_t) \ddq_t
+		const Eigen::MatrixXd t1 = arm_->Phiqq_times_ddq_.asDense();
+		const Eigen::MatrixXd t2 = arm_->dotPhiqq_times_dq_.asDense();
+		Hv.block(0, 0, m, n) = t1 + t2;
 		Hv.block(m, 0, d, n).setZero();
 	}
 

@@ -39,6 +39,9 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	const double Adotx = p[1].dotx - p[0].dotx;
 	const double Adoty = p[1].doty - p[0].doty;
 
+	const double Addotx = p[1].ddotx - p[0].ddotx;
+	const double Addoty = p[1].ddoty - p[0].ddoty;
+
 	// Update Phi[i]
 	// ----------------------------------
 	const double dist2 = square(Ax) + square(Ay);
@@ -49,7 +52,7 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = 2 * Ax * Adotx + 2 * Ay * Adoty;
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -64,4 +67,18 @@ void CConstraintConstantDistance::update(CAssembledRigidModel& arm) const
 	set(j.dot_dPhi_dy[0], -2 * Adoty);
 	set(j.dot_dPhi_dx[1], +2 * Adotx);
 	set(j.dot_dPhi_dy[1], +2 * Adoty);
+
+	// Update Phiqq_times_ddq
+	// ----------------------------------
+	set(j.Phiqq_times_ddq_dx[0], -2 * Addotx);
+	set(j.Phiqq_times_ddq_dy[0], -2 * Addoty);
+	set(j.Phiqq_times_ddq_dx[1], +2 * Addotx);
+	set(j.Phiqq_times_ddq_dy[1], +2 * Addoty);
+
+	// Update dotPhiqq_times_dq_dx
+	// ----------------------------------
+	set(j.dotPhiqq_times_dq_dx[0], 0);
+	set(j.dotPhiqq_times_dq_dy[0], 0);
+	set(j.dotPhiqq_times_dq_dx[1], 0);
+	set(j.dotPhiqq_times_dq_dy[1], 0);
 }

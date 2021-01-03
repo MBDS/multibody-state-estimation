@@ -42,7 +42,7 @@ void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 								  (pr[1].doty - pr[0].doty) * (p.x - pr[0].x) -
 								  (pr[1].y - pr[0].y) * (p.dotx - pr[0].dotx);
 
-	auto& j = jacob.at(0);	// 1st (and unique) jacob row
+	auto& j = jacob.at(0);  // 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -65,4 +65,19 @@ void CConstraintMobileSlider::update(CAssembledRigidModel& arm) const
 
 	set(j.dot_dPhi_dx[2], p.doty - pr[0].doty);
 	set(j.dot_dPhi_dy[2], -p.dotx + pr[0].dotx);
+
+	// Update Phiqq_times_ddq
+	// ----------------------------------
+	MRPT_TODO("Write actual values!");
+	set(j.Phiqq_times_ddq_dx[0], 0);
+	set(j.Phiqq_times_ddq_dy[0], 0);
+	set(j.Phiqq_times_ddq_dx[1], 0);
+	set(j.Phiqq_times_ddq_dy[1], 0);
+
+	// Update dotPhiqq_times_dq_dx
+	// ----------------------------------
+	set(j.dotPhiqq_times_dq_dx[0], 0);
+	set(j.dotPhiqq_times_dq_dy[0], 0);
+	set(j.dotPhiqq_times_dq_dx[1], 0);
+	set(j.dotPhiqq_times_dq_dy[1], 0);
 }
