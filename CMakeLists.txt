@@ -46,6 +46,7 @@ endif()
 # directory where SuiteSparse was built.
 # ------------------------------------------------------------------
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake") # Add the directory where FindSuiteSparse.cmake module can be found.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/cmake-modules") # for CodeCoverage
 
 option(DISABLE_SUITESPARSE OFF)
 if (NOT DISABLE_SUITESPARSE)
@@ -79,5 +80,3 @@ option(BUILD_EXAMPLES ON)
 if (BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
-
-

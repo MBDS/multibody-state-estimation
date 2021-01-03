@@ -1,5 +1,11 @@
 project(mbse LANGUAGES CXX VERSION 0.1.0)
 
+option(BUILD_CODE_COVERAGE OFF)
+if(BUILD_CODE_COVERAGE)
+	include(CodeCoverage)
+	append_coverage_compiler_flags()
+endif()
+
 file(GLOB_RECURSE LIBHDRS "src/*.h")
 file(GLOB_RECURSE LIBSRCS "src/*.cpp")
 file(GLOB_RECURSE LIBHDRSPUB "include/mbse/*.h")
@@ -10,7 +16,6 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-
 
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Libraries")
 
@@ -112,4 +117,3 @@ message(STATUS "===== ${PROJECT_NAME} (v${${PROJECT_NAME}_VERSION}) configuratio
 message(STATUS " MRPT version       : ${MRPT_VERSION}")
 message(STATUS " GTSAM version      : ${GTSAM_VERSION}")
 message(STATUS " SuiteSparse_FOUND  : ${SuiteSparse_FOUND}")
-

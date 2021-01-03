@@ -48,6 +48,23 @@ function (mbse_define_test NAME)
   add_dependencies(run_tests_${NAME} test_${NAME})
   add_dependencies(test_legacy run_tests_${NAME})
   add_dependencies(tests_build_all test_${NAME})
+
+
+  option(BUILD_CODE_COVERAGE OFF)
+  if(BUILD_CODE_COVERAGE)
+    setup_target_for_coverage_gcovr_xml(
+      NAME ${NAME}_coverage_xml     # New target name
+      EXECUTABLE "${GENERATED_EXE}" # Executable in PROJECT_BINARY_DIR
+      DEPENDENCIES test_${NAME}     # Dependencies to build first
+      BASE_DIRECTORY "../../"
+    )
+	setup_target_for_coverage_gcovr_html(
+      NAME ${NAME}_coverage_html      # New target name
+      EXECUTABLE "${GENERATED_EXE}"   # Executable in PROJECT_BINARY_DIR
+      DEPENDENCIES test_${NAME}       # Dependencies to build first
+      BASE_DIRECTORY "../../"
+    )
+  endif()
 endfunction()
 
 
