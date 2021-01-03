@@ -49,6 +49,7 @@ class CConstraintRelativeAngleAbsolute
    protected:
 	/** Proxy for length between the two points */
 	mutable double L_ = .0, Lsqr_ = .0;
+	mutable double sinThCache_ = .0;
 };
 
 }  // namespace mbse

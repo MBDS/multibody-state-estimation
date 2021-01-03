@@ -60,7 +60,13 @@ void CConstraintRelativeAngleAbsolute::update(CAssembledRigidModel& arm) const
 
 	const double sinTh = std::sin(theta), cosTh = std::cos(theta);
 
-	const bool useCos = std::abs(sinTh) > 0.707;
+	// Use a cached version of "sinTh" to decide which version of the Jacobian
+	// to use, since always recalculating it leads to errors in numerical
+	// Jacobians:
+	if (std::abs(sinTh - sinThCache_) > 0.01)
+		// Update cached values
+		sinThCache_ = sinTh;
+	const bool useCos = std::abs(sinThCache_) > 0.707;
 
 	// Update Phi[i]
 	// ----------------------------------
