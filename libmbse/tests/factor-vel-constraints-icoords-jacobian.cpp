@@ -59,38 +59,43 @@ TEST(Jacobians, FactorVelConstraintsIndep)
 	// Must be called before solve_ddotq():
 	dynSimul.prepare();
 
-	const double t = 1.0;
-	dynSimul.run(.0, t);
-	std::cout << "Evaluating test for t=" << t << "\n";
-	std::cout << "q  =" << aMBS->q_.transpose() << "\n";
-	std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
-	std::cout << "ddq =" << aMBS->ddotq_.transpose() << "\n";
+	for (int ti = 0; ti < 10; ti++)
+	{
+		const double dt = 1.0;
+		double t = ti * dt;
+		dynSimul.run(t, t + dt);
 
-	// Add factors:
-	// Create factor noises:
-	// const auto n = aMBS->q_.size();
-	const auto m = aMBS->Phi_q_.getNumRows();
-	const auto indCoordsInd = dynSimul.independent_coordinate_indices();
-	const auto d = indCoordsInd.size();
-	EXPECT_GT(d, 0);
+		std::cout << "Evaluating test for t=" << t << "\n";
+		std::cout << "q  =" << aMBS->q_.transpose() << "\n";
+		std::cout << "dq =" << aMBS->dotq_.transpose() << "\n";
+		std::cout << "ddq =" << aMBS->ddotq_.transpose() << "\n";
 
-	auto noise = gtsam::noiseModel::Isotropic::Sigma(m + d, 0.1);
+		// Add factors:
+		// Create factor noises:
+		// const auto n = aMBS->q_.size();
+		const auto m = aMBS->Phi_q_.getNumRows();
+		const auto indCoordsInd = dynSimul.independent_coordinate_indices();
+		const auto d = indCoordsInd.size();
+		EXPECT_GT(d, 0);
 
-	// Create a dummy factor:
-	const auto factor = FactorConstraintsVelIndep(
-		aMBS, indCoordsInd, noise, Q(1), dotQ(1), dotZ(1));
+		auto noise = gtsam::noiseModel::Isotropic::Sigma(m + d, 0.1);
 
-	// Convert plain Eigen vectors into state_t classes (used as Values
-	// in GTSAM factor graphs):
-	const state_t q = state_t(aMBS->q_);
-	const state_t dotq = state_t(aMBS->dotq_);
-	const state_t dotz = state_t(mbse::subset(dotq, indCoordsInd));
+		// Create a dummy factor:
+		const auto factor = FactorConstraintsVelIndep(
+			aMBS, indCoordsInd, noise, Q(1), dotQ(1), dotZ(1));
 
-	gtsam::Values values;
-	values.insert(Q(1), q);
-	values.insert(dotQ(1), dotq);
-	values.insert(dotZ(1), dotz);
+		// Convert plain Eigen vectors into state_t classes (used as Values
+		// in GTSAM factor graphs):
+		const state_t q = state_t(aMBS->q_);
+		const state_t dotq = state_t(aMBS->dotq_);
+		const state_t dotz = state_t(mbse::subset(dotq, indCoordsInd));
 
-	EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-9, 1e-3);
+		gtsam::Values values;
+		values.insert(Q(1), q);
+		values.insert(dotQ(1), dotq);
+		values.insert(dotZ(1), dotz);
+
+		EXPECT_CORRECT_FACTOR_JACOBIANS(factor, values, 1e-9, 1e-3);
+	}
 	MRPT_END
 }
