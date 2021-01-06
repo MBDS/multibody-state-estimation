@@ -1,20 +1,30 @@
 [![MBSE](https://circleci.com/gh/MBDS/multibody-state-estimation.svg?style=svg)](https://circleci.com/gh/MBDS/multibody-state-estimation)
 
 # The MultiBody State Estimation (MBSE) C++ library
-This repository contains a C++ library for multibody dynamics estimation.
+A library for multibody forward and inverse dynamics, state estimation, and
+parameter identification.
 
-## Algorithm #1: Particle filter estimator
+Related papers and approaches implemented in this repository:
+
+## Paradigm #1: Based on factor-graphs
+Forward and inverse dynamics, closed kinematic chains constraints solved as
+factors in a factor graphs, and more.
+
+Refer to papers:
+
+For the theory behinds this work, refer to :
+  * J.L. Blanco, A. Leanza, G. Reina, "A general framework for modeling and dynamic simulation of multibody systems using factor graphs", 2021.  ([ArXiV](http://xxx)
+
+![ScreenShot](docs/mbde-fg-screenshot.png)
+
+## Paradigm #2: Particle filter estimator
 A Bayesian filter has been implemented as a particle filter.
 Only planar dynamics models have been tested.
 For the theory behinds this work, refer to :
   * J.L. Blanco, J.L. Torres, A. Gimenez-Fernandez, "Multibody dynamic systems as Bayesian Networks: applications to robust state estimation of mechanisms", Multibody System Dynamics, vol. 34, no. 2, pp. 103-128, 2015.  ([Draft PDF](http://ingmec.ual.es/~jlblanco/papers/blanco2015mds_bayesian_networks_DRAFT.pdf), [PDF](http://dx.doi.org/10.1007/s11044-014-9440-9),  [BibTeX](http://ingmec.ual.es/aigaion2/index.php/export/publication/289/bibtex))
 
-[![ScreenShot](https://raw.githubusercontent.com/MBDS/mbde-particle-filter/master/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
+[![ScreenShot](docs/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
 
-## Algorithm #2: A factor-graph optimizer
-
-- Smoother.
-- Batch.
 
 ## Compiling
 Dependencies:
