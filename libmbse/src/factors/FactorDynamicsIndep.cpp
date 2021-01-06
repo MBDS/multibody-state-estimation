@@ -67,7 +67,7 @@ static void num_err_wrt_z(
 	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	const double t = 0;	 // wallclock time (useless?)
+	const double t = 0;  // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
 	p.dynamic_solver->solve_ddotz(t, zpp_predicted);
@@ -98,7 +98,7 @@ static void num_err_wrt_dz(
 	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	const double t = 0;	 // wallclock time (useless?)
+	const double t = 0;  // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
 	p.dynamic_solver->solve_ddotz(t, zpp_predicted);
@@ -147,12 +147,13 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 	mbse::overwrite_subset(arm.dotq_, dz_k, indepCoordIndices);
 
 	const double fdErr = arm.finiteDisplacement(
-		indepCoordIndices, 1e-9, 6 /*max iters*/, true /* also solve dot{q} */);
+		indepCoordIndices, 1e-9, 10 /*max iters*/,
+		true /* also solve dot{q} */);
 	ASSERT_LT_(fdErr, 1e-3);
 
 	// Predict accelerations:
 	Eigen::VectorXd zpp_predicted;
-	const double t = 0;	 // wallclock time (useless?)
+	const double t = 0;  // wallclock time (useless?)
 	dynamic_solver_->solve_ddotz(t, zpp_predicted);
 
 	// Evaluate error:
@@ -173,7 +174,7 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 
 		const gtsam::Vector x = p.z;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-7);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
 
 		mrpt::math::estimateJacobian(
 			x,
@@ -200,7 +201,7 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 
 		const gtsam::Vector x = p.dz;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-7);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
 
 		mrpt::math::estimateJacobian(
 			x,
