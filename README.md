@@ -10,10 +10,8 @@ Related papers and approaches implemented in this repository:
 Forward and inverse dynamics, closed kinematic chains constraints solved as
 factors in a factor graphs, and more.
 
-Refer to papers:
-
 For the theory behinds this work, refer to :
-  * J.L. Blanco, A. Leanza, G. Reina, "A general framework for modeling and dynamic simulation of multibody systems using factor graphs", 2021.  ([ArXiV](http://xxx)
+  * J.L. Blanco, A. Leanza, G. Reina, "A general framework for modeling and dynamic simulation of multibody systems using factor graphs", 2021.  ([ArXiV](http://xxx))
 
 ![ScreenShot](docs/mbde-fg-screenshot.png)
 
