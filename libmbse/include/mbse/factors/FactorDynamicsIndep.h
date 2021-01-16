@@ -19,7 +19,7 @@ namespace mbse
 /** Factor for multibody forward (direct) dynamics in independent coordinates,
  * using a general dynamics solver.
  *
- * This implements: \f$ \text{error} = \ddot{z}_k -
+ * This implements: \f$ error = \ddot{z}_k -
  * \ddot{z}(q_k,\dot{q}_k,M,...) = 0\f$
  *
  * Unknowns: \f$ z_k, \dot{z}_k, \ddot{z}_k \f$

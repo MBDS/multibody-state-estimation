@@ -173,9 +173,9 @@ class CAssembledRigidModel
 	/** @name State vector itself
 		@{ */
 	Eigen::VectorXd q_;  //!< State vector q with all the unknowns
-	Eigen::VectorXd dotq_;  //!< Velocity vector \dot{q} for all the unknowns
-	Eigen::VectorXd ddotq_;  //!< The previously computed acceleration vector
-							 //!< \ddot{q} for all the unknowns
+	Eigen::VectorXd dotq_;  //!< Velocity vector \f$ \dot{q} \f$
+	/** The previously computed acceleration vector \f$ \ddot{q} \f$  */
+	Eigen::VectorXd ddotq_;
 
 	/** External generalized forces (gravity NOT to be included) */
 	Eigen::VectorXd Q_;

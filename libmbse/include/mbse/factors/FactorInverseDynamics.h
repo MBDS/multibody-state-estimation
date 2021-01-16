@@ -19,7 +19,7 @@ namespace mbse
 /** Factor for multibody inverse dynamics, using a general dynamics
  * solver.
  *
- * This implements: \f$ \text{error} = \ddot{q}_k -
+ * This implements: \f$ error = \ddot{q}_k -
  * \ddot{q}(q_k,\dot{q}_k,Q_k) = 0\f$
  *
  * Unknowns: \f$ q_k, \dot{q}_k, \ddot{q}_k, Q_k \f$

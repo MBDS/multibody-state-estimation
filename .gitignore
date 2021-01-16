@@ -9,3 +9,7 @@ html
 # qtcreator:
 CMakeLists.txt.user
 .cmake
+doc/build
+doc/mainpage.md
+doc/source/mainpage.md
+doc/html
