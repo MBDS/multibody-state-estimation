@@ -14,7 +14,6 @@
 #include <mbse/CBody.h>
 #include <mbse/constraints/CConstraintBase.h>
 #include <mbse/mbse-utils.h>
-//#include <Eigen/UmfPackSupport>
 #include <mrpt/opengl/CSetOfObjects.h>
 #include <functional>
 #include <mrpt/core/optional_ref.h>
