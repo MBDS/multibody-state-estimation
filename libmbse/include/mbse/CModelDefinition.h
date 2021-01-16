@@ -14,7 +14,7 @@
 #include <mbse/CBody.h>
 #include <mbse/constraints/CConstraintBase.h>
 #include <mbse/mbse-utils.h>
-#include <Eigen/UmfPackSupport>
+//#include <Eigen/UmfPackSupport>
 #include <mrpt/opengl/CSetOfObjects.h>
 #include <functional>
 #include <mrpt/core/optional_ref.h>
@@ -23,8 +23,8 @@ namespace mbse
 {
 struct TSymbolicAssembledModel;  // Frwd. decl.
 
-class CAssembledRigidModel;  //!< A MBS preprocessed and ready for
-							 //!< kinematic/dynamic simulations.
+/** A MBS preprocessed and ready for kinematic/dynamic simulations. */
+class CAssembledRigidModel;
 
 /** The class for user-defined MBS problems.
  *  After construction, the user must assure that all fields are correctly
