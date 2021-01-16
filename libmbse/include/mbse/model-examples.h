@@ -16,17 +16,15 @@ namespace mbse
 {
 /** Builds a model of a NX x NY grid of four bar mechanisms.
  * \image docs/parameterized_fourbar.png
- * \todo Add picture!
  */
-void buildParameterizedMBS(
-	const size_t nx, const size_t ny, CModelDefinition& model,
-	const double NOISE_LEN = 0);
+CModelDefinition buildParameterizedMBS(
+	const size_t nx, const size_t ny, const double NOISE_LEN = 0);
 
 /** Builds a model of an N parts pendulum.
  * \todo Add picture!
  */
-void buildLongStringMBS(
-	const size_t N, CModelDefinition& model, double segmentLength = 0.5,
+CModelDefinition buildLongStringMBS(
+	const size_t N, double segmentLength = 0.5,
 	double segmentMassPerMeter = 1.0);
 
 /** Builds a model of an 4-bar mechanism.
@@ -34,16 +32,16 @@ void buildLongStringMBS(
  * Degrees of freedom in q=[x1 y1 x2 y2]^T
  *
  */
-void buildFourBarsMBS(CModelDefinition& model);
+CModelDefinition buildFourBarsMBS();
 
 /** Builds a model of a slider crank mechanism.
  * \todo Add picture!
  * Degrees of freedom in q=[..]^T
  */
-void buildSliderCrankMBS(CModelDefinition& model);
+CModelDefinition buildSliderCrankMBS();
 
-void buildFollowerMBS(CModelDefinition& model);
+CModelDefinition buildFollowerMBS();
 
-void buildTwoSliderBlocks(CModelDefinition& model);
+CModelDefinition buildTwoSliderBlocks();
 
 }  // namespace mbse

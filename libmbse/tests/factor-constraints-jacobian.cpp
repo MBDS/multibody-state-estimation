@@ -32,8 +32,7 @@ TEST(Jacobians, FactorConstraints)
 	using namespace mbse;
 
 	// Create the multibody object:
-	CModelDefinition model;
-	mbse::buildFourBarsMBS(model);
+	const CModelDefinition model = mbse::buildFourBarsMBS();
 
 	auto aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);

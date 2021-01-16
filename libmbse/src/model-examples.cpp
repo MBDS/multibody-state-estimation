@@ -17,9 +17,8 @@ using namespace mbse;
 using namespace mrpt::random;
 using namespace mrpt::math;
 
-void mbse::buildParameterizedMBS(
-	const size_t nx, const size_t ny, CModelDefinition& model,
-	const double NOISE_LEN)
+CModelDefinition mbse::buildParameterizedMBS(
+	const size_t nx, const size_t ny, const double NOISE_LEN)
 {
 	ASSERT_(nx >= 1 && ny >= 1);
 
@@ -31,6 +30,7 @@ void mbse::buildParameterizedMBS(
 	const double Lx = 2.0;  // Rod lengths
 	const double Ly = 2.5;  // Rod lengths
 
+	CModelDefinition model;
 	model.setPointCount(npoints);
 
 	// Definition of fixed points
@@ -94,18 +94,18 @@ void mbse::buildParameterizedMBS(
 		}
 	}
 
-	// cout << "# bodies: " << model.getBodies().size() << endl;
+	return model;
 }
 
-void mbse::buildLongStringMBS(
-	const size_t N, CModelDefinition& model, double segmentLength,
-	double segmentMassPerMeter)
+CModelDefinition mbse::buildLongStringMBS(
+	const size_t N, double segmentLength, double segmentMassPerMeter)
 {
 	ASSERT_(N >= 1);
 
 	// Definition of constants
 	const double L = segmentLength;  // Rod lengths
 
+	CModelDefinition model;
 	model.setPointCount(N + 1);
 
 	// Definition of fixed points
@@ -123,10 +123,12 @@ void mbse::buildLongStringMBS(
 		b.I0() = b.mass() * mrpt::square(b.length()) / 3.0;
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
+	return model;
 }
 
-void mbse::buildFourBarsMBS(CModelDefinition& model)
+CModelDefinition mbse::buildFourBarsMBS()
 {
+	CModelDefinition model;
 	model.setPointCount(4);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
 	model.setPointCoords(1, TPoint2D(1, 0));
@@ -169,10 +171,12 @@ void mbse::buildFourBarsMBS(CModelDefinition& model)
 
 		b.render_params.z_layer = 0;
 	}
+	return model;
 }
 
-void mbse::buildSliderCrankMBS(CModelDefinition& model)
+CModelDefinition mbse::buildSliderCrankMBS()
 {
+	CModelDefinition model;
 	model.setPointCount(3);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
 	model.setPointCoords(1, TPoint2D(1, 1));
@@ -203,10 +207,12 @@ void mbse::buildSliderCrankMBS(CModelDefinition& model)
 		2 /*pt index*/, TPoint2D(-3, -2),
 		TPoint2D(8, 2) /* The line on which to fix the point */
 		));
+	return model;
 }
 
-void mbse::buildFollowerMBS(CModelDefinition& model)
+CModelDefinition mbse::buildFollowerMBS()
 {
+	CModelDefinition model;
 	model.setPointCount(5);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
 	model.setPointCoords(1, TPoint2D(1, 1));
@@ -253,10 +259,12 @@ void mbse::buildFollowerMBS(CModelDefinition& model)
 		4 /*pt index*/, TPoint2D(-5, 0),
 		TPoint2D(10, 0) /* The line on which to fix the point */
 		));
+	return model;
 }
 
-void mbse::buildTwoSliderBlocks(CModelDefinition& model)
+CModelDefinition mbse::buildTwoSliderBlocks()
 {
+	CModelDefinition model;
 	model.setPointCount(2);
 	model.setPointCoords(0, TPoint2D(0, 15 * sin(mrpt::DEG2RAD(35))));
 	model.setPointCoords(1, TPoint2D(15 * cos(mrpt::DEG2RAD(35)), 0));
@@ -280,4 +288,5 @@ void mbse::buildTwoSliderBlocks(CModelDefinition& model)
 		1 /*pt index*/, TPoint2D(0, 0),
 		TPoint2D(1, 0) /* The line on which to fix the point */
 		));
+	return model;
 }

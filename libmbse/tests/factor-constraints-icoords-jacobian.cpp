@@ -35,10 +35,9 @@ TEST(Jacobians, FactorConstraintsIndep)
 	using namespace mbse;
 
 	// Create the multibody object:
-	CModelDefinition model;
+	const CModelDefinition model = mbse::buildFourBarsMBS();
 	std::vector<RelativeDOF> rDOFs;
 
-	mbse::buildFourBarsMBS(model);
 	// Add an extra relative coordinate:
 	rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
 

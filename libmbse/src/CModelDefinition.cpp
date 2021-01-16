@@ -101,6 +101,7 @@ void CModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 // -------------------------------------------------------------------
 std::shared_ptr<CAssembledRigidModel> CModelDefinition::assembleRigidMBS(
 	mrpt::optional_ref<const std::vector<RelativeDOF>> relativeCoordinates)
+	const
 {
 	// 1) Build "symbolic" assembly:
 	TSymbolicAssembledModel armi(*this);

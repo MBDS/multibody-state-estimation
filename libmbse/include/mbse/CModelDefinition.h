@@ -78,9 +78,9 @@ class CModelDefinition
 	template <class CONSTRAINT_CLASS>
 	void addConstraint(const CONSTRAINT_CLASS& c)
 	{
-		constraints_.push_back(CConstraintBase::Ptr(new CONSTRAINT_CLASS(
-			c)));  // Make a copy as dynamic memory and save as a smart pointer
-				   // of the base class.
+		// Make a copy as dynamic memory and save as a smart pointer
+		// of the base class.
+		constraints_.push_back(CConstraintBase::Ptr(new CONSTRAINT_CLASS(c)));
 	}
 
 	/** Process the MBS definitions and assemble all the required symbolic
@@ -98,7 +98,7 @@ class CModelDefinition
 	 */
 	std::shared_ptr<CAssembledRigidModel> assembleRigidMBS(
 		mrpt::optional_ref<const std::vector<RelativeDOF>> relativeCoordinates =
-			std::nullopt);
+			std::nullopt) const;
 
 	const std::vector<CConstraintBase::Ptr>& getConstraints() const
 	{

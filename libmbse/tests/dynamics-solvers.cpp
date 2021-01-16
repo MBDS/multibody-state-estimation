@@ -21,8 +21,7 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 
 	mbse::timelog().enable(false);  // avois clutter in cout
 
-	mbse::CModelDefinition model;
-	mbse::buildLongStringMBS(1, model, L, massPerL);
+	mbse::CModelDefinition model = mbse::buildLongStringMBS(1, L, massPerL);
 
 	// optional relative DOFs:
 	std::vector<mbse::RelativeDOF> rDOFs;
@@ -45,10 +44,10 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 	dynSimul.solve_ddotq(0.0 /*current time*/, ddotq0);
 
 	const Eigen::VectorXd ddotq_real =
-		addRelativeAngle ?	//
+		addRelativeAngle ?  //
 			Eigen::VectorXd(
 				(Eigen::Vector3d() << 0, -14.7041, -29.43).finished())
-						 :	//
+						 :  //
 			Eigen::VectorXd((Eigen::Vector2d() << 0, -14.7041).finished());
 
 	EXPECT_NEAR(

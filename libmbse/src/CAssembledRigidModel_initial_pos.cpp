@@ -173,7 +173,8 @@ double CAssembledRigidModel::finiteDisplacement(
 	return phi_norm;
 }
 
-MRPT_TODO("Split into several methods?");
+MRPT_TODO("Split into several methods?")
+
 void CAssembledRigidModel::computeDependentPosVelAcc(
 	const std::vector<size_t>& z_indices, bool update_q, bool update_dq,
 	const TComputeDependentParams& params,
