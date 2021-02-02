@@ -74,9 +74,9 @@ enable_testing()
 # --------------------------------
 add_subdirectory(libmbse)
 
-# Examples:
+# Apps:
 # --------------------------------
-option(BUILD_EXAMPLES ON)
-if (BUILD_EXAMPLES)
-  add_subdirectory(examples)
+option(BUILD_APPLICATIONS ON)
+if (BUILD_APPLICATIONS)
+  add_subdirectory(apps)
 endif()
