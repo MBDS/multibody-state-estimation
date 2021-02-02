@@ -25,10 +25,10 @@ CModelDefinition mbse::buildParameterizedMBS(
 	auto randomGenerator = mrpt::random::getRandomGenerator();
 
 	// Definition of constants
-	const size_t npoints = (nx + 1) * (ny + 1);  // number of points
+	const size_t npoints = (nx + 1) * (ny + 1);	 // number of points
 
-	const double Lx = 2.0;  // Rod lengths
-	const double Ly = 2.5;  // Rod lengths
+	const double Lx = 2.0;	// Rod lengths
+	const double Ly = 2.5;	// Rod lengths
 
 	CModelDefinition model;
 	model.setPointCount(npoints);
@@ -37,14 +37,14 @@ CModelDefinition mbse::buildParameterizedMBS(
 	for (size_t i = 0; i <= nx; i++)
 	{
 		const double x =
-			i * Lx;  // + (irregular_mesh ?
+			i * Lx;	 // + (irregular_mesh ?
 					 // randomGenerator.drawUniform(-NOISE_LEN,NOISE_LEN) : 0 );
 		model.setPointCoords(i, TPoint2D(x, 0), true /*is fixed*/);
 	}
 
 	// points definition
 	for (size_t row = 1; row <= ny;
-		 row++)  // from row 1 (0 belongs to fixed points) to ny
+		 row++)	 // from row 1 (0 belongs to fixed points) to ny
 	{
 		for (size_t j = 0; j <= nx; j++)  // from column 0 to nx
 		{
@@ -58,9 +58,9 @@ CModelDefinition mbse::buildParameterizedMBS(
 
 	// horizontal bars
 	for (size_t row = 1; row <= ny;
-		 row++)  // from row 1 (0 belongs to fixed points) to ny
+		 row++)	 // from row 1 (0 belongs to fixed points) to ny
 	{
-		for (size_t j = 0; j < nx; j++)  // from column 0 to nx-1
+		for (size_t j = 0; j < nx; j++)	 // from column 0 to nx-1
 		{
 			CBody& b = model.addBody();
 			b.points[0] = row * (nx + 1) + j;  // left side point
@@ -82,7 +82,7 @@ CModelDefinition mbse::buildParameterizedMBS(
 		{
 			CBody& b = model.addBody();
 			b.points[0] = row * (nx + 1) + j;  // upper point
-			b.points[1] = row * (nx + 1) + j - nx - 1;  // lower point
+			b.points[1] = row * (nx + 1) + j - nx - 1;	// lower point
 			b.length() = (model.getPointInfo(b.points[0]).coords -
 						  model.getPointInfo(b.points[1]).coords)
 							 .norm();
@@ -103,7 +103,7 @@ CModelDefinition mbse::buildLongStringMBS(
 	ASSERT_(N >= 1);
 
 	// Definition of constants
-	const double L = segmentLength;  // Rod lengths
+	const double L = segmentLength;	 // Rod lengths
 
 	CModelDefinition model;
 	model.setPointCount(N + 1);

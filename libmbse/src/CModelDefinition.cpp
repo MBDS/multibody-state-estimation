@@ -12,6 +12,8 @@
 #include <mbse/CAssembledRigidModel.h>
 #include <mbse/constraints/CConstraintConstantDistance.h>
 #include <mrpt/opengl.h>
+#include <mrpt/core/round.h>
+#include <mrpt/expr/CRuntimeCompiledExpression.h>
 
 using namespace mbse;
 using namespace std;
@@ -112,4 +114,103 @@ std::shared_ptr<CAssembledRigidModel> CModelDefinition::assembleRigidMBS(
 
 	// 2) Actual assembly:
 	return std::make_shared<CAssembledRigidModel>(armi);
+}
+
+// -------------------------------------------------------------------
+//                      FromYAML
+// -------------------------------------------------------------------
+CModelDefinition CModelDefinition::FromYAML(const mrpt::containers::yaml& c)
+{
+	using mrpt::expr::CRuntimeCompiledExpression;
+
+	MRPT_START
+
+	ASSERTMSG_(
+		c.isMap(), mrpt::format(
+					   "YAML node must be a map, but found: %s",
+					   c.node().typeName().c_str()));
+
+	CModelDefinition m;
+
+	// ---------------------
+	// Points
+	// ---------------------
+	ASSERT_(c["points"].isSequence());
+	const auto yamlPts = c["points"];
+	const auto nPts = yamlPts.asSequence().size();
+	ASSERT_(nPts >= 1);
+	m.setPointCount(nPts);
+
+	CRuntimeCompiledExpression expX, expY;
+
+	for (size_t idxPt = 0; idxPt < nPts; idxPt++)
+	{
+		const auto yamlPt = yamlPts.asSequence().at(idxPt).asMap();
+
+		bool isFixed = false;
+		if (auto it = yamlPt.find("fixed"); it != yamlPt.end())
+			isFixed = (*it).second.as<bool>();
+
+		const auto sX = yamlPt.at("x").as<std::string>();
+		const auto sY = yamlPt.at("y").as<std::string>();
+
+		expX.compile(sX);
+		expY.compile(sY);
+
+		m.setPointCoords(idxPt, {expX.eval(), expY.eval()}, isFixed);
+	}
+
+	// ---------------------
+	// Planar bodies
+	// ---------------------
+	ASSERT_(c["planar_bodies"].isSequence());
+	const auto yamlBodies = c["planar_bodies"];
+	ASSERT_(yamlBodies.asSequence().size() >= 1);
+
+	for (const auto& yamlBody : yamlBodies.asSequence())
+	{
+		CRuntimeCompiledExpression e;
+		CBody& b = m.addBody();
+
+		std::map<std::string, double> expVars;
+		expVars["index"] = m.getBodies().size();
+
+		const auto& yb = yamlBody.asMap();
+		const auto pts = yb.at("points").asSequence();
+		ASSERT_EQUAL_(pts.size(), 2U);
+		e.compile(pts.at(0).as<std::string>(), expVars, "points[0]");
+		b.points[0] = mrpt::round(e.eval());
+		e.compile(pts.at(1).as<std::string>(), expVars, "points[1]");
+		b.points[1] = mrpt::round(e.eval());
+
+		e.compile(yb.at("length").as<std::string>(), expVars, "length");
+		b.length() = e.eval();
+		expVars["length"] = b.length();
+
+		e.compile(yb.at("mass").as<std::string>(), expVars, "mass");
+		b.mass() = e.eval();
+		expVars["mass"] = b.mass();
+
+		e.compile(yb.at("I0").as<std::string>(), expVars, "I0");
+		b.I0() = e.eval();
+		expVars["I0"] = b.I0();
+
+		ASSERT_EQUAL_(yb.at("cog").asSequence().size(), 2U);
+		e.compile(
+			yb.at("cog").asSequence().at(0).as<std::string>(), expVars,
+			"cog.x");
+		b.cog().x = e.eval();
+		e.compile(
+			yb.at("cog").asSequence().at(1).as<std::string>(), expVars,
+			"cog.y");
+		b.cog().y = e.eval();
+	}
+
+	// Constraints:
+	// ---------------------
+	MRPT_TODO("continue...");
+
+	return m;
+
+	MRPT_END
 }

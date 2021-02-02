@@ -17,10 +17,11 @@
 #include <mrpt/opengl/CSetOfObjects.h>
 #include <functional>
 #include <mrpt/core/optional_ref.h>
+#include <mrpt/containers/yaml.h>
 
 namespace mbse
 {
-struct TSymbolicAssembledModel;  // Frwd. decl.
+struct TSymbolicAssembledModel;	 // Frwd. decl.
 
 /** A MBS preprocessed and ready for kinematic/dynamic simulations. */
 class CAssembledRigidModel;
@@ -34,6 +35,10 @@ class CModelDefinition
    public:
 	/** Constructor: creates an empty model */
 	CModelDefinition() = default;
+
+	/** Builds a multibody problem from a YAML definition, in the format shown
+	 * in examples. */
+	static CModelDefinition FromYAML(const mrpt::containers::yaml& c);
 
 	/** Completely erases all defined points, joints, bodies, parameters, etc of
 	 * this object and leaves it blank. */
@@ -112,7 +117,7 @@ class CModelDefinition
 	/** @name Data
 		@{ */
 	std::vector<Point2> points_;  //!< ALL points (fixed and variables)
-	std::vector<CBody> bodies_;  //!< Bodies
+	std::vector<CBody> bodies_;	 //!< Bodies
 
 	/** The list of all constraints (of different kinds/classes).
 	 * \note Constant-distance constraints for rigid bodies are NOT included in
@@ -124,6 +129,6 @@ class CModelDefinition
 
 	mutable bool already_added_fixed_len_constraints_ = false;
 
-};  // end class CModelDefinition
+};	// end class CModelDefinition
 
 }  // namespace mbse

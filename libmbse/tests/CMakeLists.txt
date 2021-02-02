@@ -69,7 +69,7 @@ endfunction()
 
 
 # List of tests:
-mbse_define_test(fourbars)
+mbse_define_test(model-from-yaml)
 mbse_define_test(dynamics-solvers)
 
 mbse_define_test(factor-euler-integrator)
