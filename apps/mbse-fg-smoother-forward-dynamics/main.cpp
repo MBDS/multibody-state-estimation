@@ -112,11 +112,11 @@ void test_smoother()
 	auto noise_prior_dq_0 =
 		gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
 
-	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 1e-4);
-	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, -1);
-	auto noise_constr_dq = gtsam::noiseModel::Isotropic::Sigma(m, -1);
-	auto noise_vel = gtsam::noiseModel::Isotropic::Sigma(n, 1e-2);
-	auto noise_acc = gtsam::noiseModel::Isotropic::Sigma(n, 1e-2);
+	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, small_std);
+	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, small_std);
+	auto noise_constr_dq = gtsam::noiseModel::Isotropic::Sigma(m, small_std);
+	auto noise_vel = gtsam::noiseModel::Isotropic::Sigma(n, small_std);
+	auto noise_acc = gtsam::noiseModel::Isotropic::Sigma(n, small_std);
 
 	const double dt = arg_step_time.getValue();
 	const double t_end = arg_end_time.getValue();
