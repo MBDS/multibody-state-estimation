@@ -5,7 +5,8 @@
 A library for multibody forward and inverse dynamics, state estimation, and
 parameter identification.
 
-C++ API docs can be found [here](https://libmbse.readthedocs.io/).
+  * [C++ API docs](https://libmbse.readthedocs.io/).
+  * [GitHub repo](https://github.com/MBDS/multibody-state-estimation).
 
 Related papers and approaches implemented in this repository:
 
@@ -16,7 +17,7 @@ factors in a factor graphs, and more.
 For the theory behinds this work, refer to :
   * J.L. Blanco, A. Leanza, G. Reina, "A general framework for modeling and dynamic simulation of multibody systems using factor graphs", 2021.  ([ArXiV](https://arxiv.org/abs/2101.02874))
 
-![ScreenShot](doc/source/_static/mbde-fg-screenshot.png)
+![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/doc/source/_static/mbde-fg-screenshot.png)
 
 ## Paradigm #2: Particle filter estimator
 A Bayesian filter has been implemented as a particle filter.
@@ -24,7 +25,7 @@ Only planar dynamics models have been tested.
 For the theory behinds this work, refer to :
   * J.L. Blanco, J.L. Torres, A. Gimenez-Fernandez, "Multibody dynamic systems as Bayesian Networks: applications to robust state estimation of mechanisms", Multibody System Dynamics, vol. 34, no. 2, pp. 103-128, 2015.  ([Draft PDF](http://ingmec.ual.es/~jlblanco/papers/blanco2015mds_bayesian_networks_DRAFT.pdf), [PDF](http://dx.doi.org/10.1007/s11044-014-9440-9),  [BibTeX](http://ingmec.ual.es/aigaion2/index.php/export/publication/289/bibtex))
 
-[![ScreenShot](doc/source/_static/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
+[![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/doc/source/_static/mbde-pf-screenshot.jpg)](https://www.youtube.com/watch?v=7Zru0oiz36g)
 
 
 ## Compiling
@@ -32,9 +33,9 @@ Dependencies:
   * A C++ compiler
   * CMake
   * SuiteSparse
-  * [MRPT](http://www.mrpt.org) (>=2.0.0)
+  * [MRPT](https://github.com/mrpt/mrpt/) (>=2.0.0)
     * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/mrpt)
-  * [GTSAM]()
+  * [GTSAM](https://github.com/borglab/gtsam)
     * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/gtsam-develop)
 
 In Ubuntu, install dependencies with:
