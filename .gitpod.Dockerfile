@@ -22,8 +22,6 @@ RUN rm -rf /var/lib/apt/lists/*
 
 # Build:
 COPY . /root/mbse-workspace/
-WORKDIR /root/mbse-workspace/
-RUN ls -l
 WORKDIR /root/mbse-workspace/build/
 RUN cmake ..
 RUN make -j4

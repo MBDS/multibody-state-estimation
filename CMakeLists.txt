@@ -48,7 +48,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake") # Add the directory where FindSuiteSparse.cmake module can be found.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/cmake-modules") # for CodeCoverage
 
-option(DISABLE_SUITESPARSE OFF)
+option(DISABLE_SUITESPARSE "Enforce disabling suitesparse" OFF)
 if (NOT DISABLE_SUITESPARSE)
     set(SuiteSparse_USE_LAPACK_BLAS ON)
     find_package(SuiteSparse QUIET NO_MODULE)  # 1st: Try to locate the *config.cmake file.
@@ -76,7 +76,7 @@ add_subdirectory(libmbse)
 
 # Apps:
 # --------------------------------
-option(BUILD_APPLICATIONS ON)
+option(BUILD_APPLICATIONS "Build MBSE demo apps" ON)
 if (BUILD_APPLICATIONS)
   add_subdirectory(apps)
 endif()
