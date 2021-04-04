@@ -21,7 +21,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libboost-all-dev
 RUN rm -rf /var/lib/apt/lists/*
 
 # Build:
-
 COPY . /root/mbse-workspace/
 WORKDIR /root/mbse-workspace/
 RUN ls -l
