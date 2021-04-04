@@ -5,7 +5,7 @@ dynamic simulation using factor graphs (FG).
 
 \section sec1 Examples of use
 
-	bin/mbse-fg-smoother-forward-dynamics \
+	mbse-fg-smoother-forward-dynamics \
 	  --mechanism ../config/mechanisms/fourbars1.yaml \
 	  --dt 5e-3 --end-time 2.0 --lag-time 15e-3
 
@@ -16,7 +16,7 @@ See also: \ref pageMechDefYaml
 USAGE:
 \verbatim
 
-   bin/mbse-fg-smoother-forward-dynamics  [-v] [--final-batch]
+   mbse-fg-smoother-forward-dynamics  [-v] [--final-batch]
                                         [--show-factor-errors]
                                         [--dont-add-dq-constraints]
                                         [--dont-add-q-constraints]

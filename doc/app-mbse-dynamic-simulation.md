@@ -5,7 +5,7 @@ solvers.
 
 \section sec1 Examples of use
 
-    bin/mbse-dynamic-simulation --mechanism ../config/mechanisms/fourbars1.yaml
+    mbse-dynamic-simulation --mechanism ../config/mechanisms/fourbars1.yaml
 
 On the GUI, press `+` or `-` to increase or reduce the simulation speed.
 Close the GUI to end the program and see simulation statistics.
@@ -18,7 +18,7 @@ See also: \ref pageMechDefYaml
 
 USAGE:
 
-   bin/mbse-dynamic-simulation  --mechanism <YAML model definition> [--]
+   mbse-dynamic-simulation  --mechanism <YAML model definition> [--]
                                 [--version] [-h]
 
 
