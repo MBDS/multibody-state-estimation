@@ -55,13 +55,6 @@ To build:
 
 You should also be able to compile this project under Windows and Visual Studio.
 
-## Executing
-These programs come ready to be launched, and can be found in the `bin`
-directory after compiling:
-
-  * `pf_test1`: One of the particle filter estimation experiments showed in the paper.
-  * `ex_four_bars`: An example of a dynamic simulation of a four bar linkage.
-
 ## Using mbse as a library in a user program
 
 In your CMake project, add:
