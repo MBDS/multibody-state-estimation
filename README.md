@@ -27,6 +27,7 @@ For the theory behinds this work, refer to :
   * J.L. Blanco, J.L. Torres, A. Gimenez-Fernandez, "Multibody dynamic systems as Bayesian Networks: applications to robust state estimation of mechanisms", Multibody System Dynamics, vol. 34, no. 2, pp. 103-128, 2015.  ([Draft PDF](http://ingmec.ual.es/~jlblanco/papers/blanco2015mds_bayesian_networks_DRAFT.pdf), [PDF](http://dx.doi.org/10.1007/s11044-014-9440-9),  [BibTeX](http://ingmec.ual.es/aigaion2/index.php/export/publication/289/bibtex))
 
 <center> [Open video](https://www.youtube.com/watch?v=7Zru0oiz36g) </center>
+
 ![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/doc/source/_static/mbde-pf-screenshot.jpg)
 
 ## Compiling
