@@ -1,4 +1,4 @@
-project(pf_test1)
+project(mbse-pf-demo)
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} mbse::mbse)

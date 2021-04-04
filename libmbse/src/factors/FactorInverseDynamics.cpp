@@ -31,7 +31,7 @@ gtsam::NonlinearFactor::shared_ptr FactorInverseDynamics::clone() const
 void FactorInverseDynamics::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "mbde::FactorInverseDynamics("
+	std::cout << s << "mbse::FactorInverseDynamics("
 			  << keyFormatter(this->key1()) << "," << keyFormatter(this->key2())
 			  << "," << keyFormatter(this->key3()) << keyFormatter(this->key4())
 			  << ")\n";

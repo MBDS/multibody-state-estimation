@@ -29,7 +29,7 @@ gtsam::NonlinearFactor::shared_ptr FactorGyroscope::clone() const
 void FactorGyroscope::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "mbde::FactorGyroscope(" << keyFormatter(this->key1())
+	std::cout << s << "mbse::FactorGyroscope(" << keyFormatter(this->key1())
 			  << "," << keyFormatter(this->key2()) << ")\n";
 	std::cout << " body: " << body_idx_ << "\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");

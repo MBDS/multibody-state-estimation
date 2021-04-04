@@ -17,7 +17,7 @@
 namespace mbse
 {
 /** Factor for acceleration constraints in independent coordinates.
- * Here the constraints equation \dot{\PHI}_{\q}(\q_t)\dq_t + \Phiq(\q_t)\ddq_t is implemented; for fixed
+ * Here the constraints equation $\f \dot{\PHI}_{\q}(\q_t)\dq_t + \Phiq(\q_t)\ddq_t $\f is implemented; for fixed
  * constraints Phi_t(q)=0.
  */
 class FactorConstraintsAccIndep

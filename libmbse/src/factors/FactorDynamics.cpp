@@ -15,7 +15,7 @@
 
 #include <gtsam/config.h>
 #if defined(GTSAM_USE_TBB)
-#error "So far, MBDE is incompatible with GTSAM+TBB!"
+#error "So far, MBSE is incompatible with GTSAM+TBB!"
 #endif
 MRPT_TODO(
 	"**IMPORTANT** Refactor CAssembledRigidModel to separate state and model "
@@ -40,7 +40,7 @@ gtsam::NonlinearFactor::shared_ptr FactorDynamics::clone() const
 void FactorDynamics::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "mbde::FactorDynamics(" << keyFormatter(this->key1())
+	std::cout << s << "mbse::FactorDynamics(" << keyFormatter(this->key1())
 			  << "," << keyFormatter(this->key2()) << ","
 			  << keyFormatter(this->key3()) << ")\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");

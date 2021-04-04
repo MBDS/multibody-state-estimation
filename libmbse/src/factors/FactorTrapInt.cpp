@@ -25,7 +25,7 @@ gtsam::NonlinearFactor::shared_ptr FactorTrapInt::clone() const
 void FactorTrapInt::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "mbde::FactorTrapInt(" << keyFormatter(this->key1())
+	std::cout << s << "mbse::FactorTrapInt(" << keyFormatter(this->key1())
 			  << "," << keyFormatter(this->key2()) << ","
 			  << keyFormatter(this->key3()) << "," << keyFormatter(this->key4())
 			  << ")\n";

@@ -37,7 +37,7 @@ gtsam::NonlinearFactor::shared_ptr FactorConstraintsIndep::clone() const
 void FactorConstraintsIndep::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
-	std::cout << s << "mbde::FactorConstraintsIndep("
+	std::cout << s << "mbse::FactorConstraintsIndep("
 			  << keyFormatter(this->key1()) << "," << keyFormatter(this->key2())
 			  << ")\n";
 	noiseModel_->print("  noise model: ");

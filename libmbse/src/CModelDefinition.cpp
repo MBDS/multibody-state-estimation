@@ -175,6 +175,8 @@ CModelDefinition CModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 		std::map<std::string, double> expVars;
 		expVars["index"] = m.getBodies().size();
 
+		MRPT_TODO("allow using x0,y0,x1,y1 as expressions.");
+
 		const auto& yb = yamlBody.asMap();
 		const auto pts = yb.at("points").asSequence();
 		ASSERT_EQUAL_(pts.size(), 2U);
