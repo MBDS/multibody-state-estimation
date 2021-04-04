@@ -1,6 +1,8 @@
 [![MBSE](https://circleci.com/gh/MBDS/multibody-state-estimation.svg?style=svg)](https://circleci.com/gh/MBDS/multibody-state-estimation)
 [![Docs](https://readthedocs.org/projects/libmbse/badge/)](https://libmbse.readthedocs.io/)
 
+Workspace: [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/MBDS/multibody-state-estimation)
+
 # The MultiBody State Estimation (MBSE) C++ library
 A library for multibody forward and inverse dynamics, state estimation, and
 parameter identification.
