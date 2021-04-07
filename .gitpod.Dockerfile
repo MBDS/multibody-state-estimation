@@ -17,12 +17,15 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y cmake build-essential libm
 # gtsam deps:
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libboost-all-dev
 
+# git:
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git
+
 # clean packages cache
 RUN rm -rf /var/lib/apt/lists/*
 
 # Build:
 COPY . /root/mbse-workspace/
 WORKDIR /root/mbse-workspace/build/
-RUN cmake ..
+RUN cmake .. -DCMAKE_INSTALL_PREFIX=/usr/
 RUN make -j4
 RUN make install
