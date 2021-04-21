@@ -47,7 +47,7 @@ void ConstraintFixedSlider::update(AssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = Delta_.x * p.doty - Delta_.y * p.dotx;
 
-	auto& j = jacob.at(0);  // 1st (and unique) jacob row
+	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -86,4 +86,11 @@ bool ConstraintFixedSlider::get3DRepresentation(
 		1 /*line width*/);
 
 	return true;
+}
+
+void ConstraintFixedSlider::print(std::ostream& o) const
+{
+	o << "ConstraintFixedSlider"
+		 "\n";
+	o << pointDOFsAsString();
 }

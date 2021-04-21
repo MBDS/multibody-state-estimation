@@ -16,14 +16,13 @@
 namespace mbse
 {
 /** Constraint: forces a point to lie exactly on a fixed line (e.g. sliders) */
-class ConstraintFixedSlider : public ConstraintBase,
-							   public ConstraintCommon<1>
+class ConstraintFixedSlider : public ConstraintBase, public ConstraintCommon<1>
 {
    public:
 	using me_t = ConstraintFixedSlider;
 
 	mrpt::math::TPoint2D
-		line_pt[2];  //!< The point is forced to lie on the line defined by
+		line_pt[2];	 //!< The point is forced to lie on the line defined by
 					 //!< these two fixed points (x0,y0)-(x1,y1)
 
 	ConstraintFixedSlider(
@@ -37,6 +36,7 @@ class ConstraintFixedSlider : public ConstraintBase,
 
 	void buildSparseStructures(AssembledRigidModel& arm) const override;
 	void update(AssembledRigidModel& arm) const override;
+	void print(std::ostream& o) const override;
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
 

@@ -436,22 +436,7 @@ void AssembledRigidModel::evaluateEnergy(
 	timelog().leave("evaluateEnergy");
 }
 
-static char dof2letter(const PointDOF p)
-{
-	switch (p)
-	{
-		case PointDOF::X:
-			return 'x';
-		case PointDOF::Y:
-			return 'y';
-		case PointDOF::Z:
-			return 'z';
-		default:
-			return '?';
-	};
-}
-
-void AssembledRigidModel::printCoordinates(std::ostream& o)
+void AssembledRigidModel::printCoordinates(std::ostream& o) const
 {
 	MRPT_START
 
@@ -485,6 +470,20 @@ void AssembledRigidModel::printCoordinates(std::ostream& o)
 			}
 			o << "\n";
 		}
+	}
+
+	MRPT_END
+}
+
+void AssembledRigidModel::printConstraints(std::ostream& o) const
+{
+	MRPT_START
+
+	o << "[AssembledRigidModel] m=" << constraints_.size() << " constraints.\n";
+	for (size_t i = 0; i < constraints_.size(); i++)
+	{
+		o << "- constraint[" << i << "]:\n";
+		constraints_.at(i)->print(o);
 	}
 
 	MRPT_END

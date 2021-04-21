@@ -86,12 +86,53 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 		for (size_t i = 0; i < bodies_.size(); i++)
 		{
 			const Body& b = bodies_[i];
-			ASSERT_(b.points[0] < points_.size());
-			ASSERT_(b.points[1] < points_.size());
+			const auto nPts = b.points.size();
 
-			const_cast<ModelDefinition*>(this)->addConstraint(
-				ConstraintConstantDistance(
-					b.points[0], b.points[1], b.length()));
+			switch (nPts)
+			{
+				case 0:
+				case 1:
+					THROW_EXCEPTION_FMT(
+						"Body has an invalid number of points (=%u), valid are "
+						">=2",
+						static_cast<unsigned int>(nPts));
+					break;
+				case 2:
+					ASSERT_(b.points[0] < points_.size());
+					ASSERT_(b.points[1] < points_.size());
+					const_cast<ModelDefinition*>(this)
+						->addConstraint<ConstraintConstantDistance>(
+							b.points[0], b.points[1], b.length());
+					break;
+
+				case 3:
+				{
+					const std::vector<std::pair<size_t, size_t>> pairs = {
+						{0, 1}, {0, 2}, {1, 2}};
+
+					for (const auto& p : pairs)
+					{
+						const size_t i = p.first, j = p.second;
+
+						ASSERT_(b.points[i] < points_.size());
+						ASSERT_(b.points[j] < points_.size());
+
+						const double L = (points_.at(b.points[i]).coords -
+										  points_.at(b.points[j]).coords)
+											 .norm();
+
+						const_cast<ModelDefinition*>(this)
+							->addConstraint<ConstraintConstantDistance>(
+								b.points[i], b.points[j], L);
+					}
+				}
+				break;
+
+				default:
+					ASSERT_GE_(nPts, 4);
+					THROW_EXCEPTION("TODO");
+					break;
+			};
 		}
 		// Mark these constraints as added:
 		already_added_fixed_len_constraints_ = true;
@@ -179,14 +220,27 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 
 		const auto& yb = yamlBody.asMap();
 		const auto pts = yb.at("points").asSequence();
-		ASSERT_EQUAL_(pts.size(), 2U);
-		e.compile(pts.at(0).as<std::string>(), expVars, "points[0]");
-		b.points[0] = mrpt::round(e.eval());
-		e.compile(pts.at(1).as<std::string>(), expVars, "points[1]");
-		b.points[1] = mrpt::round(e.eval());
+
+		ASSERT_GE_(pts.size(), 2U);
+		b.points.resize(pts.size());
+		for (size_t ptIdx = 0; ptIdx < pts.size(); ptIdx++)
+		{
+			e.compile(
+				pts.at(ptIdx).as<std::string>(), expVars,
+				mrpt::format("points[%u]", static_cast<unsigned int>(ptIdx)));
+			b.points.at(ptIdx) = mrpt::round(e.eval());
+			ASSERT_LT_(b.points.at(ptIdx), m.getPointCount());
+		}
+
+		// Provide "auto" length:
+		expVars["auto"] = (m.getPointInfo(b.points.at(0)).coords -
+						   m.getPointInfo(b.points.at(1)).coords)
+							  .norm();
 
 		e.compile(yb.at("length").as<std::string>(), expVars, "length");
 		b.length() = e.eval();
+
+		expVars.erase("auto");
 		expVars["length"] = b.length();
 
 		e.compile(yb.at("mass").as<std::string>(), expVars, "mass");

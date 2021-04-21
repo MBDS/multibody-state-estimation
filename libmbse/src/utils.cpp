@@ -50,3 +50,18 @@ bool mbse::save_matrix_dense(
 
 	return ret >= 0;
 }
+
+char mbse::dof2letter(const PointDOF p)
+{
+	switch (p)
+	{
+		case PointDOF::X:
+			return 'x';
+		case PointDOF::Y:
+			return 'y';
+		case PointDOF::Z:
+			return 'z';
+		default:
+			return '?';
+	};
+}

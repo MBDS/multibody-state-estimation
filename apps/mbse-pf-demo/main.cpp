@@ -163,14 +163,14 @@ void buildFollowerMBS(ModelDefinition& model)
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(ConstraintMobileSlider(
+	model.addConstraint<ConstraintMobileSlider>(
 		1 /*pt index*/, 2, 3 /* two pts for defining the constraint */
-		));
+	);
 
-	model.addConstraint(ConstraintFixedSlider(
+	model.addConstraint<ConstraintFixedSlider>(
 		4 /*pt index*/, TPoint2D(-5, 0),
 		TPoint2D(10, 0) /* The line on which to fix the point */
-		));
+	);
 }
 
 void pf_initialize_uniform_distribution(
@@ -194,8 +194,7 @@ int main(int argc, char** argv)
 		// "Compile" the problem, and use as "Ground Truth" (GT) for the
 		// estimation problem
 		// -------------------------------------------------------------------------------------
-		std::shared_ptr<AssembledRigidModel> aMBS_GT =
-			model.assembleRigidMBS();
+		std::shared_ptr<AssembledRigidModel> aMBS_GT = model.assembleRigidMBS();
 
 		// Prepare ground truth dynamic simulation:
 		// -----------------------------------------------

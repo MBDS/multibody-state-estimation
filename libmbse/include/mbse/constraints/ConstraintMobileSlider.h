@@ -17,8 +17,7 @@ namespace mbse
 {
 /** Constraint: forces a point to lie exactly on the line defined by two other
  * reference points */
-class ConstraintMobileSlider : public ConstraintBase,
-								public ConstraintCommon<3>
+class ConstraintMobileSlider : public ConstraintBase, public ConstraintCommon<3>
 {
    public:
 	using me_t = ConstraintMobileSlider;
@@ -34,6 +33,7 @@ class ConstraintMobileSlider : public ConstraintBase,
 
 	void buildSparseStructures(AssembledRigidModel& arm) const override;
 	void update(AssembledRigidModel& arm) const override;
+	void print(std::ostream& o) const override;
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
 };

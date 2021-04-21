@@ -17,7 +17,7 @@ namespace mbse
 {
 /** Constraint: constant distance between two points */
 class ConstraintConstantDistance : public ConstraintBase,
-									public ConstraintCommon<2>
+								   public ConstraintCommon<2>
 {
    public:
 	using me_t = ConstraintConstantDistance;
@@ -33,6 +33,7 @@ class ConstraintConstantDistance : public ConstraintBase,
 
 	void buildSparseStructures(AssembledRigidModel& arm) const override;
 	void update(AssembledRigidModel& arm) const override;
+	void print(std::ostream& o) const override;
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
 };

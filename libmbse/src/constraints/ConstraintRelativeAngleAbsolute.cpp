@@ -78,7 +78,7 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 	arm.dotPhi_[idx_constr_[0]] =
 		useCos ? Adotx + L * sinTh * w : Adoty - L * cosTh * w;
 
-	auto& j = jacob.at(0);  // 1st (and unique) jacob row
+	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -133,4 +133,11 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 		set(j.dotPhiqq_times_dq_drel[0], -L * w * w * sinTh);
 	else
 		set(j.dotPhiqq_times_dq_drel[0], L * w * w * cosTh);
+}
+
+void ConstraintRelativeAngleAbsolute::print(std::ostream& o) const
+{
+	o << "ConstraintRelativeAngleAbsolute"
+		 "\n";
+	o << pointDOFsAsString();
 }

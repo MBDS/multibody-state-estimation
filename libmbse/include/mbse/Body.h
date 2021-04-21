@@ -12,7 +12,7 @@
 
 #include <mbse/mbse-common.h>
 #include <mrpt/opengl/CRenderizable.h>
-#include <array>
+#include <vector>
 
 namespace mbse
 {
@@ -23,11 +23,15 @@ struct Body
 
 	std::string name{};
 
-	/** A 2D body is defined (in natural coords) with 2 points
+	/** A 2D body is defined (in natural coords) with a minimum of 2 points.
+	 *
 	 * Indices of the body 2 points (from the list of all
 	 * points in the problem); may include one fixed point
-	 * (not a variable) */
-	std::array<size_t, 2> points = {std::string::npos, std::string::npos};
+	 * (not a variable).
+	 *
+	 * Additional points may be added for ternary, quaternary, etc. links.
+	 */
+	std::vector<point_index_t> points = {std::string::npos, std::string::npos};
 
 	/** In (kg) */
 	inline double mass() const { return mass_; }
@@ -69,6 +73,9 @@ struct Body
 	 * M = [ ------+------ ]
 	 *     [ M01^t |  M11  ]
 	 * \endcode
+	 *
+	 * If there are more than 2 points, the other Mij blocks are zeros.
+	 *
 	 */
 	void evaluateMassMatrix(
 		Eigen::Matrix2d& M00, Eigen::Matrix2d& M11, Eigen::Matrix2d& M01) const;
@@ -91,6 +98,7 @@ struct Body
 	void internal_update_mass_submatrices() const;
 
 	double mass_ = 0;  //!< In (kg)
+
 	/** Center of gravity (in local coordinates, origin=first point) */
 	mrpt::math::TPoint2D cog_ = {0, 0};
 
@@ -108,24 +116,25 @@ struct Body
 	/** Type of 3D object in which the body will be converted */
 	enum render_style_t : uint8_t
 	{
-		reLine = 0,  //<! A simple line
-		reCylinder  //<! A cylinder
+		reLine = 0,	 //<! A simple line (for 2-point bodies)
+		reSimplex = 0,	//<! A simplex (polygon) for N-ary bodies
+		reCylinder	//<! A cylinder (for 2-point bodies)
 	};
 
 	struct TRenderParams
 	{
 		TRenderParams() = default;
 
-		render_style_t render_style = reCylinder;  //!< Kind of object
+		render_style_t render_style = reSimplex;  //!< Kind of object
 
 		/* ==== Common options  ==== */
 		bool show_grounds = true;  //!< Draws ground points as independent
 								   //!< "ground solids"
-		double z_layer = 0;  //!< Emulates links in "layers": an increment to be
+		double z_layer = 0;	 //!< Emulates links in "layers": an increment to be
 							 //!< added to the Z coordinate of the object.
 
 		/* ==== Render as lines ==== */
-		uint8_t line_alpha = 0x8f;  //!< Transparency (0x00 - 0xff)
+		uint8_t line_alpha = 0x8f;	//!< Transparency (0x00 - 0xff)
 		float line_width = 1.0f;  //!< Line width (in pixels)
 
 		/* ====  Render as cylinder ====  */
@@ -133,9 +142,6 @@ struct Body
 	};
 
 	TRenderParams render_params;
-
-	// EIGEN_MAKE_ALIGNED_OPERATOR_NEW    // Required for aligned mem allocator
-	// (only needed in classes containing fixed-size Eigen matrices)
 };
 
 }  // namespace mbse

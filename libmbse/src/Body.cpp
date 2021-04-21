@@ -101,6 +101,7 @@ mrpt::opengl::CRenderizable::Ptr Body::get3DRepresentation() const
 		}
 		break;
 
+			// case reSimplex:
 		case reLine:
 		{
 			auto obj = mrpt::opengl::CSimpleLine::Create();

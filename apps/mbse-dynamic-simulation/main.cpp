@@ -53,6 +53,10 @@ static void runDynamicSimulation()
 	aMBS->printCoordinates(std::cout);
 	std::cout << std::endl;
 
+	std::cout << "Problem constraints:\n";
+	aMBS->printConstraints(std::cout);
+	std::cout << std::endl;
+
 	// Set initial velocities (Only for the buildParameterizedMBS model)
 	// for (size_t i=0;i<=Nx;i++)
 	//	aMBS->dotq_[2*i+0]=1;
