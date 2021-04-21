@@ -49,7 +49,7 @@ struct TSensorData
 	std::deque<timestamped_point_t> log;
 };
 
-class CAssembledRigidModel;  //!< A MBS preprocessed and ready for
+class AssembledRigidModel;  //!< A MBS preprocessed and ready for
 							 //!< kinematic/dynamic simulations.
 
 enum ODE_integrator_t
@@ -63,11 +63,11 @@ enum ODE_integrator_t
 struct TSimulationState
 {
 	double t;
-	const CAssembledRigidModel* const
+	const AssembledRigidModel* const
 		arm;  //!< From this object you can retrieve the current "q"
 			  //!< coordinates, velocities, bodies, etc.
 
-	TSimulationState(const CAssembledRigidModel* arm_);
+	TSimulationState(const AssembledRigidModel* arm_);
 };
 
 using TSimulationStateRef = const TSimulationState&;
@@ -88,9 +88,9 @@ class CDynamicSimulatorBase
 	 */
 	static Ptr Create(
 		const std::string& name,
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 
-	CDynamicSimulatorBase(std::shared_ptr<CAssembledRigidModel> arm_ptr);
+	CDynamicSimulatorBase(std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulatorBase();
 
 	struct TParameters
@@ -134,12 +134,12 @@ class CDynamicSimulatorBase
 	 */
 	virtual double run(const double t_ini, const double t_end);
 
-	const std::shared_ptr<CAssembledRigidModel>& get_model() const
+	const std::shared_ptr<AssembledRigidModel>& get_model() const
 	{
 		return arm_ptr_;
 	}
 
-	CAssembledRigidModel* get_model_non_const() const { return arm_ptr_.get(); }
+	AssembledRigidModel* get_model_non_const() const { return arm_ptr_.get(); }
 
 	/** \name Sensors
 		 @{ */
@@ -158,8 +158,8 @@ class CDynamicSimulatorBase
 
    protected:
 	//!< The smart pointer. Normally use arm_ which is faster
-	const std::shared_ptr<CAssembledRigidModel> arm_ptr_;
-	CAssembledRigidModel* const arm_;  //!< The prepared MBS model.
+	const std::shared_ptr<AssembledRigidModel> arm_ptr_;
+	AssembledRigidModel* const arm_;  //!< The prepared MBS model.
 
 	/** Build the two subvectors of the RHS of the motion equation, with the
 	 * generalized forces "Q" and the Jacobian-based term "c". "Q" must have
@@ -212,7 +212,7 @@ class CDynamicSimulatorIndepBase : public CDynamicSimulatorBase
    public:
 	using Ptr = std::shared_ptr<CDynamicSimulatorIndepBase>;
 
-	CDynamicSimulatorIndepBase(std::shared_ptr<CAssembledRigidModel> arm_ptr);
+	CDynamicSimulatorIndepBase(std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulatorIndepBase();
 
 	/** Runs a dynamic simulation for a given time span
@@ -263,7 +263,7 @@ class CDynamicSimulator_Lagrange_LU_dense : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_LU_dense(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 
    private:
 	void internal_prepare() override;
@@ -278,7 +278,7 @@ class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_R_matrix_dense(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 
    private:
 	void internal_prepare() override;
@@ -295,7 +295,7 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
 {
    public:
 	CDynamicSimulator_Indep_dense(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 
 	void dq_plus_dz(
 		const Eigen::VectorXd& dq, const Eigen::VectorXd& dz,
@@ -331,7 +331,7 @@ class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_CHOLMOD(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_Lagrange_CHOLMOD();
 
 	TOrderingMethods ordering_M;  //!< The ordering algorithm for factorizing M
@@ -360,7 +360,7 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_UMFPACK(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_Lagrange_UMFPACK();
 
 	TOrderingMethods ordering;
@@ -389,7 +389,7 @@ class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
 {
    public:
 	CDynamicSimulator_Lagrange_KLU(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_Lagrange_KLU();
 
 	TOrderingMethods ordering;
@@ -428,7 +428,7 @@ class CDynamicSimulatorBasePenalty : public CDynamicSimulatorBase
 		params_penalty;  //!< Parameters of the "penalty" dynamic formulation
 
 	CDynamicSimulatorBasePenalty(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr)
+		const std::shared_ptr<AssembledRigidModel> arm_ptr)
 		: CDynamicSimulatorBase(arm_ptr)
 	{
 	}
@@ -440,7 +440,7 @@ class CDynamicSimulator_AugmentedLagrangian_KLU
 {
    public:
 	CDynamicSimulator_AugmentedLagrangian_KLU(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_AugmentedLagrangian_KLU();
 
 	TOrderingMethods ordering;
@@ -478,7 +478,7 @@ class CDynamicSimulator_AugmentedLagrangian_Dense
 {
    public:
 	CDynamicSimulator_AugmentedLagrangian_Dense(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_AugmentedLagrangian_Dense();
 
 	/** Integrators will call this after each time step */
@@ -504,7 +504,7 @@ class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
 {
    public:
 	CDynamicSimulator_ALi3_Dense(
-		const std::shared_ptr<CAssembledRigidModel> arm_ptr);
+		const std::shared_ptr<AssembledRigidModel> arm_ptr);
 	virtual ~CDynamicSimulator_ALi3_Dense();
 
 	/** Integrators will call this after each time step */

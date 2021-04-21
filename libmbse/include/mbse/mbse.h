@@ -13,6 +13,6 @@
 #pragma once
 
 // Include the main classes/structs:
-#include <mbse/CModelDefinition.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/ModelDefinition.h>
+#include <mbse/AssembledRigidModel.h>
 #include <mbse/dynamics/dynamic-simulators.h>

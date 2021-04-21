@@ -8,7 +8,7 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <mbse/virtual-sensors.h>
 
 using namespace mbse;
@@ -21,13 +21,13 @@ using namespace std;
 // Virtual sensor: Gyroscope
 // ---------------------------------------
 double CVirtualSensor_Gyro::simulate_reading(
-	const CAssembledRigidModel& arm) const
+	const AssembledRigidModel& arm) const
 {
 	// Estimate the current angular velocity of the i'th body:
-	const std::vector<CBody>& bodies = arm.parent_.getBodies();
+	const std::vector<Body>& bodies = arm.mechanism_.bodies();
 	ASSERTDEB_(body_idx_ < bodies.size());
 
-	const CBody& body = bodies[body_idx_];
+	const Body& body = bodies[body_idx_];
 
 	const size_t pt0_idx = body.points[0];
 	const size_t pt1_idx = body.points[1];

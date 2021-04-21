@@ -12,7 +12,7 @@
 
 #include <mbse/model-examples.h>
 #include <mbse/dynamics/dynamic-simulators.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/factorTesting.h>
 #include <mbse/factors/FactorConstraintsVel.h>
@@ -32,7 +32,7 @@ TEST(Jacobians, FactorVelConstraints)
 	using namespace mbse;
 
 	// Create the multibody object:
-	const CModelDefinition model = mbse::buildFourBarsMBS();
+	const ModelDefinition model = mbse::buildFourBarsMBS();
 
 	auto aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);

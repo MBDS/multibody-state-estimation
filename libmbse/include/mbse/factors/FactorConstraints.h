@@ -12,7 +12,7 @@
 
 #include <mbse/factors/factor-common.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 
 namespace mbse
 {
@@ -24,8 +24,8 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 	using This = FactorConstraints;
 	using Base = gtsam::NoiseModelFactor1<state_t>;
 
-	// Class parameters (pointer to type "CConstraintBase")
-	CAssembledRigidModel::Ptr arm_;
+	// Class parameters (pointer to type "ConstraintBase")
+	AssembledRigidModel::Ptr arm_;
 
    public:
 	// shorthand for a smart pointer to a factor
@@ -36,7 +36,7 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 
 	/** Construcotr */
 	FactorConstraints(
-		const CAssembledRigidModel::Ptr& arm,
+		const AssembledRigidModel::Ptr& arm,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k)
 		: Base(noiseModel, key_q_k), arm_(arm)
 	{

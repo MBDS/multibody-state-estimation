@@ -9,13 +9,13 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/factors/FactorConstraintsIndep.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <mbse/mbse-utils.h>
 
 using namespace mbse;
 
 FactorConstraintsIndep::FactorConstraintsIndep(
-	const CAssembledRigidModel::Ptr& arm,
+	const AssembledRigidModel::Ptr& arm,
 	const std::vector<size_t>& indCoordsIndices,
 	const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_z_k,
 	gtsam::Key key_q_k)

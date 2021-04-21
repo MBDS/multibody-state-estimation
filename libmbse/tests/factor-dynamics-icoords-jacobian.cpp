@@ -12,7 +12,7 @@
 
 #include <mbse/model-examples.h>
 #include <mbse/dynamics/dynamic-simulators.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <gtsam/inference/Symbol.h>
 #include <mbse/factors/FactorDynamicsIndep.h>
 #include <mrpt/math/num_jacobian.h>
@@ -60,7 +60,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 	using namespace mbse;
 
 	// Create the multibody object:
-	const CModelDefinition model = mbse::buildFourBarsMBS();
+	const ModelDefinition model = mbse::buildFourBarsMBS();
 	std::vector<RelativeDOF> rDOFs;
 
 	// Add an extra relative coordinate:

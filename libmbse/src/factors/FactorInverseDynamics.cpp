@@ -10,7 +10,7 @@
 
 #include <mrpt/core/exceptions.h>
 #include <mbse/factors/FactorInverseDynamics.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 
 #define USE_NUMERIC_JACOBIAN 1
 
@@ -41,7 +41,7 @@ void FactorInverseDynamics::print(
 
 struct NumericJacobParams
 {
-	CAssembledRigidModel* arm = nullptr;
+	AssembledRigidModel* arm = nullptr;
 	CDynamicSimulatorBase* dynamic_solver = nullptr;
 	gtsam::Vector q, dq, ddq, Q;
 };
@@ -121,7 +121,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	ASSERT_(q_k.size() > 0);
 
 	// Set q & dq in the multibody model:
-	CAssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
+	AssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
 	arm.q_ = q_k;
 	arm.dotq_ = dq_k;
 	arm.Q_ = Q_k;

@@ -42,12 +42,12 @@ static void runDynamicSimulation()
 	// Load mechanism model:
 	const auto yamlData =
 		mrpt::containers::yaml::FromFile(arg_mechanism.getValue());
-	const CModelDefinition model = CModelDefinition::FromYAML(yamlData);
+	const ModelDefinition model = ModelDefinition::FromYAML(yamlData);
 
-	CBody::TRenderParams dynamic_rp;
+	Body::TRenderParams dynamic_rp;
 
 	// "Compile" the problem:
-	CAssembledRigidModel::Ptr aMBS = model.assembleRigidMBS();
+	AssembledRigidModel::Ptr aMBS = model.assembleRigidMBS();
 
 	std::cout << "Problem coordinates:\n";
 	aMBS->printCoordinates(std::cout);
@@ -139,7 +139,7 @@ static void runDynamicSimulation()
 	dynSimul.params.user_callback = simul_callback_t(my_callback);
 
 	// Energy stats:
-	CAssembledRigidModel::TEnergyValues energy;
+	AssembledRigidModel::TEnergyValues energy;
 	vector<double> E_tot, E_kin, E_pot;
 	const size_t ENERGY_MAX_LOG = 100000;  // Not to slow down graphs...
 	E_tot.reserve(ENERGY_MAX_LOG);

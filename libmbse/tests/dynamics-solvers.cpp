@@ -21,7 +21,7 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 
 	mbse::timelog().enable(false);  // avois clutter in cout
 
-	mbse::CModelDefinition model = mbse::buildLongStringMBS(1, L, massPerL);
+	mbse::ModelDefinition model = mbse::buildLongStringMBS(1, L, massPerL);
 
 	// optional relative DOFs:
 	std::vector<mbse::RelativeDOF> rDOFs;
@@ -31,7 +31,7 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 		rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
 	}
 
-	std::shared_ptr<mbse::CAssembledRigidModel> aMBS =
+	std::shared_ptr<mbse::AssembledRigidModel> aMBS =
 		model.assembleRigidMBS(rDOFs);
 
 	aMBS->setGravityVector(0, -9.81, 0);

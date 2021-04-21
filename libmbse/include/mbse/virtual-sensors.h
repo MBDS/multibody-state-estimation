@@ -12,7 +12,7 @@
 
 #include <mbse/mbse-common.h>
 #include "mbse-utils.h"
-#include "CAssembledRigidModel.h"
+#include "AssembledRigidModel.h"
 
 namespace mbse
 {
@@ -25,12 +25,12 @@ class CVirtualSensor
 	/** Simulates one sensor reading from the given system state, returning
 	 * the predicted value. */
 	virtual double simulate_reading(
-		const CAssembledRigidModel& mb_state) const = 0;
+		const AssembledRigidModel& mb_state) const = 0;
 
 	/** Returns the log-likelihhod of the given read value for the current
 	 * mechanism state */
 	double evaluate_log_likelihood(
-		const double sensor_reading, const CAssembledRigidModel& mb_state) const
+		const double sensor_reading, const AssembledRigidModel& mb_state) const
 	{
 		const double sensor_prediction = this->simulate_reading(mb_state);
 		return -0.5 *
@@ -54,7 +54,7 @@ class CVirtualSensor_Gyro : public CVirtualSensor
 	/** Simulates one sensor reading from the given system state, returning the
 	 * predicted value. */
 	virtual double simulate_reading(
-		const CAssembledRigidModel& mb_state) const override;
+		const AssembledRigidModel& mb_state) const override;
 
 	CVirtualSensor_Gyro(const size_t body_idx) : body_idx_(body_idx) {}
 

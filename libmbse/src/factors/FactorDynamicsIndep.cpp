@@ -11,7 +11,7 @@
 #include <mrpt/core/exceptions.h>
 #include <mrpt/core/common.h>
 #include <mbse/factors/FactorDynamicsIndep.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <mbse/mbse-utils.h>
 
 #define USE_NUMERIC_JACOBIAN 1
@@ -41,7 +41,7 @@ void FactorDynamicsIndep::print(
 
 struct NumericJacobParams
 {
-	CAssembledRigidModel* arm = nullptr;
+	AssembledRigidModel* arm = nullptr;
 	CDynamicSimulatorIndepBase* dynamic_solver = nullptr;
 	gtsam::Vector z, dz, ddz, q;
 };
@@ -58,8 +58,8 @@ static void num_err_wrt_z(
 	mbse::overwrite_subset(p.arm->dotq_, p.dz, zIndices);
 
 	// Ensure q and dq are updated after the change in "z":
-	CAssembledRigidModel::TComputeDependentParams cdp;
-	CAssembledRigidModel::TComputeDependentResults cdr;
+	AssembledRigidModel::TComputeDependentParams cdp;
+	AssembledRigidModel::TComputeDependentResults cdr;
 	cdp.nItersMax = 3;
 	p.arm->computeDependentPosVelAcc(
 		zIndices, true /*update_q*/, true /* update_dq*/, cdp, cdr);
@@ -89,8 +89,8 @@ static void num_err_wrt_dz(
 	mbse::overwrite_subset(p.arm->dotq_, new_dz, zIndices);
 
 	// Ensure q and dq are updated after the change in "z":
-	CAssembledRigidModel::TComputeDependentParams cdp;
-	CAssembledRigidModel::TComputeDependentResults cdr;
+	AssembledRigidModel::TComputeDependentParams cdp;
+	AssembledRigidModel::TComputeDependentResults cdr;
 	cdp.nItersMax = 3;
 	p.arm->computeDependentPosVelAcc(
 		zIndices, true /*update_q*/, true /* update_dq*/, cdp, cdr);
@@ -130,7 +130,7 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 	ASSERT_(valuesForQk_);
 
 	// Set q & dq in the multibody model:
-	CAssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
+	AssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
 
 	const auto& indepCoordIndices =
 		dynamic_solver_->independent_coordinate_indices();

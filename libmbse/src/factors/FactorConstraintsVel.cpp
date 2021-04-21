@@ -9,7 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/factors/FactorConstraintsVel.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <mrpt/core/exceptions.h>
 
 #include <Eigen/Dense>
@@ -50,7 +50,7 @@ bool FactorConstraintsVel::equals(
 #if USE_NUMERIC_JACOBIAN
 struct NumericJacobParams
 {
-	CAssembledRigidModel* arm = nullptr;
+	AssembledRigidModel* arm = nullptr;
 	gtsam::Vector q, dq;
 };
 

@@ -12,7 +12,7 @@
 
 #include <mbse/model-examples.h>
 #include <mbse/dynamics/dynamic-simulators.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/factorTesting.h>
 #include <mbse/factors/FactorConstraintsIndep.h>
@@ -35,7 +35,7 @@ TEST(Jacobians, FactorConstraintsIndep)
 	using namespace mbse;
 
 	// Create the multibody object:
-	const CModelDefinition model = mbse::buildFourBarsMBS();
+	const ModelDefinition model = mbse::buildFourBarsMBS();
 	std::vector<RelativeDOF> rDOFs;
 
 	// Add an extra relative coordinate:

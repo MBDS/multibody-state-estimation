@@ -12,7 +12,7 @@
 
 #include <mbse/factors/factor-common.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 
 namespace mbse
 {
@@ -29,8 +29,8 @@ class FactorConstraintsAccIndep
 	using Base = gtsam::NoiseModelFactor4<
 		state_t /*Q*/, state_t /*dotQ*/,state_t /*ddotQ*/, state_t /*ddotZ*/>;
 
-	// Class parameters (pointer to type "CConstraintBase")
-	CAssembledRigidModel::Ptr arm_;
+	// Class parameters (pointer to type "ConstraintBase")
+	AssembledRigidModel::Ptr arm_;
 	std::vector<size_t> indCoordsIndices_;
 	gtsam::Matrix matrix_Iidx_;
 
@@ -43,7 +43,7 @@ class FactorConstraintsAccIndep
 
 	/** Construcotr */
 	FactorConstraintsAccIndep(
-		const CAssembledRigidModel::Ptr& arm,
+		const AssembledRigidModel::Ptr& arm,
 		const std::vector<size_t>& indCoordsIndices,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 		gtsam::Key key_dotq_k, gtsam::Key key_ddotq_k,gtsam::Key key_ddotz_k);

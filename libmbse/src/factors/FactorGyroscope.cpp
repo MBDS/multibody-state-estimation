@@ -9,7 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/factors/FactorGyroscope.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 
 /* #define USE_NUMERIC_JACOBIAN 1
 
@@ -56,10 +56,10 @@ gtsam::Vector FactorGyroscope::evaluateError(
 	arm_->q_ = q_k;
 	arm_->dotq_ = dq_k;
 
-	const std::vector<CBody>& bodies = arm_->parent_.getBodies();
+	const std::vector<Body>& bodies = arm_->mechanism_.bodies();
 	ASSERT_BELOW_(body_idx_, bodies.size());
 
-	const CBody& body = bodies[body_idx_];
+	const Body& body = bodies[body_idx_];
 
 	const size_t pt0_idx = body.points[0];
 	const size_t pt1_idx = body.points[1];

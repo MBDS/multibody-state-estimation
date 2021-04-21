@@ -11,9 +11,9 @@
 // Example of particle-filter for tracking a multibody model
 // ------------------------------------------------------------
 #include <mbse/mbse.h>
-#include <mbse/CMultiBodyParticleFilter.h>
-#include <mbse/constraints/CConstraintMobileSlider.h>
-#include <mbse/constraints/CConstraintFixedSlider.h>
+#include <mbse/MultiBodyParticleFilter.h>
+#include <mbse/constraints/ConstraintMobileSlider.h>
+#include <mbse/constraints/ConstraintFixedSlider.h>
 
 #include <mrpt/opengl.h>
 #include <mrpt/gui.h>
@@ -75,10 +75,10 @@ const double FINAL_TIME = 10.0;
 // ===================================================================
 // ===================================================================
 
-void buildFourBarsMBS(CModelDefinition& model)
+void buildFourBarsMBS(ModelDefinition& model)
 {
-	CBody::TRenderParams rp;
-	rp.render_style = CBody::reLine;
+	Body::TRenderParams rp;
+	rp.render_style = Body::reLine;
 	rp.line_width = 3.0f;
 	// rp.cyl_diameter = 0.01;
 
@@ -89,7 +89,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 	model.setPointCoords(3, TPoint2D(0.590, 0), true /*is fixed*/);
 
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 0;
 		b.points[1] = 1;
 
@@ -100,7 +100,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 		b.render_params = rp;
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 1;
 		b.points[1] = 2;
 
@@ -111,7 +111,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 		b.render_params = rp;
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 2;
 		b.points[1] = 3;
 
@@ -123,7 +123,7 @@ void buildFourBarsMBS(CModelDefinition& model)
 	}
 }
 
-void buildFollowerMBS(CModelDefinition& model)
+void buildFollowerMBS(ModelDefinition& model)
 {
 	model.setPointCount(5);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
@@ -133,7 +133,7 @@ void buildFollowerMBS(CModelDefinition& model)
 	model.setPointCoords(4, TPoint2D(5, 0));
 
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 0;
 		b.points[1] = 1;
 
@@ -143,7 +143,7 @@ void buildFollowerMBS(CModelDefinition& model)
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 2;
 		b.points[1] = 3;
 
@@ -153,7 +153,7 @@ void buildFollowerMBS(CModelDefinition& model)
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 3;
 		b.points[1] = 4;
 
@@ -163,18 +163,18 @@ void buildFollowerMBS(CModelDefinition& model)
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(CConstraintMobileSlider(
+	model.addConstraint(ConstraintMobileSlider(
 		1 /*pt index*/, 2, 3 /* two pts for defining the constraint */
 		));
 
-	model.addConstraint(CConstraintFixedSlider(
+	model.addConstraint(ConstraintFixedSlider(
 		4 /*pt index*/, TPoint2D(-5, 0),
 		TPoint2D(10, 0) /* The line on which to fix the point */
 		));
 }
 
 void pf_initialize_uniform_distribution(
-	CMultiBodyParticleFilter& pf, CModelDefinition& model);
+	MultiBodyParticleFilter& pf, ModelDefinition& model);
 
 auto& rnd = mrpt::random::getRandomGenerator();
 
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 	{
 		mbse::timelog().enable(false);
 
-		CModelDefinition model;
+		ModelDefinition model;
 
 		// Define the mechanism:
 		// ------------------------------------------------
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 		// "Compile" the problem, and use as "Ground Truth" (GT) for the
 		// estimation problem
 		// -------------------------------------------------------------------------------------
-		std::shared_ptr<CAssembledRigidModel> aMBS_GT =
+		std::shared_ptr<AssembledRigidModel> aMBS_GT =
 			model.assembleRigidMBS();
 
 		// Prepare ground truth dynamic simulation:
@@ -212,7 +212,7 @@ int main(int argc, char** argv)
 
 		// Prepare Particle Filter:
 		// -----------------------------------------------
-		CModelDefinition PF_model;
+		ModelDefinition PF_model;
 		buildFourBarsMBS(PF_model);
 		// buildFollowerMBS(PF_model);
 
@@ -220,7 +220,7 @@ int main(int argc, char** argv)
 		{
 			const double error = IMPERFECT_PF_MODEL_ERROR;
 
-			std::vector<CBody>& bodies = PF_model.getBodies();
+			std::vector<Body>& bodies = PF_model.bodies();
 			bodies[1].length() *= error;
 			bodies[1].mass() *= error;
 			bodies[1].I0() =
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 			bodies[1].cog() = TPoint2D(bodies[1].length() * 0.5, 0);
 		}
 
-		CMultiBodyParticleFilter pf(NUM_PARTS, PF_model);
+		MultiBodyParticleFilter pf(NUM_PARTS, PF_model);
 
 		// PF parameters:
 		// ------------------------
@@ -250,9 +250,9 @@ int main(int argc, char** argv)
 #ifdef SHOW_GUI
 		// Prepare 3D scene:
 		// -----------------------------------------------
-		CBody::TRenderParams rp;
-		CBody::TRenderParams rp_particles;
-		rp_particles.render_style = CBody::reLine;
+		Body::TRenderParams rp;
+		Body::TRenderParams rp_particles;
+		rp_particles.render_style = Body::reLine;
 
 		mrpt::opengl::CSetOfObjects::Ptr gl_MBS =
 			mrpt::opengl::CSetOfObjects::Create();
@@ -365,7 +365,7 @@ int main(int argc, char** argv)
 
 			// Run the PF models:
 			// ==============================================
-			CMultiBodyParticleFilter::TOutputInfo pf_out_info;
+			MultiBodyParticleFilter::TOutputInfo pf_out_info;
 			pf.run_PF_step(
 				t_pf_start, t_pf_end, SIMUL_STEP, sensor_descriptions,
 				sensor_readings, pf_out_info);
@@ -523,7 +523,7 @@ int main(int argc, char** argv)
 }
 
 void pf_initialize_uniform_distribution(
-	CMultiBodyParticleFilter& pf, CModelDefinition& model)
+	MultiBodyParticleFilter& pf, ModelDefinition& model)
 {
 	for (size_t i = 0; i < pf.m_particles.size(); i++)
 	{
@@ -535,7 +535,7 @@ void pf_initialize_uniform_distribution(
 		double final_err;
 		do
 		{
-			const double R = model.getBodies()[0].length();
+			const double R = model.bodies()[0].length();
 			const double ang = rnd.drawUniform(-M_PI, M_PI);
 			const size_t nTotalDOFs = part->num_model.q_.size();
 			for (size_t k = 0; k < nTotalDOFs; k++)

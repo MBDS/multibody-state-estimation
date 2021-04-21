@@ -10,20 +10,20 @@
 
 #pragma once
 
-#include <mbse/CModelDefinition.h>
+#include <mbse/ModelDefinition.h>
 
 namespace mbse
 {
 /** Builds a model of a NX x NY grid of four bar mechanisms.
  * \image docs/parameterized_fourbar.png
  */
-CModelDefinition buildParameterizedMBS(
+ModelDefinition buildParameterizedMBS(
 	const size_t nx, const size_t ny, const double NOISE_LEN = 0);
 
 /** Builds a model of an N parts pendulum.
  * \todo Add picture!
  */
-CModelDefinition buildLongStringMBS(
+ModelDefinition buildLongStringMBS(
 	const size_t N, double segmentLength = 0.5,
 	double segmentMassPerMeter = 1.0);
 
@@ -32,16 +32,16 @@ CModelDefinition buildLongStringMBS(
  * Degrees of freedom in q=[x1 y1 x2 y2]^T
  *
  */
-CModelDefinition buildFourBarsMBS();
+ModelDefinition buildFourBarsMBS();
 
 /** Builds a model of a slider crank mechanism.
  * \todo Add picture!
  * Degrees of freedom in q=[..]^T
  */
-CModelDefinition buildSliderCrankMBS();
+ModelDefinition buildSliderCrankMBS();
 
-CModelDefinition buildFollowerMBS();
+ModelDefinition buildFollowerMBS();
 
-CModelDefinition buildTwoSliderBlocks();
+ModelDefinition buildTwoSliderBlocks();
 
 }  // namespace mbse

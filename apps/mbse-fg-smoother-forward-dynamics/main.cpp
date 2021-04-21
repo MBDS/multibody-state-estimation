@@ -19,8 +19,8 @@
 #include <gtsam_unstable/nonlinear/BatchFixedLagSmoother.h>
 #include <gtsam_unstable/nonlinear/IncrementalFixedLagSmoother.h>
 #include <iostream>
-#include <mbse/CAssembledRigidModel.h>
-#include <mbse/CModelDefinition.h>
+#include <mbse/AssembledRigidModel.h>
+#include <mbse/ModelDefinition.h>
 #include <mbse/dynamics/dynamic-simulators.h>
 #include <mbse/factors/FactorConstraints.h>
 #include <mbse/factors/FactorConstraintsVel.h>
@@ -75,9 +75,9 @@ void test_smoother()
 	// Create the multibody object:
 	const auto modelYaml =
 		mrpt::containers::yaml::FromFile(arg_mechanism.getValue());
-	const CModelDefinition model = CModelDefinition::FromYAML(modelYaml);
+	const ModelDefinition model = ModelDefinition::FromYAML(modelYaml);
 
-	std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
+	std::shared_ptr<AssembledRigidModel> aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);
 
 	aMBS->printCoordinates();
@@ -131,8 +131,8 @@ void test_smoother()
 	aMBS->dotq_.setZero();
 	aMBS->ddotq_.setZero();
 
-	CAssembledRigidModel::TComputeDependentParams cdp;	// default params
-	CAssembledRigidModel::TComputeDependentResults cdr;
+	AssembledRigidModel::TComputeDependentParams cdp;	// default params
+	AssembledRigidModel::TComputeDependentResults cdr;
 	// Solve the position problem:
 	aMBS->q_[0] = 1;
 	aMBS->q_[1] = 0.1;

@@ -27,7 +27,7 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 	using This = FactorGyroscope;
 	using Base = gtsam::NoiseModelFactor2<state_t, state_t>;
 
-	CAssembledRigidModel* arm_ = nullptr;
+	AssembledRigidModel* arm_ = nullptr;
 	size_t body_idx_ = 0;
 	double reading_ = 0;
 
@@ -41,7 +41,7 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 
 	/** Constructor. angvel_reading in rad/sec, positive CCW. */
 	FactorGyroscope(
-		CAssembledRigidModel& arm, const size_t body_idx,
+		AssembledRigidModel& arm, const size_t body_idx,
 		const double angvel_reading, const gtsam::SharedNoiseModel& noiseModel,
 		gtsam::Key key_q_k, gtsam::Key key_dq_k)
 		: Base(noiseModel, key_q_k, key_dq_k),

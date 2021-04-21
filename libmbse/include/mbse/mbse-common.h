@@ -42,7 +42,7 @@ using point_index_t = std::size_t;
 constexpr dof_index_t INVALID_DOF = static_cast<dof_index_t>(-1);
 constexpr point_index_t INVALID_POINT_INDEX = static_cast<point_index_t>(-1);
 
-/** Each of the 2D points in a CModelDefinition */
+/** Each of the 2D points in a ModelDefinition */
 struct Point2
 {
 	Point2() = default;

@@ -9,15 +9,15 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/model-examples.h>
-#include <mbse/constraints/CConstraintFixedSlider.h>
-#include <mbse/constraints/CConstraintMobileSlider.h>
+#include <mbse/constraints/ConstraintFixedSlider.h>
+#include <mbse/constraints/ConstraintMobileSlider.h>
 #include <mrpt/random.h>
 
 using namespace mbse;
 using namespace mrpt::random;
 using namespace mrpt::math;
 
-CModelDefinition mbse::buildParameterizedMBS(
+ModelDefinition mbse::buildParameterizedMBS(
 	const size_t nx, const size_t ny, const double NOISE_LEN)
 {
 	ASSERT_(nx >= 1 && ny >= 1);
@@ -30,7 +30,7 @@ CModelDefinition mbse::buildParameterizedMBS(
 	const double Lx = 2.0;	// Rod lengths
 	const double Ly = 2.5;	// Rod lengths
 
-	CModelDefinition model;
+	ModelDefinition model;
 	model.setPointCount(npoints);
 
 	// Definition of fixed points
@@ -62,7 +62,7 @@ CModelDefinition mbse::buildParameterizedMBS(
 	{
 		for (size_t j = 0; j < nx; j++)	 // from column 0 to nx-1
 		{
-			CBody& b = model.addBody();
+			Body& b = model.addBody();
 			b.points[0] = row * (nx + 1) + j;  // left side point
 			b.points[1] = row * (nx + 1) + j + 1;  // right side point
 			b.length() = (model.getPointInfo(b.points[0]).coords -
@@ -80,7 +80,7 @@ CModelDefinition mbse::buildParameterizedMBS(
 	{
 		for (size_t j = 0; j <= nx; j++)  // from column 0 to nx
 		{
-			CBody& b = model.addBody();
+			Body& b = model.addBody();
 			b.points[0] = row * (nx + 1) + j;  // upper point
 			b.points[1] = row * (nx + 1) + j - nx - 1;	// lower point
 			b.length() = (model.getPointInfo(b.points[0]).coords -
@@ -97,7 +97,7 @@ CModelDefinition mbse::buildParameterizedMBS(
 	return model;
 }
 
-CModelDefinition mbse::buildLongStringMBS(
+ModelDefinition mbse::buildLongStringMBS(
 	const size_t N, double segmentLength, double segmentMassPerMeter)
 {
 	ASSERT_(N >= 1);
@@ -105,7 +105,7 @@ CModelDefinition mbse::buildLongStringMBS(
 	// Definition of constants
 	const double L = segmentLength;	 // Rod lengths
 
-	CModelDefinition model;
+	ModelDefinition model;
 	model.setPointCount(N + 1);
 
 	// Definition of fixed points
@@ -115,7 +115,7 @@ CModelDefinition mbse::buildLongStringMBS(
 	// bars
 	for (size_t j = 0; j < N; j++)
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = j;
 		b.points[1] = j + 1;
 		b.length() = L;
@@ -126,9 +126,9 @@ CModelDefinition mbse::buildLongStringMBS(
 	return model;
 }
 
-CModelDefinition mbse::buildFourBarsMBS()
+ModelDefinition mbse::buildFourBarsMBS()
 {
-	CModelDefinition model;
+	ModelDefinition model;
 	model.setPointCount(4);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
 	model.setPointCoords(1, TPoint2D(1, 0));
@@ -136,7 +136,7 @@ CModelDefinition mbse::buildFourBarsMBS()
 	model.setPointCoords(3, TPoint2D(4, 0), true /*is fixed*/);
 
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 0;
 		b.points[1] = 1;
 
@@ -148,7 +148,7 @@ CModelDefinition mbse::buildFourBarsMBS()
 		b.render_params.z_layer = 0;
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 1;
 		b.points[1] = 2;
 
@@ -160,7 +160,7 @@ CModelDefinition mbse::buildFourBarsMBS()
 		b.render_params.z_layer = -0.05;
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 2;
 		b.points[1] = 3;
 
@@ -174,16 +174,16 @@ CModelDefinition mbse::buildFourBarsMBS()
 	return model;
 }
 
-CModelDefinition mbse::buildSliderCrankMBS()
+ModelDefinition mbse::buildSliderCrankMBS()
 {
-	CModelDefinition model;
+	ModelDefinition model;
 	model.setPointCount(3);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
 	model.setPointCoords(1, TPoint2D(1, 1));
 	model.setPointCoords(2, TPoint2D(5, 0));
 
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 0;
 		b.points[1] = 1;
 
@@ -193,7 +193,7 @@ CModelDefinition mbse::buildSliderCrankMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 1;
 		b.points[1] = 2;
 
@@ -203,16 +203,16 @@ CModelDefinition mbse::buildSliderCrankMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(CConstraintFixedSlider(
+	model.addConstraint(ConstraintFixedSlider(
 		2 /*pt index*/, TPoint2D(-3, -2),
 		TPoint2D(8, 2) /* The line on which to fix the point */
 		));
 	return model;
 }
 
-CModelDefinition mbse::buildFollowerMBS()
+ModelDefinition mbse::buildFollowerMBS()
 {
-	CModelDefinition model;
+	ModelDefinition model;
 	model.setPointCount(5);
 	model.setPointCoords(0, TPoint2D(0, 0), true /*is fixed*/);
 	model.setPointCoords(1, TPoint2D(1, 1));
@@ -221,7 +221,7 @@ CModelDefinition mbse::buildFollowerMBS()
 	model.setPointCoords(4, TPoint2D(5, 0));
 
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 0;
 		b.points[1] = 1;
 
@@ -231,7 +231,7 @@ CModelDefinition mbse::buildFollowerMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 2;
 		b.points[1] = 3;
 
@@ -241,7 +241,7 @@ CModelDefinition mbse::buildFollowerMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 3;
 		b.points[1] = 4;
 
@@ -251,26 +251,26 @@ CModelDefinition mbse::buildFollowerMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(CConstraintMobileSlider(
+	model.addConstraint(ConstraintMobileSlider(
 		1 /*pt index*/, 2, 3 /* two pts for defining the constraint */
 		));
 
-	model.addConstraint(CConstraintFixedSlider(
+	model.addConstraint(ConstraintFixedSlider(
 		4 /*pt index*/, TPoint2D(-5, 0),
 		TPoint2D(10, 0) /* The line on which to fix the point */
 		));
 	return model;
 }
 
-CModelDefinition mbse::buildTwoSliderBlocks()
+ModelDefinition mbse::buildTwoSliderBlocks()
 {
-	CModelDefinition model;
+	ModelDefinition model;
 	model.setPointCount(2);
 	model.setPointCoords(0, TPoint2D(0, 15 * sin(mrpt::DEG2RAD(35))));
 	model.setPointCoords(1, TPoint2D(15 * cos(mrpt::DEG2RAD(35)), 0));
 
 	{
-		CBody& b = model.addBody();
+		Body& b = model.addBody();
 		b.points[0] = 0;
 		b.points[1] = 1;
 
@@ -280,11 +280,11 @@ CModelDefinition mbse::buildTwoSliderBlocks()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(CConstraintFixedSlider(
+	model.addConstraint(ConstraintFixedSlider(
 		0 /*pt index*/, TPoint2D(0, 0),
 		TPoint2D(0, 1) /* The line on which to fix the point */
 		));
-	model.addConstraint(CConstraintFixedSlider(
+	model.addConstraint(ConstraintFixedSlider(
 		1 /*pt index*/, TPoint2D(0, 0),
 		TPoint2D(1, 0) /* The line on which to fix the point */
 		));

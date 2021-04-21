@@ -9,14 +9,14 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/factors/FactorConstraintsAccIndep.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <mrpt/core/exceptions.h>
 #include <mbse/mbse-utils.h>
 
 using namespace mbse;
 
 FactorConstraintsAccIndep::FactorConstraintsAccIndep(
-	const CAssembledRigidModel::Ptr& arm,
+	const AssembledRigidModel::Ptr& arm,
 	const std::vector<size_t>& indCoordsIndices,
 	const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 	gtsam::Key key_dotq_k, gtsam::Key key_ddotq_k, gtsam::Key key_ddotz_k)

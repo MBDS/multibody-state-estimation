@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include <mbse/CModelDefinition.h>
+#include <mbse/ModelDefinition.h>
 
 TEST(ModelFromYaml, Pendulum)
 {
@@ -34,10 +34,10 @@ planar_bodies:
 
 	std::cout << "Model:\n" << def << std::endl;
 
-	const auto model = mbse::CModelDefinition::FromYAML(def);
+	const auto model = mbse::ModelDefinition::FromYAML(def);
 
 	EXPECT_EQ(model.getPointCount(), 2U);
-	EXPECT_EQ(model.getBodies().size(), 1U);
+	EXPECT_EQ(model.bodies().size(), 1U);
 
 	EXPECT_EQ(model.getPointInfo(0).coords, mrpt::math::TPoint2D(0, 0));
 	EXPECT_NEAR(model.getPointInfo(1).coords.x, 2 * cos(35.0_deg), 1e-5);

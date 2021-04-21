@@ -12,7 +12,7 @@
 
 #include <mbse/model-examples.h>
 #include <mbse/dynamics/dynamic-simulators.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 #include <gtsam/inference/Symbol.h>
 #include <mbse/factors/FactorDynamics.h>
 #include <mrpt/math/num_jacobian.h>
@@ -54,9 +54,9 @@ TEST(Jacobians, FactorDynamics)
 		using namespace mbse;
 
 		// Create the multibody object:
-		const CModelDefinition model = mbse::buildFourBarsMBS();
+		const ModelDefinition model = mbse::buildFourBarsMBS();
 
-		std::shared_ptr<CAssembledRigidModel> aMBS = model.assembleRigidMBS();
+		std::shared_ptr<AssembledRigidModel> aMBS = model.assembleRigidMBS();
 		aMBS->setGravityVector(0, -9.81, 0);
 
 		CDynamicSimulator_R_matrix_dense dynSimul(aMBS);

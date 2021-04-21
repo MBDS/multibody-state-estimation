@@ -9,7 +9,7 @@
   +-------------------------------------------------------------------------+ */
 
 #include <mbse/factors/FactorConstraints.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 
 using namespace mbse;
 

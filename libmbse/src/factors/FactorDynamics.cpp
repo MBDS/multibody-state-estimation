@@ -11,14 +11,14 @@
 #include <mrpt/core/exceptions.h>
 #include <mrpt/core/common.h>
 #include <mbse/factors/FactorDynamics.h>
-#include <mbse/CAssembledRigidModel.h>
+#include <mbse/AssembledRigidModel.h>
 
 #include <gtsam/config.h>
 #if defined(GTSAM_USE_TBB)
 #error "So far, MBSE is incompatible with GTSAM+TBB!"
 #endif
 MRPT_TODO(
-	"**IMPORTANT** Refactor CAssembledRigidModel to separate state and model "
+	"**IMPORTANT** Refactor AssembledRigidModel to separate state and model "
 	"data to avoid multithread errors using GTSAM+TBB")
 
 #define USE_NUMERIC_JACOBIAN 1
@@ -49,7 +49,7 @@ void FactorDynamics::print(
 
 struct NumericJacobParams
 {
-	CAssembledRigidModel* arm = nullptr;
+	AssembledRigidModel* arm = nullptr;
 	CDynamicSimulatorBase* dynamic_solver = nullptr;
 	gtsam::Vector q, dq, ddq;
 };
@@ -108,7 +108,7 @@ gtsam::Vector FactorDynamics::evaluateError(
 	ASSERT_(q_k.size() > 0);
 
 	// Set q & dq in the multibody model:
-	CAssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
+	AssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
 	arm.q_ = q_k;
 	arm.dotq_ = dq_k;
 
