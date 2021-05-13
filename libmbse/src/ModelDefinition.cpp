@@ -92,18 +92,22 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 			{
 				case 0:
 				case 1:
+				{
 					THROW_EXCEPTION_FMT(
 						"Body has an invalid number of points (=%u), valid are "
 						">=2",
 						static_cast<unsigned int>(nPts));
-					break;
+				}
+				break;
 				case 2:
+				{
 					ASSERT_(b.points[0] < points_.size());
 					ASSERT_(b.points[1] < points_.size());
 					const_cast<ModelDefinition*>(this)
 						->addConstraint<ConstraintConstantDistance>(
 							b.points[0], b.points[1], b.length());
-					break;
+				}
+				break;
 
 				case 3:
 				{
@@ -233,15 +237,39 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 		}
 
 		// Provide "auto" length:
-		expVars["auto"] = (m.getPointInfo(b.points.at(0)).coords -
-						   m.getPointInfo(b.points.at(1)).coords)
-							  .norm();
+		// "length" is always "auto" for N>=3 bodies:
+		if (pts.size() < 3)
+		{
+			expVars["auto"] = (m.getPointInfo(b.points.at(0)).coords -
+							   m.getPointInfo(b.points.at(1)).coords)
+								  .norm();
 
-		e.compile(yb.at("length").as<std::string>(), expVars, "length");
-		b.length() = e.eval();
+			e.compile(yb.at("length").as<std::string>(), expVars, "length");
+			b.length() = e.eval();
 
-		expVars.erase("auto");
-		expVars["length"] = b.length();
+			expVars.erase("auto");
+			expVars["length"] = b.length();
+		}
+		else
+		{
+			// 3-ary or higher-order: provide helper length variables:
+			for (unsigned int i = 0; i < pts.size(); i++)
+			{
+				for (unsigned int j = i + 1; j < pts.size(); j++)
+				{
+					const double L = (m.getPointInfo(b.points.at(i)).coords -
+									  m.getPointInfo(b.points.at(j)).coords)
+										 .norm();
+					expVars[mrpt::format("length%u%u", i + 1, j + 1)] = L;
+					expVars[mrpt::format("length%u%u", j + 1, i + 1)] = L;
+
+					// We need L01 for some fixed formulas later on:
+					if (i == 0 && j == 1) b.length() = L;
+				}
+			}
+		}
+
+		ASSERT_(b.length() > 0);
 
 		e.compile(yb.at("mass").as<std::string>(), expVars, "mass");
 		b.mass() = e.eval();
