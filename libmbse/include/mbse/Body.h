@@ -87,11 +87,21 @@ struct Body
 	/** Computes (or gets cached) mass mat. */
 	const Eigen::Matrix2d& getM01() const;
 
+	/** Fixed relative coordinates of all points in `points_` in local body
+	 * coordinates, +X goes from point[0] -> point[1].
+	 * These coordinates are used for rendering only.
+	 */
+	auto& fixedPointsLocal() { return fixedPointsLocal_; }
+	const auto& fixedPointsLocal() const { return fixedPointsLocal_; }
+
    private:
 	/** Cached versions of mass submatrices, stored here after calling
 	 * evaluateMassMatrix() */
 	mutable Eigen::Matrix2d M00_, M11_, M01_;
 	mutable bool mass_matrices_cached_ = false;
+
+	/** See fixedPointsLocal() */
+	std::vector<mrpt::math::TPoint2D> fixedPointsLocal_;
 
 	/** Computes the 3 different 2x2 blocks of the 4x4 mass matrix of a generic
 	 * planar rigid element */

@@ -13,7 +13,9 @@
 #include <mbse/constraints/ConstraintConstantDistance.h>
 #include <mrpt/opengl.h>
 #include <mrpt/core/round.h>
+#include <mrpt/math/TPose2D.h>
 #include <mrpt/expr/CRuntimeCompiledExpression.h>
+#include <cmath>  // atan2()
 
 using namespace mbse;
 using namespace std;
@@ -268,8 +270,28 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 				}
 			}
 		}
-
 		ASSERT_(b.length() > 0);
+
+		// Build local point coordinates:
+		{
+			auto& localPts = b.fixedPointsLocal();
+
+			const auto& pt0 = m.getPointInfo(b.points.at(0)).coords;
+			const auto& pt1 = m.getPointInfo(b.points.at(1)).coords;
+			const auto v01 = pt1 - pt0;
+			ASSERT_(v01.norm() > 0);
+
+			const auto refPose =
+				mrpt::math::TPose2D(pt0.x, pt0.y, std::atan2(v01.y, v01.x));
+
+			localPts.clear();
+			for (size_t i = 0; i < pts.size(); i++)
+			{
+				const auto localPt = refPose.inverseComposePoint(
+					m.getPointInfo(b.points.at(i)).coords);
+				localPts.push_back(localPt);
+			}
+		}
 
 		e.compile(yb.at("mass").as<std::string>(), expVars, "mass");
 		b.mass() = e.eval();
