@@ -37,6 +37,9 @@ class ConstraintBase
 	 * MBS. This is called a very large number of times during simulations. */
 	virtual void update(AssembledRigidModel& arm) const = 0;
 
+	/** Prints info on the constraint for debugging and inspection purposes */
+	virtual void print(std::ostream& o) const = 0;
+
 	/** Virtual destructor (required in any virtual base) */
 	virtual ~ConstraintBase();
 

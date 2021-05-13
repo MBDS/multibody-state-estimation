@@ -76,15 +76,15 @@ class ModelDefinition
 	 *  Note that fixed-distance constraints due to rigid bodies don't have to
 	 * be added by the user, since they're always automatically added. Check
 	 * derived classes of ConstraintBase to see the list of all possible
-	 * constraints. \note A copy is made from the passed object, so it can be
-	 * safely deleted upon return.
+	 * constraints.
+	 * \note Expected arguments are those of the constraint class ctor.
 	 */
-	template <class CONSTRAINT_CLASS>
-	void addConstraint(const CONSTRAINT_CLASS& c)
+	template <class CONSTRAINT_CLASS, typename... _Args>
+	void addConstraint(_Args&&... args)
 	{
 		// Make a copy as dynamic memory and save as a smart pointer
 		// of the base class.
-		constraints_.push_back(ConstraintBase::Ptr(new CONSTRAINT_CLASS(c)));
+		constraints_.emplace_back(std::make_shared<CONSTRAINT_CLASS>(args...));
 	}
 
 	/** Process the MBS definitions and assemble all the required symbolic
@@ -117,7 +117,7 @@ class ModelDefinition
 	/** @name Data
 		@{ */
 	std::vector<Point2> points_;  //!< ALL points (fixed and variables)
-	std::vector<Body> bodies_;	 //!< Bodies
+	std::vector<Body> bodies_;	//!< Bodies
 
 	/** The list of all constraints (of different kinds/classes).
 	 * \note Constant-distance constraints for rigid bodies are NOT included in

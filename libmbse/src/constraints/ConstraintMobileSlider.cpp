@@ -42,7 +42,7 @@ void ConstraintMobileSlider::update(AssembledRigidModel& arm) const
 								  (pr[1].doty - pr[0].doty) * (p.x - pr[0].x) -
 								  (pr[1].y - pr[0].y) * (p.dotx - pr[0].dotx);
 
-	auto& j = jacob.at(0);  // 1st (and unique) jacob row
+	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -80,4 +80,11 @@ void ConstraintMobileSlider::update(AssembledRigidModel& arm) const
 	set(j.dotPhiqq_times_dq_dy[0], 0);
 	set(j.dotPhiqq_times_dq_dx[1], 0);
 	set(j.dotPhiqq_times_dq_dy[1], 0);
+}
+
+void ConstraintMobileSlider::print(std::ostream& o) const
+{
+	o << "ConstraintMobileSlider"
+		 "\n";
+	o << pointDOFsAsString();
 }

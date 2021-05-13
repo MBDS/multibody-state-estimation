@@ -13,7 +13,9 @@
 #include <mbse/constraints/ConstraintConstantDistance.h>
 #include <mrpt/opengl.h>
 #include <mrpt/core/round.h>
+#include <mrpt/math/TPose2D.h>
 #include <mrpt/expr/CRuntimeCompiledExpression.h>
+#include <cmath>  // atan2()
 
 using namespace mbse;
 using namespace std;
@@ -86,12 +88,57 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 		for (size_t i = 0; i < bodies_.size(); i++)
 		{
 			const Body& b = bodies_[i];
-			ASSERT_(b.points[0] < points_.size());
-			ASSERT_(b.points[1] < points_.size());
+			const auto nPts = b.points.size();
 
-			const_cast<ModelDefinition*>(this)->addConstraint(
-				ConstraintConstantDistance(
-					b.points[0], b.points[1], b.length()));
+			switch (nPts)
+			{
+				case 0:
+				case 1:
+				{
+					THROW_EXCEPTION_FMT(
+						"Body has an invalid number of points (=%u), valid are "
+						">=2",
+						static_cast<unsigned int>(nPts));
+				}
+				break;
+				case 2:
+				{
+					ASSERT_(b.points[0] < points_.size());
+					ASSERT_(b.points[1] < points_.size());
+					const_cast<ModelDefinition*>(this)
+						->addConstraint<ConstraintConstantDistance>(
+							b.points[0], b.points[1], b.length());
+				}
+				break;
+
+				case 3:
+				{
+					const std::vector<std::pair<size_t, size_t>> pairs = {
+						{0, 1}, {0, 2}, {1, 2}};
+
+					for (const auto& p : pairs)
+					{
+						const size_t i = p.first, j = p.second;
+
+						ASSERT_(b.points[i] < points_.size());
+						ASSERT_(b.points[j] < points_.size());
+
+						const double L = (points_.at(b.points[i]).coords -
+										  points_.at(b.points[j]).coords)
+											 .norm();
+
+						const_cast<ModelDefinition*>(this)
+							->addConstraint<ConstraintConstantDistance>(
+								b.points[i], b.points[j], L);
+					}
+				}
+				break;
+
+				default:
+					ASSERT_GE_(nPts, 4);
+					THROW_EXCEPTION("TODO");
+					break;
+			};
 		}
 		// Mark these constraints as added:
 		already_added_fixed_len_constraints_ = true;
@@ -179,15 +226,72 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 
 		const auto& yb = yamlBody.asMap();
 		const auto pts = yb.at("points").asSequence();
-		ASSERT_EQUAL_(pts.size(), 2U);
-		e.compile(pts.at(0).as<std::string>(), expVars, "points[0]");
-		b.points[0] = mrpt::round(e.eval());
-		e.compile(pts.at(1).as<std::string>(), expVars, "points[1]");
-		b.points[1] = mrpt::round(e.eval());
 
-		e.compile(yb.at("length").as<std::string>(), expVars, "length");
-		b.length() = e.eval();
-		expVars["length"] = b.length();
+		ASSERT_GE_(pts.size(), 2U);
+		b.points.resize(pts.size());
+		for (size_t ptIdx = 0; ptIdx < pts.size(); ptIdx++)
+		{
+			e.compile(
+				pts.at(ptIdx).as<std::string>(), expVars,
+				mrpt::format("points[%u]", static_cast<unsigned int>(ptIdx)));
+			b.points.at(ptIdx) = mrpt::round(e.eval());
+			ASSERT_LT_(b.points.at(ptIdx), m.getPointCount());
+		}
+
+		// Provide "auto" length:
+		// "length" is always "auto" for N>=3 bodies:
+		if (pts.size() < 3)
+		{
+			expVars["auto"] = (m.getPointInfo(b.points.at(0)).coords -
+							   m.getPointInfo(b.points.at(1)).coords)
+								  .norm();
+
+			e.compile(yb.at("length").as<std::string>(), expVars, "length");
+			b.length() = e.eval();
+
+			expVars.erase("auto");
+			expVars["length"] = b.length();
+		}
+		else
+		{
+			// 3-ary or higher-order: provide helper length variables:
+			for (unsigned int i = 0; i < pts.size(); i++)
+			{
+				for (unsigned int j = i + 1; j < pts.size(); j++)
+				{
+					const double L = (m.getPointInfo(b.points.at(i)).coords -
+									  m.getPointInfo(b.points.at(j)).coords)
+										 .norm();
+					expVars[mrpt::format("length%u%u", i + 1, j + 1)] = L;
+					expVars[mrpt::format("length%u%u", j + 1, i + 1)] = L;
+
+					// We need L01 for some fixed formulas later on:
+					if (i == 0 && j == 1) b.length() = L;
+				}
+			}
+		}
+		ASSERT_(b.length() > 0);
+
+		// Build local point coordinates:
+		{
+			auto& localPts = b.fixedPointsLocal();
+
+			const auto& pt0 = m.getPointInfo(b.points.at(0)).coords;
+			const auto& pt1 = m.getPointInfo(b.points.at(1)).coords;
+			const auto v01 = pt1 - pt0;
+			ASSERT_(v01.norm() > 0);
+
+			const auto refPose =
+				mrpt::math::TPose2D(pt0.x, pt0.y, std::atan2(v01.y, v01.x));
+
+			localPts.clear();
+			for (size_t i = 0; i < pts.size(); i++)
+			{
+				const auto localPt = refPose.inverseComposePoint(
+					m.getPointInfo(b.points.at(i)).coords);
+				localPts.push_back(localPt);
+			}
+		}
 
 		e.compile(yb.at("mass").as<std::string>(), expVars, "mass");
 		b.mass() = e.eval();

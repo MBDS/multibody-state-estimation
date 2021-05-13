@@ -41,7 +41,7 @@ Required sections are:
     and center of gravity (`cog`) must be also specified, possibly using equations
     that get evaluated (in that order) substituting these variables:
     * `index`: 0-based index of the body,
-    * `length`: the length.
+    * `length`: the length. You can use `auto` to compute length automatically from the distance |pt(1)-pt(0)|.
     * `mass`: The mass.
     * `I0`: The inertia.
 

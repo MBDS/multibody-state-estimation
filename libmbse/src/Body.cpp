@@ -101,20 +101,49 @@ mrpt::opengl::CRenderizable::Ptr Body::get3DRepresentation() const
 		}
 		break;
 
-		case reLine:
+		case reLine:  // synonum with: reSimplex:
 		{
-			auto obj = mrpt::opengl::CSimpleLine::Create();
+			ASSERT_EQUAL_(fixedPointsLocal_.size(), points.size());
 
-			obj->setLineWidth(render_params.line_width);
-			obj->enableAntiAliasing(true);
-			obj->setColor_u8(
-				mrpt::img::TColor(0xFF, 0xFF, 0xFF, render_params.line_alpha));
+			if (points.size() == 2)
+			{
+				auto obj = mrpt::opengl::CSimpleLine::Create();
 
-			obj->setLineCoords(
-				0, 0, render_params.z_layer, this->length_, 0,
-				render_params.z_layer);
+				obj->setLineWidth(render_params.line_width);
+				obj->enableAntiAliasing(true);
+				obj->setColor_u8(mrpt::img::TColor(
+					0xFF, 0xFF, 0xFF, render_params.line_alpha));
 
-			objs->insert(obj);
+				obj->setLineCoords(
+					0, 0, render_params.z_layer, this->length_, 0,
+					render_params.z_layer);
+
+				objs->insert(obj);
+			}
+			else
+			{
+				auto obj = mrpt::opengl::CSetOfLines::Create();
+
+				obj->setLineWidth(render_params.line_width);
+				obj->enableAntiAliasing(true);
+				obj->setColor_u8(mrpt::img::TColor(
+					0xFF, 0xFF, 0xFF, render_params.line_alpha));
+
+				obj->appendLine(
+					fixedPointsLocal_.at(0).x, fixedPointsLocal_.at(0).y,
+					render_params.z_layer,	//
+					fixedPointsLocal_.at(1).x, fixedPointsLocal_.at(1).y,
+					render_params.z_layer);
+				for (size_t i = 2; i <= points.size(); i++)
+				{
+					const size_t j = i % points.size();
+					obj->appendLineStrip(
+						fixedPointsLocal_.at(j).x, fixedPointsLocal_.at(j).y,
+						render_params.z_layer);
+				}
+
+				objs->insert(obj);
+			}
 		}
 		break;
 

@@ -53,6 +53,18 @@ static void runDynamicSimulation()
 	aMBS->printCoordinates(std::cout);
 	std::cout << std::endl;
 
+	std::cout << "Problem constraints:\n";
+	aMBS->printConstraints(std::cout);
+	std::cout << std::endl;
+
+	{
+		aMBS->update_numeric_Phi_and_Jacobians();
+		const double initial_Phi = aMBS->Phi_.norm();
+		const double final_Phi = aMBS->refinePosition();
+		cout << "refinePosition |Phi|_{initial}= " << initial_Phi
+			 << " ==> |Phi|_{final}=" << final_Phi << endl;
+	}
+
 	// Set initial velocities (Only for the buildParameterizedMBS model)
 	// for (size_t i=0;i<=Nx;i++)
 	//	aMBS->dotq_[2*i+0]=1;

@@ -203,10 +203,10 @@ ModelDefinition mbse::buildSliderCrankMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(ConstraintFixedSlider(
+	model.addConstraint<ConstraintFixedSlider>(
 		2 /*pt index*/, TPoint2D(-3, -2),
 		TPoint2D(8, 2) /* The line on which to fix the point */
-		));
+	);
 	return model;
 }
 
@@ -251,14 +251,14 @@ ModelDefinition mbse::buildFollowerMBS()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(ConstraintMobileSlider(
+	model.addConstraint<ConstraintMobileSlider>(
 		1 /*pt index*/, 2, 3 /* two pts for defining the constraint */
-		));
+	);
 
-	model.addConstraint(ConstraintFixedSlider(
+	model.addConstraint<ConstraintFixedSlider>(
 		4 /*pt index*/, TPoint2D(-5, 0),
 		TPoint2D(10, 0) /* The line on which to fix the point */
-		));
+	);
 	return model;
 }
 
@@ -280,13 +280,13 @@ ModelDefinition mbse::buildTwoSliderBlocks()
 		b.cog() = TPoint2D(b.length() * 0.5, 0);
 	}
 
-	model.addConstraint(ConstraintFixedSlider(
+	model.addConstraint<ConstraintFixedSlider>(
 		0 /*pt index*/, TPoint2D(0, 0),
 		TPoint2D(0, 1) /* The line on which to fix the point */
-		));
-	model.addConstraint(ConstraintFixedSlider(
+	);
+	model.addConstraint<ConstraintFixedSlider>(
 		1 /*pt index*/, TPoint2D(0, 0),
 		TPoint2D(1, 0) /* The line on which to fix the point */
-		));
+	);
 	return model;
 }

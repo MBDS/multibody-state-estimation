@@ -43,6 +43,7 @@ class ConstraintRelativeAngleAbsolute
 
 	void buildSparseStructures(AssembledRigidModel& arm) const override;
 	void update(AssembledRigidModel& arm) const override;
+	void print(std::ostream& o) const override;
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
 

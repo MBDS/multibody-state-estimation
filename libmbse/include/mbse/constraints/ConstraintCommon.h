@@ -175,6 +175,14 @@ class ConstraintCommon
 	/** The indices of each point in the state vector "q" */
 	mutable std::array<Point2ToDOF, NUM_POINTS> pointDOFs_;
 
+	static std::string singlePointDOFAsString(dof_index_t idx)
+	{
+		if (idx == INVALID_DOF)
+			return "fixed";
+		else
+			return std::to_string(idx);
+	}
+
 	std::string pointDOFsAsString() const
 	{
 		std::string ret;
@@ -182,10 +190,14 @@ class ConstraintCommon
 		{
 			ret += "point[";
 			ret += std::to_string(i);
-			ret += "]: dof_x=";
-			ret += std::to_string(pointDOFs_[i].dof_x);
+			ret += "]: (x";
+			ret += std::to_string(point_index[i]);
+			ret += ",y";
+			ret += std::to_string(point_index[i]);
+			ret += ") dof_x=";
+			ret += singlePointDOFAsString(pointDOFs_[i].dof_x);
 			ret += " dof_y=";
-			ret += std::to_string(pointDOFs_[i].dof_y);
+			ret += singlePointDOFAsString(pointDOFs_[i].dof_y);
 			ret += "\n";
 		}
 		return ret;

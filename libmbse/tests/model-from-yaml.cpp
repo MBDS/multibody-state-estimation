@@ -24,7 +24,7 @@ points:
   - { x: 2.0*cos(deg2rad(35.0)), y: 2.0*sin(deg2rad(35.0)) }
 planar_bodies:
   - points: [0, 1]
-    length: 1.0
+    length: auto
     mass: 1.0
     I0: (1/3)*mass*length^2
     cog: [0.5*length, 0.0]
@@ -42,4 +42,6 @@ planar_bodies:
 	EXPECT_EQ(model.getPointInfo(0).coords, mrpt::math::TPoint2D(0, 0));
 	EXPECT_NEAR(model.getPointInfo(1).coords.x, 2 * cos(35.0_deg), 1e-5);
 	EXPECT_NEAR(model.getPointInfo(1).coords.y, 2 * sin(35.0_deg), 1e-5);
+
+	EXPECT_NEAR(model.bodies().at(0).length(), 2.0, 1e-5);
 }

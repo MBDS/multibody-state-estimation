@@ -82,3 +82,9 @@ void ConstraintConstantDistance::update(AssembledRigidModel& arm) const
 	set(j.dotPhiqq_times_dq_dx[1], 0);
 	set(j.dotPhiqq_times_dq_dy[1], 0);
 }
+
+void ConstraintConstantDistance::print(std::ostream& o) const
+{
+	o << "ConstraintConstantDistance, L=" << length << "\n";
+	o << pointDOFsAsString();
+}

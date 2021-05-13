@@ -21,7 +21,7 @@
 #include <mrpt/img/TColor.h>
 #include <mrpt/system/CTimeLogger.h>
 
-#include <Eigen/Dense>  // provided by MRPT or standalone
+#include <Eigen/Dense>	// provided by MRPT or standalone
 #if EIGEN_VERSION_AT_LEAST(3, 1, 0)
 #include <Eigen/Sparse>
 #include <Eigen/UmfPackSupport>
@@ -58,6 +58,9 @@ enum class PointDOF : uint8_t
 	Y = 1,
 	Z = 2
 };
+
+/** Return x, y, z */
+char dof2letter(const PointDOF p);
 
 /** Degree of Freedom (DOF) info for Natural Coordinates DOFs */
 struct NaturalCoordinateDOF

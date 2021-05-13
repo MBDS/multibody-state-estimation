@@ -18,7 +18,7 @@ namespace mbse
  * AssembledRigidModel that models a ModelDefinition */
 struct TSymbolicAssembledModel
 {
-	const ModelDefinition& model;	//!< My "parent" model
+	const ModelDefinition& model;  //!< My "parent" model
 
 	/** Info on Natural Coordinate DOFs in the problem (same lenth than q_) */
 	std::vector<NaturalCoordinateDOF> DOFs;
@@ -37,8 +37,8 @@ struct TSymbolicAssembledModel
 
 class AssembledRigidModel
 {
-	friend class ModelDefinition;	// So that class can create instances of
-									// this class.
+	friend class ModelDefinition;  // So that class can create instances of
+								   // this class.
 
    public:
 	using Ptr = std::shared_ptr<AssembledRigidModel>;
@@ -136,7 +136,10 @@ class AssembledRigidModel
 		mrpt::math::TPoint2D& out_pt) const;
 
 	/** Print info for each coordinate in "q" */
-	void printCoordinates(std::ostream& o = std::cout);
+	void printCoordinates(std::ostream& o = std::cout) const;
+
+	/** Print info about all constraints */
+	void printConstraints(std::ostream& o = std::cout) const;
 
    private:
 	/** Created upon call to getAs3DRepresentation(), this holds a list of the
@@ -302,9 +305,9 @@ class AssembledRigidModel
 		const Point2& pt, const Body::TRenderParams& rp) const;
 
    public:
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW	 // Required for aligned mem allocator (only
-									 // needed in classes containing fixed-size
-									 // Eigen matrices)
+	// Required for aligned mem allocator (only needed in classes containing
+	// fixed-size Eigen matrices)
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 };	// end class AssembledRigidModel
 

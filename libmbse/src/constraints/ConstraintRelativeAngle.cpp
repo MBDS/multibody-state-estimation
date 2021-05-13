@@ -29,8 +29,8 @@ void ConstraintRelativeAngle::update(AssembledRigidModel& arm) const
 {
 	// Get references to the point coordinates and velocities
 	// (either fixed or variables in q):
-	PointRef p[3] = {actual_coords(arm, 0), actual_coords(arm, 1),
-					 actual_coords(arm, 2)};
+	PointRef p[3] = {
+		actual_coords(arm, 0), actual_coords(arm, 1), actual_coords(arm, 2)};
 
 	const double Ax = p[1].x - p[0].x;
 	const double Ay = p[1].y - p[0].y;
@@ -49,7 +49,7 @@ void ConstraintRelativeAngle::update(AssembledRigidModel& arm) const
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] = 2 * Ax * Adotx + 2 * Ay * Adoty;
 
-	auto& j = jacob.at(0);  // 1st (and unique) jacob row
+	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
@@ -79,4 +79,11 @@ void ConstraintRelativeAngle::update(AssembledRigidModel& arm) const
 	set(j.dotPhiqq_times_dq_dy[0], 0);
 	set(j.dotPhiqq_times_dq_dx[1], 0);
 	set(j.dotPhiqq_times_dq_dy[1], 0);
+}
+
+void ConstraintRelativeAngle::print(std::ostream& o) const
+{
+	o << "ConstraintRelativeAngle"
+		 "\n";
+	o << pointDOFsAsString();
 }
