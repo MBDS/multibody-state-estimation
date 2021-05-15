@@ -7,15 +7,15 @@ points:
     y: 0
     fixed: true
   # 1
-  - { x: 5.0, y: 0 }
+  - { x: 7.0, y: 0 }
   # 2
-  - { x: 5+3, y: 0+4 }
+  - { x: x1+5*cos(45*pi/180), y: y1+5*sin(45*pi/180) }
   # 3
-  - { x: 5+3, y: 0-4 }
+  - { x: x1+5*cos(45*pi/180), y: y1-5*sin(45*pi/180) }
   # 4
-  - { x: 5+3+2, y: 0+4+1 }
+  - { x: x2+2, y: y2 }
   # 5
-  - { x: 5+3+5, y: 0-4+0 }
+  - { x: x3+3, y: y3 }
 planar_bodies:
   # 0
   - points: [0, 1]
@@ -27,8 +27,11 @@ planar_bodies:
   - points: [1, 2, 3]
     #length: auto  # length is ignored for 3-ary or higher-order bodies
     mass: 3.0
-    I0: (1/3)*mass*length12^2
-    cog: [0.5*length12, -0.5*length12]
+    I0: (1/2)*mass*length12^2
+    cog: [0, 0]
+    visual:
+        type: circle
+        radius: length12
   # 2
   - points: [2, 4]
     length: auto

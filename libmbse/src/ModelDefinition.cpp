@@ -189,6 +189,7 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 	m.setPointCount(nPts);
 
 	CRuntimeCompiledExpression expX, expY;
+	std::map<std::string, double> expVars;
 
 	for (size_t idxPt = 0; idxPt < nPts; idxPt++)
 	{
@@ -201,10 +202,15 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 		const auto sX = yamlPt.at("x").as<std::string>();
 		const auto sY = yamlPt.at("y").as<std::string>();
 
-		expX.compile(sX);
-		expY.compile(sY);
+		expX.compile(sX, expVars);
+		expY.compile(sY, expVars);
 
-		m.setPointCoords(idxPt, {expX.eval(), expY.eval()}, isFixed);
+		const auto pt = mrpt::math::TPoint2D(expX.eval(), expY.eval());
+
+		m.setPointCoords(idxPt, pt, isFixed);
+
+		expVars[std::string("x") + std::to_string(idxPt)] = pt.x;
+		expVars[std::string("y") + std::to_string(idxPt)] = pt.y;
 	}
 
 	// ---------------------
@@ -219,10 +225,7 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 		CRuntimeCompiledExpression e;
 		Body& b = m.addBody();
 
-		std::map<std::string, double> expVars;
 		expVars["index"] = m.bodies().size();
-
-		MRPT_TODO("allow using x0,y0,x1,y1 as expressions.");
 
 		const auto& yb = yamlBody.asMap();
 		const auto pts = yb.at("points").asSequence();
@@ -310,6 +313,10 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 			yb.at("cog").asSequence().at(1).as<std::string>(), expVars,
 			"cog.y");
 		b.cog().y = e.eval();
+
+		expVars.erase("mass");
+		expVars.erase("length");
+		expVars.erase("I0");
 	}
 
 	// Constraints:
