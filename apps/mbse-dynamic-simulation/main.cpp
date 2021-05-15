@@ -35,7 +35,10 @@ TCLAP::ValueArg<std::string> arg_mechanism(
 	"", "mechanism", "Mechanism model YAML file", true, "mechanism.yaml",
 	"YAML model definition", cmd);
 
-void my_callback(TSimulationStateRef& simul_state) {}
+TCLAP::SwitchArg arg_save_q(
+	"", "save-q", "Saves decimated Q history to a txt file", cmd);
+
+void my_callback([[maybe_unused]] TSimulationStateRef& simul_state) {}
 
 static void runDynamicSimulation()
 {
@@ -158,6 +161,7 @@ static void runDynamicSimulation()
 	E_kin.reserve(ENERGY_MAX_LOG);
 	E_pot.reserve(ENERGY_MAX_LOG);
 	mrpt::math::CMatrixDouble Qs(ENERGY_MAX_LOG, 1 + aMBS->q_.size());
+	int Q_entries = 0;
 
 	const size_t ENERGY_DECIMATE = 100;
 	size_t ENERGY_DECIMATE_CNT = 0;
@@ -212,13 +216,12 @@ static void runDynamicSimulation()
 		}
 		// Save first part of
 		{
-			static int idx = 0;
-			if (idx < Qs.rows() - 1)
+			if (Q_entries < Qs.rows() - 1)
 			{
-				Qs(idx, 0) = t_old_simul;
+				Qs(Q_entries, 0) = t_old_simul;
 				for (int i = 0; i < dynSimul.get_model()->q_.size(); i++)
-					Qs(idx, 1 + i) = dynSimul.get_model()->q_[i];
-				idx++;
+					Qs(Q_entries, 1 + i) = dynSimul.get_model()->q_[i];
+				Q_entries++;
 			}
 		}
 
@@ -308,10 +311,12 @@ static void runDynamicSimulation()
 		winE2.waitForKey();
 	}
 
-#if 0
-	std::cout << "Saving decimated trajectory to: Qs.txt...\n";
-	Qs.saveToTextFile("Qs.txt");
-#endif
+	if (arg_save_q.isSet())
+	{
+		std::cout << "Saving decimated trajectory to: q.txt...\n";
+		Qs.resize(Q_entries, Qs.cols());
+		Qs.saveToTextFile("q.txt");
+	}
 }
 
 int main(int argc, char** argv)
