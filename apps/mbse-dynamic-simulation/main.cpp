@@ -35,6 +35,10 @@ TCLAP::ValueArg<std::string> arg_mechanism(
 	"", "mechanism", "Mechanism model YAML file", true, "mechanism.yaml",
 	"YAML model definition", cmd);
 
+TCLAP::ValueArg<double> arg_timestep(
+	"t", "dt", "Timestep for fixed-step numerical integration", false, 1e-3,
+	"Timestep[s]", cmd);
+
 TCLAP::SwitchArg arg_save_q(
 	"", "save-q", "Saves decimated Q history to a txt file", cmd);
 
@@ -148,7 +152,7 @@ static void runDynamicSimulation()
 
 	// Set params:
 	// -----------------------------
-	dynSimul.params.time_step = 1e-3;
+	dynSimul.params.time_step = arg_timestep.getValue();
 	dynSimul.params.ode_solver = ODE_RK4;
 	// dynSimul.params.ode_solver = ODE_Trapezoidal;
 	dynSimul.params.user_callback = simul_callback_t(my_callback);
