@@ -36,8 +36,7 @@ CDynamicSimulatorBase::~CDynamicSimulatorBase() {}
  * "CDynamicSimulator_Lagrange_UMFPACK", ...
  */
 CDynamicSimulatorBase::Ptr CDynamicSimulatorBase::Create(
-	const std::string& name,
-	const std::shared_ptr<AssembledRigidModel> arm_ptr)
+	const std::string& name, const std::shared_ptr<AssembledRigidModel> arm_ptr)
 {
 	if (name == "CDynamicSimulator_Lagrange_LU_dense")
 		return Ptr(new CDynamicSimulator_Lagrange_LU_dense(arm_ptr));
@@ -134,7 +133,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 				// -------------------------------------------
 				case ODE_RK4:
 				{
-					q0 = arm_->q_;  // Make backup copy of state (velocities
+					q0 = arm_->q_;	// Make backup copy of state (velocities
 									// will be in "v1")
 
 					// k1 = f(t,y);

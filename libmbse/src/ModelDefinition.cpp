@@ -111,10 +111,22 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 				}
 				break;
 
-				case 3:
+				default:
 				{
-					const std::vector<std::pair<size_t, size_t>> pairs = {
-						{0, 1}, {0, 2}, {1, 2}};
+					ASSERT_GE_(nPts, 3);
+
+					// Start with the regular 0-1 constant-distance constraint:
+					std::vector<std::pair<size_t, size_t>> pairs = {
+						{0, 1},
+					};
+
+					// Build an additional "triangle" for each extra point, to
+					// ensure the solid body constraints:
+					for (size_t i = 2; i < nPts; i++)
+					{
+						pairs.emplace_back(0, i);
+						pairs.emplace_back(1, i);
+					}
 
 					for (const auto& p : pairs)
 					{
@@ -134,9 +146,9 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 				}
 				break;
 
-				default:
-					ASSERT_GE_(nPts, 4);
-					THROW_EXCEPTION("TODO");
+					{
+						THROW_EXCEPTION("TODO");
+					}
 					break;
 			};
 		}
@@ -178,6 +190,11 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 					   c.node().typeName().c_str()));
 
 	ModelDefinition m;
+
+	// ---------------------
+	// Parameters
+	// ---------------------
+	MRPT_TODO("Parse an optional 'parameters' section");
 
 	// ---------------------
 	// Points
@@ -222,7 +239,6 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 
 	for (const auto& yamlBody : yamlBodies.asSequence())
 	{
-		CRuntimeCompiledExpression e;
 		Body& b = m.addBody();
 
 		expVars["index"] = m.bodies().size();
@@ -234,6 +250,7 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 		b.points.resize(pts.size());
 		for (size_t ptIdx = 0; ptIdx < pts.size(); ptIdx++)
 		{
+			CRuntimeCompiledExpression e;
 			e.compile(
 				pts.at(ptIdx).as<std::string>(), expVars,
 				mrpt::format("points[%u]", static_cast<unsigned int>(ptIdx)));
@@ -249,6 +266,7 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 							   m.getPointInfo(b.points.at(1)).coords)
 								  .norm();
 
+			CRuntimeCompiledExpression e;
 			e.compile(yb.at("length").as<std::string>(), expVars, "length");
 			b.length() = e.eval();
 
@@ -296,6 +314,7 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 			}
 		}
 
+		CRuntimeCompiledExpression e;
 		e.compile(yb.at("mass").as<std::string>(), expVars, "mass");
 		b.mass() = e.eval();
 		expVars["mass"] = b.mass();

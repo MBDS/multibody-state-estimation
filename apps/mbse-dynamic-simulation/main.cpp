@@ -67,9 +67,13 @@ static void runDynamicSimulation()
 	{
 		aMBS->update_numeric_Phi_and_Jacobians();
 		const double initial_Phi = aMBS->Phi_.norm();
-		const double final_Phi = aMBS->refinePosition();
+		const auto initial_q = aMBS->q_;
+		const double final_Phi = aMBS->refinePosition(1e-16, 10);
+		const auto final_q = aMBS->q_;
 		cout << "refinePosition |Phi|_{initial}= " << initial_Phi
-			 << " ==> |Phi|_{final}=" << final_Phi << endl;
+			 << " ==> |Phi|_{final}=" << final_Phi << "\n"
+			 << " Initial q: " << initial_q.transpose() << "\n"
+			 << " Final q  : " << final_q.transpose() << std::endl;
 	}
 
 	// Set initial velocities (Only for the buildParameterizedMBS model)
@@ -129,14 +133,14 @@ static void runDynamicSimulation()
 
 	// Executes a dynamic simulation:
 	// -----------------------------------------------
-	using dynamics_t = CDynamicSimulator_Lagrange_LU_dense;
+	// using dynamics_t = CDynamicSimulator_Lagrange_LU_dense;
 	// using dynamics_t = CDynamicSimulator_Lagrange_UMFPACK;
 	// using dynamics_t = CDynamicSimulator_Lagrange_KLU;
 	// using dynamics_t = CDynamicSimulator_Lagrange_CHOLMOD;
 	// using dynamics_t = CDynamicSimulator_Indep_dense;
 	// using dynamics_t = CDynamicSimulator_AugmentedLagrangian_KLU;
 	// using dynamics_t = CDynamicSimulator_AugmentedLagrangian_Dense;
-	// using dynamics_t = CDynamicSimulator_ALi3_Dense;
+	using dynamics_t = CDynamicSimulator_ALi3_Dense;
 	// using dynamics_t = CDynamicSimulator_R_matrix_dense;
 
 	dynamics_t dynSimul(aMBS);

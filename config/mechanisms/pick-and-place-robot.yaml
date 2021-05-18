@@ -1,0 +1,86 @@
+%YAML 1.2
+---
+# Pick-and-place parallel planar robot arm
+# See e.g. picture in patent US 7090458
+points:
+  - { x: 0, y: 0, fixed: true }      # 0 (support, motor 1)
+  - { x: 0.5, y: -0.5, fixed: true } # 1 (support)
+  - { x: -1.0, y: -1.0 }  # 2
+  - { x: -0.5, y: -1.5 }  # 3
+  - { x: -1.0, y: -2.0 }  # 4
+  - { x:  0.0, y: -4.5 }  # 5
+  - { x: -0.5, y: -5.0 }  # 6
+  - { x:  1.5, y: -4.5 }  # 7
+  - { x:  2.0, y: -5.0 }  # 8
+  - { x:  2.5, y: -2.0 }  # 9
+  - { x:  2.0, y: -1.5 }  # 10
+  - { x:  2.5, y: -1.0 }  # 11
+  - { x: 1.0, y: -0.5, fixed: true } # 12 (support)
+  - { x: 1.5, y: 0, fixed: true }    # 13 (support, motor 2)
+planar_bodies:
+  # 0
+  - points: [0, 2]
+    length: auto
+    mass: 1
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 1
+  - points: [1, 3]
+    length: auto
+    mass: 1
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 2
+  - points: [2, 3, 4]
+    #length: auto  # length is ignored for 3-ary or higher-order bodies
+    mass: 1
+    I0: 2/3
+    cog: [0.5*length12, 0.0]
+  # 3
+  - points: [4, 6]
+    length: auto
+    mass: 3
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 4
+  - points: [3, 5]
+    length: auto
+    mass: 3
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 5
+  - points: [5, 7, 6, 8]
+    #length: auto  # length is ignored for 3-ary or higher-order bodies
+    mass: 6.0
+    I0: 2.0 #mass*(bt^2/9+b^2/12+h^2/4) (1/2)*mass*length12^2
+    cog: [ 1.5/2, -0.5/2 ]
+  # 6
+  - points: [8, 9]
+    length: auto
+    mass: 3
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 7
+  - points: [7, 10]
+    length: auto
+    mass: 3
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 8
+  - points: [9, 10, 11]
+    length: auto
+    mass: 1
+    I0: 2/3
+    cog: [0.5*length12, 0.0]
+  # 9
+  - points: [11, 13]
+    length: auto
+    mass: 1
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
+  # 10
+  - points: [10, 12]
+    length: auto
+    mass: 1
+    I0: (1/3)*mass*length^2
+    cog: [0.5*length, 0.0]
