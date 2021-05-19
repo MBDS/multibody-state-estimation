@@ -11,6 +11,7 @@
 #include <mbse/ModelDefinition.h>
 #include <mbse/AssembledRigidModel.h>
 #include <mbse/constraints/ConstraintConstantDistance.h>
+#include <mbse/constraints/ConstraintRelativePosition.h>
 #include <mrpt/opengl.h>
 #include <mrpt/core/round.h>
 #include <mrpt/math/TPose2D.h>
@@ -111,21 +112,77 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 				}
 				break;
 
+				case 3:
+				{
+					MRPT_TODO("Handle 3 aligned points");
+
+					const std::vector<std::pair<size_t, size_t>> pairs = {
+						{0, 1}, {0, 2}, {1, 2}};
+
+					for (const auto& p : pairs)
+					{
+						const size_t i = p.first, j = p.second;
+
+						ASSERT_(b.points[i] < points_.size());
+						ASSERT_(b.points[j] < points_.size());
+
+						const double L = (points_.at(b.points[i]).coords -
+										  points_.at(b.points[j]).coords)
+											 .norm();
+
+						const_cast<ModelDefinition*>(this)
+							->addConstraint<ConstraintConstantDistance>(
+								b.points[i], b.points[j], L);
+					}
+				}
+				break;
+
+#if 0
 				default:
 				{
-					ASSERT_GE_(nPts, 3);
+					ASSERT_GE_(nPts, 4);
 
-					// Start with the regular 0-1 constant-distance constraint:
-					std::vector<std::pair<size_t, size_t>> pairs = {
-						{0, 1},
-					};
+					// 3 first points as in case above:
+					const std::vector<std::pair<size_t, size_t>> pairs = {
+						{0, 1}, {0, 2}, {1, 2}};
 
-					// Build an additional "triangle" for each extra point, to
-					// ensure the solid body constraints:
-					for (size_t i = 2; i < nPts; i++)
+					for (const auto& p : pairs)
 					{
-						pairs.emplace_back(0, i);
-						pairs.emplace_back(1, i);
+						const size_t i = p.first, j = p.second;
+
+						ASSERT_(b.points[i] < points_.size());
+						ASSERT_(b.points[j] < points_.size());
+
+						const double L = (points_.at(b.points[i]).coords -
+										  points_.at(b.points[j]).coords)
+											 .norm();
+
+						const_cast<ModelDefinition*>(this)
+							->addConstraint<ConstraintConstantDistance>(
+								b.points[i], b.points[j], L);
+					}
+
+					for (size_t i = 3; i < nPts; i++)
+					{
+						const_cast<ModelDefinition*>(this)
+							->addConstraint<ConstraintRelativePosition>(
+								b.points[0], b.points[1], b.points[2],
+								b.points[i]);
+					}
+
+					break;
+				}
+#else
+				default:
+				{
+					MRPT_TODO("Handle 3 aligned points");
+
+					std::vector<std::pair<size_t, size_t>> pairs = {{0, 1}};
+
+					for (size_t j = 2; j < nPts; j++)
+					{
+						pairs.emplace_back(0, j);
+						pairs.emplace_back(1, j);
 					}
 
 					for (const auto& p : pairs)
@@ -146,10 +203,7 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 				}
 				break;
 
-					{
-						THROW_EXCEPTION("TODO");
-					}
-					break;
+#endif
 			};
 		}
 		// Mark these constraints as added:

@@ -96,10 +96,9 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 	{
 		// Log sensor points:
 		// ------------------------------
-		for (std::list<TSensorData>::iterator it = sensors_.begin();
-			 it != sensors_.end(); ++it)
+		for (auto& sd : sensors_)
 		{
-			TSensorData& sd = *it;
+			MRPT_TODO("Disable this log?");
 			sd.log.push_back(timestamped_point_t(
 				t, TPointState(
 					   {*sd.pos[0], *sd.pos[1]}, {*sd.vel[0], *sd.vel[1]})));

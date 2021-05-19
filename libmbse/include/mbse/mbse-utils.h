@@ -135,6 +135,22 @@ void removeColumns(MATRIX& m, const std::vector<std::size_t>& idxsToRemove)
 	unsafeRemoveColumns(m, idxs);
 }
 
+/** Removes rows of the matrix.
+ * This "unsafe" version assumes indices sorted in ascending order. */
+template <class MATRIX>
+void unsafeRemoveRows(MATRIX& m, const std::vector<std::size_t>& idxs)
+{
+	std::size_t k = 1;
+	const auto nC = m.cols();
+	for (auto it = idxs.rbegin(); it != idxs.rend(); ++it, ++k)
+	{
+		const auto nR = m.rows() - *it - k;
+		if (nR > 0)
+			m.block(*it, 0, nR, nC) = m.block(*it + 1, 0, nR, nC).eval();
+	}
+	m.conservativeResize(m.rows() - idxs.size(), nC);
+}
+
 /** Extract a subset from a vector (e.g. to extract independent coordinates z
  * from q) */
 template <class VECTOR>

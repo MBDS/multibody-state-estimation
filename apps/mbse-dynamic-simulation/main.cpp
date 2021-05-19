@@ -146,8 +146,8 @@ static void runDynamicSimulation()
 	dynamics_t dynSimul(aMBS);
 
 	// dynSimul.params_penalty.alpha = 1e7;
-	// dynSimul.params_penalty.xi = 1;
-	// dynSimul.params_penalty.w = 10;
+	// dynSimul.params_penalty.xi = 0.5;
+	// dynSimul.params_penalty.w = 20;
 
 	// Mark points for logging:
 	// -----------------------------------------------

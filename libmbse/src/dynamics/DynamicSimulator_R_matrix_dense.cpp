@@ -10,6 +10,7 @@
 
 #include <mbse/AssembledRigidModel.h>
 #include <mbse/dynamics/dynamic-simulators.h>
+#include <fstream>
 
 using namespace mbse;
 using namespace Eigen;
@@ -54,7 +55,7 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	//  normally =>  c = - \dot{Phi_q} * \dot{q}
 	//
 	const size_t nDepCoords = arm_->q_.size();
-	const size_t nConstraints = arm_->Phi_.size();
+	size_t nConstraints = arm_->Phi_.size();
 
 	// Update numeric values of the constraint Jacobians:
 	timelog().enter("solver_ddotq.update_jacob");
@@ -66,8 +67,8 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	// Get Jacobian dPhi_dq
 	timelog().enter("solver_ddotq.get_dense_jacob");
 
-	Eigen::MatrixXd Phiq(nConstraints, nDepCoords);
-	arm_->Phi_q_.asDense(Phiq);
+	// nrows=nConstraints, ncols = nDepCoords
+	Eigen::MatrixXd Phiq = arm_->Phi_q_.asDense();
 
 	timelog().leave("solver_ddotq.get_dense_jacob");
 
@@ -75,9 +76,36 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	timelog().enter("solver_ddotq.Phiq_kernel");
 	Eigen::FullPivLU<Eigen::MatrixXd> lu;
 	lu.compute(Phiq);
-	const Eigen::MatrixXd R = lu.kernel();
 
+	lu.setThreshold(1e-8);
+
+	const Eigen::MatrixXd R = lu.kernel();
 	const size_t nDOFs = R.cols();
+
+	// Handle duplicated constraints:
+	const size_t Phi_q_rank = lu.rank();
+	if (Phi_q_rank < nConstraints)
+	{
+		std::cout << "Phi_q_rank: " << Phi_q_rank << std::endl;
+		// Remove the least "relevant" constraint, according to the LU
+		// elimination:
+		std::vector<size_t> rowsDontPass;
+
+		double premultiplied_threshold =
+			std::abs(lu.maxPivot()) * lu.threshold();
+		for (int i = 0; i < lu.nonzeroPivots(); ++i)
+		{
+			bool pass =
+				(std::abs(lu.matrixLU().coeff(i, i)) > premultiplied_threshold);
+			const int actualIdx = lu.permutationP().indices()[i];
+			if (!pass) rowsDontPass.push_back(actualIdx);
+		}
+
+		unsafeRemoveRows(Phiq, rowsDontPass);
+		nConstraints = Phi_q_rank;
+
+		ASSERT_EQUAL_(static_cast<size_t>(Phiq.rows()), Phi_q_rank);
+	}
 
 	timelog().leave("solver_ddotq.Phiq_kernel");
 
@@ -104,18 +132,4 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	timelog().enter("solver_ddotq.solve");
 	ddot_q = A.partialPivLu().solve(RHS);
 	timelog().leave("solver_ddotq.solve");
-
-#if 0
-	//A.saveToTextFile("A.txt");
-	//RHS.saveToTextFile("RHS.txt");
-
-	cout << "q: " << arm_->q_.transpose() << endl;
-	cout << "qdot: " << arm_->dotq_.transpose() << endl;
-	cout << "A:\n" << A << endl;
-	cout << "RHS:\n" << RHS << endl;
-	cout << "solved ddotq: " << ddot_q.transpose() << endl;
-	cout << "Phiq:\n" << Phiq << endl;
-	cout << "R^t:\n" << R << endl;
-	mrpt::system::pause();
-#endif
 }
