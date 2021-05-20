@@ -83,6 +83,7 @@ void test_smoother()
 	aMBS->printCoordinates();
 
 	CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
+	// CDynamicSimulator_ALi3_Dense dynSimul(aMBS);
 
 	// Must be called before solve_ddotq(), needed inside the dynamics factors
 	dynSimul.prepare();
@@ -95,12 +96,15 @@ void test_smoother()
 	// Create factor noises:
 	const auto n = aMBS->q_.size();
 	const auto m = aMBS->Phi_q_.getNumRows();
-	std::cout << "problem n=" << n << " m=" << m << "\n";
 
-	// x1, *y1*, x2, y2
-	// 0   1     2   3
+	aMBS->update_numeric_Phi_and_Jacobians();
+	const auto numIndepConstraints = aMBS->Phi_q_.asDense().fullPivLu().rank();
+	const size_t nDOFs = n - numIndepConstraints;
+	std::cout << "problem n=" << n << " m=" << m << " nDOFs=" << nDOFs << "\n";
+
+	MRPT_TODO("allow initial velocities?");
 	std::vector<size_t> indepCoordIndices;
-	indepCoordIndices.push_back(0);
+	for (size_t i = 0; i < nDOFs; i++) indepCoordIndices.push_back(i);
 
 	// Velocity prior: large sigma for all dq(i), except dq(i_indep)
 	gtsam::Vector prior_dq_sigmas;
@@ -127,21 +131,22 @@ void test_smoother()
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
 
 	// Create a feasible Q(0):
-	aMBS->q_.setZero();
-	aMBS->dotq_.setZero();
-	aMBS->ddotq_.setZero();
-
-	AssembledRigidModel::TComputeDependentParams cdp;	// default params
-	AssembledRigidModel::TComputeDependentResults cdr;
-	// Solve the position problem:
-	aMBS->q_[0] = 1;
-	aMBS->q_[1] = 0.1;
-	aMBS->q_[3] = 5;
-
-	aMBS->computeDependentPosVelAcc(indepCoordIndices, true, true, cdp, cdr);
-	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
-			  << "\n";
-	ASSERT_BELOW_(cdr.pos_final_phi, 1e-4);
+	if (0)	// initial pos & vel & acc
+	{
+		AssembledRigidModel::TComputeDependentParams cdp;  // default params
+		AssembledRigidModel::TComputeDependentResults cdr;
+		// Solve the position problem:
+		aMBS->computeDependentPosVelAcc(
+			indepCoordIndices, true, true, cdp, cdr);
+		std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
+				  << "\n";
+		ASSERT_BELOW_(cdr.pos_final_phi, 1e-4);
+	}
+	else
+	{
+		aMBS->dotq_.setZero();
+		aMBS->ddotq_.setZero();
+	}
 
 	// Extract q_ from the assembled multibody problem:
 	state_t q_0 = gtsam::Vector(aMBS->q_);
@@ -318,9 +323,10 @@ void test_smoother()
 						timKey.second, wholeValues.at(timKey.second));
 			}
 
-		// For any timestep > 0, add anchoring prior factors to trust the first
-		// q,dq values in the window. Not neccesary for t==0 just before we
-		// already have prior factors defined (permanent ones, for t=0).
+		// For any timestep > 0, add anchoring prior factors to trust the
+		// first q,dq values in the window. Not neccesary for t==0 just
+		// before we already have prior factors defined (permanent ones, for
+		// t=0).
 		if (firstTimeIndexInWindow > 0)
 		{
 			const state_t q_init_win =

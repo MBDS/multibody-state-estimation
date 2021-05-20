@@ -86,7 +86,6 @@ void CDynamicSimulator_R_matrix_dense::internal_solve_ddotq(
 	const size_t Phi_q_rank = lu.rank();
 	if (Phi_q_rank < nConstraints)
 	{
-		std::cout << "Phi_q_rank: " << Phi_q_rank << std::endl;
 		// Remove the least "relevant" constraint, according to the LU
 		// elimination:
 		std::vector<size_t> rowsDontPass;
