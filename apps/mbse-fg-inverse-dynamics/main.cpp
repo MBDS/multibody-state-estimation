@@ -8,15 +8,24 @@
   |  See: <https://opensource.org/licenses/BSD-3-Clause>                    |
   +-------------------------------------------------------------------------+ */
 
+// clang-format off
 /* Example invokation:
 
-./mbse-fg-inverse-dynamics --desired-trajectory trajectory.txt    \
-  --mechanism 4bars --enforce-coordinate-precisions "[0; 0; 0; 0; 1e3]"\
+cd build
+bin/mbse-fg-inverse-dynamics   \
+  --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
+  --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
+  --enforce-coordinate-precisions "[0; 0; 0; 0; 10]" \
   --enforce-force-sigmas "[0; 0; 0; 0; 1e3]" \
   --indep-coord-indices "[ 4 ]" \
-  --lm-iterations 300 --dt 5e-3
+  --noise-vel-sigma 1e-1 \
+  --noise-acc-sigma 1e-1 \
+  --vel-constraints-sigma 1 \
+  --dynamics-sigma 1 \
+  --pos-constraints-sigma 1
 
  */
+// clang-format on
 
 #include <fstream>
 #include <gtsam/inference/Symbol.h>
@@ -62,16 +71,42 @@ TCLAP::ValueArg<std::string> arg_indep_coords(
 	"", "indep-coord-indices", "Indices of independent coordinates", true, "",
 	"[ 4 ]", cmd);
 
-TCLAP::ValueArg<double> arg_step_time(
-	"", "dt", "Step time", false, 0.005, "xxx", cmd);
 TCLAP::ValueArg<double> arg_gravity(
 	"", "gravity", "Gravity acceleration in Y direction", false, -9.81, "g",
 	cmd);
+
+TCLAP::ValueArg<double> arg_dynamics_sigma(
+	"", "dynamics-sigma", "Sigma for the dynamics factors", false, 1.0, "1.0",
+	cmd);
+
+TCLAP::ValueArg<double> arg_q_constr_sigma(
+	"", "pos-constraints-sigma", "Sigma for the position constratint factors",
+	false, 1e-2, "1e-2", cmd);
+
+TCLAP::ValueArg<double> arg_dq_constr_sigma(
+	"", "vel-constraints-sigma", "Sigma for the velocity constratint factors",
+	false, 1e-2, "1e-2", cmd);
+
+TCLAP::ValueArg<double> arg_noise_vel_sigma(
+	"", "noise-vel-sigma", "Sigma for q-dq integration", false, 1e-2, "1e-2",
+	cmd);
+TCLAP::ValueArg<double> arg_noise_acc_sigma(
+	"", "noise-acc-sigma", "Sigma for dq-ddq integration", false, 1e-2, "1e-2",
+	cmd);
+
 TCLAP::ValueArg<unsigned int> arg_lm_iterations(
 	"", "lm-iterations", "LevMarq optimization maximum iterations", false, 100,
 	"xxx", cmd);
 
 TCLAP::SwitchArg arg_verbose("v", "verbose", "Verbose console output", cmd);
+
+TCLAP::SwitchArg arg_debugPrintGraphs(
+	"", "debug-print-graphs", "Debug: print factor graphs", cmd);
+
+TCLAP::ValueArg<double> arg_printFactorErrors(
+	"", "print-factor-errors",
+	"Print factor errors for those with error above the given constraints",
+	false, 1.0, "1.0", cmd);
 
 void test_smoother()
 {
@@ -107,16 +142,22 @@ void test_smoother()
 	// Load enforced trajectory:
 	mrpt::math::CMatrixDouble trajectory;
 	trajectory.loadFromTextFile(arg_desired_trajectory.getValue());
-	ASSERT_EQUAL_(trajectory.cols(), n);
 
 	const unsigned int N = trajectory.rows();
 	std::cout << "enforcement trajectory loaded with " << N
 			  << " time points.\n";
 
-	const double noise_vel_sigma = 0.01, noise_acc_sigma = 0.01;
+	// autodetect timestep:
+	const double dt = trajectory(1, 0) - trajectory(0, 0);
+	std::cout << "Timestep (from trajectory file): " << dt << std::endl;
+	trajectory.removeColumns({0});
 
-	auto noise_vel = gtsam::noiseModel::Isotropic::Sigma(n, noise_vel_sigma);
-	auto noise_acc = gtsam::noiseModel::Isotropic::Sigma(n, noise_acc_sigma);
+	ASSERT_EQUAL_(trajectory.cols(), n);
+
+	auto noise_vel =
+		gtsam::noiseModel::Isotropic::Sigma(n, arg_noise_vel_sigma.getValue());
+	auto noise_acc =
+		gtsam::noiseModel::Isotropic::Sigma(n, arg_noise_acc_sigma.getValue());
 
 	// Enforcement noise model:
 	mrpt::math::CVectorDouble posEnforcePrecisions;
@@ -162,40 +203,21 @@ void test_smoother()
 		indepCoordIndices.push_back(mrpt::round(indepCoordsVec[i]));
 
 	// Velocity prior: large sigma for all dq(i), except dq(i_indep)
-	gtsam::Vector prior_dq_sigmas, prior_ddq_sigmas;
-	const double large_std = 1e3;
-	prior_dq_sigmas.setConstant(n, large_std);
-	prior_ddq_sigmas.setConstant(n, large_std);
+	gtsam::Vector betweenQSigmas;
+	const double large_std = 1;
+	betweenQSigmas.setConstant(n, large_std);
 
-	auto noise_prior_dq = gtsam::noiseModel::Diagonal::Sigmas(prior_dq_sigmas);
-	auto noise_prior_ddq =
-		gtsam::noiseModel::Diagonal::Sigmas(prior_ddq_sigmas);
-	auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
-	auto noise_constr_q = gtsam::noiseModel::Isotropic::Sigma(m, 1e-3);
-	auto noise_constr_dq = gtsam::noiseModel::Isotropic::Sigma(m, 1e-3);
+	auto noise_between_q = gtsam::noiseModel::Diagonal::Sigmas(betweenQSigmas);
+	auto noise_dyn =
+		gtsam::noiseModel::Isotropic::Sigma(n, arg_dynamics_sigma.getValue());
+	auto noise_constr_q =
+		gtsam::noiseModel::Isotropic::Sigma(m, arg_q_constr_sigma.getValue());
+	auto noise_constr_dq =
+		gtsam::noiseModel::Isotropic::Sigma(m, arg_dq_constr_sigma.getValue());
 	auto noise_constant_F = gtsam::noiseModel::Isotropic::Sigma(n, 1.0);
-
-	const double dt = arg_step_time.getValue();
 
 	// Create null vector, for use in velocity and accelerations:
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
-
-	// Create a feasible Q(0):
-	aMBS->q_.setZero();
-	aMBS->dotq_.setZero();
-	aMBS->ddotq_.setZero();
-
-	AssembledRigidModel::TComputeDependentParams cdp;  // default params
-	AssembledRigidModel::TComputeDependentResults cdr;
-	// Solve the position problem:
-	aMBS->q_[0] = 1;
-	aMBS->q_[1] = 0.1;
-	aMBS->q_[3] = 5;
-
-	aMBS->computeDependentPosVelAcc(indepCoordIndices, true, true, cdp, cdr);
-	std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
-			  << "\n";
-	ASSERT_BELOW_(cdr.pos_final_phi, 1e-4);
 
 	// Extract q_ from the assembled multibody problem:
 	state_t q_0 = gtsam::Vector(aMBS->q_);
@@ -234,26 +256,34 @@ void test_smoother()
 		if (timeStep > 0)
 		{
 			fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
-				Q(timeStep - 1), Q(timeStep), zeros, noise_prior_dq);
+				Q(timeStep - 1), Q(timeStep), zeros, noise_between_q);
 		}
 	}
+
+	gtsam::LevenbergMarquardtParams optParams;
+	// optParams.verbosityLM = gtsam::LevenbergMarquardtParams::DAMPED;
+	optParams.lambdaUpperBound = 1e10;
+	optParams.lambdaFactor = 2.0;
+	optParams.diagonalDamping = true;
+	optParams.absoluteErrorTol = 0;
+	optParams.relativeErrorTol = 1e-5;
+	optParams.maxIterations = arg_lm_iterations.getValue();
 
 	{
 		const auto numFactors = fg.size();
 		const double errorBefore = fg.error(values);
 
-		std::cout << "             PASS 1\n"
+		std::cout << " PASS 1: q only\n"
 					 " ==================================\n";
 
 		std::cout << " ErrorBefore=" << errorBefore
 				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 				  << " numFactors=" << numFactors << "\n";
 
-		gtsam::LevenbergMarquardtParams lmParams;
-		lmParams.maxIterations = arg_lm_iterations.getValue();
 		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, lmParams);
+		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+		if (arg_debugPrintGraphs.isSet()) fg.print();
 
 		const gtsam::Values& result1 = lm1.optimize();
 
@@ -263,8 +293,14 @@ void test_smoother()
 				  << " RMSE=" << std::sqrt(errorAfter / numFactors)
 				  << " numFactors=" << numFactors
 				  << " Iterations: " << lm1.iterations() << "\n\n";
-
 		values = result1;
+
+		if (arg_printFactorErrors.isSet())
+			fg.printErrors(
+				values, "", gtsam::DefaultKeyFormatter,
+				[](const gtsam::Factor*, double err, size_t) {
+					return err > arg_printFactorErrors.getValue();
+				});
 	}
 
 	/* =======================================================================
@@ -300,18 +336,16 @@ void test_smoother()
 		const auto numFactors = fg.size();
 		const double errorBefore = fg.error(values);
 
-		std::cout << "             PASS 2\n"
+		std::cout << " PASS 2: q,dq,ddq\n"
 					 " ==================================\n";
 
 		std::cout << " ErrorBefore=" << errorBefore
 				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 				  << " numFactors=" << numFactors << "\n";
 
-		gtsam::LevenbergMarquardtParams lmParams;
-		lmParams.maxIterations = arg_lm_iterations.getValue();
-		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
+		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, lmParams);
+		if (arg_debugPrintGraphs.isSet()) fg.print();
 
 		const gtsam::Values& result1 = lm1.optimize();
 
@@ -323,6 +357,13 @@ void test_smoother()
 				  << " Iterations: " << lm1.iterations() << "\n\n";
 
 		values = result1;
+
+		if (arg_printFactorErrors.isSet())
+			fg.printErrors(
+				values, "", gtsam::DefaultKeyFormatter,
+				[](const gtsam::Factor*, double err, size_t) {
+					return err > arg_printFactorErrors.getValue();
+				});
 	}
 
 	/* =======================================================================
@@ -345,18 +386,18 @@ void test_smoother()
 		const auto numFactors = fg.size();
 		const double errorBefore = fg.error(values);
 
-		std::cout << "             PASS 3\n"
+		std::cout << "  PASS 3: velocity constraints\n"
 					 " ==================================\n";
 
 		std::cout << " ErrorBefore=" << errorBefore
 				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 				  << " numFactors=" << numFactors << "\n";
 
-		gtsam::LevenbergMarquardtParams lmParams;
-		lmParams.maxIterations = arg_lm_iterations.getValue();
 		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, lmParams);
+		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+
+		if (arg_debugPrintGraphs.isSet()) fg.print();
 
 		const gtsam::Values& result1 = lm1.optimize();
 
@@ -368,6 +409,13 @@ void test_smoother()
 				  << " Iterations: " << lm1.iterations() << "\n\n";
 
 		values = result1;
+
+		if (arg_printFactorErrors.isSet())
+			fg.printErrors(
+				values, "", gtsam::DefaultKeyFormatter,
+				[](const gtsam::Factor*, double err, size_t) {
+					return err > arg_printFactorErrors.getValue();
+				});
 	}
 
 	/* =======================================================================
@@ -380,7 +428,6 @@ void test_smoother()
 	 *
 	 * =======================================================================
 	 */
-
 	for (unsigned int timeStep = 0; timeStep < N; timeStep++)
 	{
 		// A priori factor for forces:
@@ -400,18 +447,18 @@ void test_smoother()
 		const auto numFactors = fg.size();
 		const double errorBefore = fg.error(values);
 
-		std::cout << "             PASS 4\n"
+		std::cout << " PASS 4: inverse dynamics\n"
 					 " ==================================\n";
 
 		std::cout << " ErrorBefore=" << errorBefore
 				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 				  << " numFactors=" << numFactors << "\n";
 
-		gtsam::LevenbergMarquardtParams lmParams;
-		lmParams.maxIterations = arg_lm_iterations.getValue();
 		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, lmParams);
+		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+
+		if (arg_debugPrintGraphs.isSet()) fg.print();
 
 		const gtsam::Values& result1 = lm1.optimize();
 
@@ -423,6 +470,13 @@ void test_smoother()
 				  << " Iterations: " << lm1.iterations() << "\n\n";
 
 		values = result1;
+
+		if (arg_printFactorErrors.isSet())
+			fg.printErrors(
+				values, "", gtsam::DefaultKeyFormatter,
+				[](const gtsam::Factor*, double err, size_t) {
+					return err > arg_printFactorErrors.getValue();
+				});
 	}
 
 	/* =======================================================================
@@ -460,10 +514,11 @@ void test_smoother()
 	}
 
 	std::cout << "Saving results to TXT files...\n";
-	Qs.saveToTextFile("q.txt");
-	dotQs.saveToTextFile("dq.txt");
-	ddotQs.saveToTextFile("ddq.txt");
-	Fs.saveToTextFile("Q_forces.txt");
+	Qs.saveToTextFile("q.txt", {}, false, "% TIMESTAMP q[0]  ... q[n]");
+	dotQs.saveToTextFile("dq.txt", {}, false, "% TIMESTAMP dq[0]  ... dq[n]");
+	ddotQs.saveToTextFile(
+		"ddq.txt", {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]");
+	Fs.saveToTextFile("Q_forces.txt", {}, false, "% TIMESTAMP Q[0]  ... Q[n]");
 }
 
 int main(int argc, char** argv)

@@ -135,7 +135,7 @@ gtsam::Vector FactorDynamics::evaluateError(
 
 		const gtsam::Vector x = p.q;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
 
 		mrpt::math::estimateJacobian(
 			x,
@@ -201,7 +201,7 @@ Jacc_qt = ddq_I+ddq_II+ddq_III+ddq_IV+ddq_V;
 
 		const gtsam::Vector x = p.dq;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-10);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
 
 		mrpt::math::estimateJacobian(
 			x,

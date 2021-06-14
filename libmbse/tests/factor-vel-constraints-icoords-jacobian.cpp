@@ -72,7 +72,8 @@ TEST(Jacobians, FactorVelConstraintsIndep)
 		// Create factor noises:
 		// const auto n = aMBS->q_.size();
 		const auto m = aMBS->Phi_q_.getNumRows();
-		const auto indCoordsInd = dynSimul.independent_coordinate_indices();
+		const std::vector<size_t> indCoordsInd = {4};
+		// indCoordsInd = dynSimul.independent_coordinate_indices();
 		const auto d = indCoordsInd.size();
 		EXPECT_GT(d, 0);
 

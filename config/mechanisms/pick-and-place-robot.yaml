@@ -84,3 +84,11 @@ planar_bodies:
     mass: 1
     I0: (1/3)*mass*length^2
     cog: [0.5*length, 0.0]
+# Relative coordinates:
+relative_coordinates:
+  # 0
+  - type: RelativeAngleAbsoluteDOF
+    points: [0, 2]
+  # 1
+  - type: RelativeAngleAbsoluteDOF
+    points: [13, 11]
