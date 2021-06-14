@@ -41,13 +41,12 @@ TEST(Jacobians, FactorAccConstraintsIndep)
 	using namespace mbse;
 
 	// Create the multibody object:
-	const ModelDefinition model = mbse::buildFourBarsMBS();
-	std::vector<RelativeDOF> rDOFs;
+	ModelDefinition model = mbse::buildFourBarsMBS();
 
 	// Add an extra relative coordinate:
-	rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
+	model.rDOFs_.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
 
-	auto aMBS = model.assembleRigidMBS(rDOFs);
+	auto aMBS = model.assembleRigidMBS();
 	aMBS->setGravityVector(0, -9.81, 0);
 
 	CDynamicSimulator_Indep_dense dynSimul(aMBS);

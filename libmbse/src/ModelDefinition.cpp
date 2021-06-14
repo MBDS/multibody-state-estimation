@@ -209,21 +209,19 @@ void ModelDefinition::assembleRigidMBS(TSymbolicAssembledModel& armi) const
 		// Mark these constraints as added:
 		already_added_fixed_len_constraints_ = true;
 	}
+
+	// Append optional relative coordinates:
+	armi.rDOFs = rDOFs_;
 }
 
 // -------------------------------------------------------------------
 //                      assembleRigidMBS
 // -------------------------------------------------------------------
-std::shared_ptr<AssembledRigidModel> ModelDefinition::assembleRigidMBS(
-	mrpt::optional_ref<const std::vector<RelativeDOF>> relativeCoordinates)
-	const
+std::shared_ptr<AssembledRigidModel> ModelDefinition::assembleRigidMBS() const
 {
 	// 1) Build "symbolic" assembly:
 	TSymbolicAssembledModel armi(*this);
 	this->assembleRigidMBS(armi);
-
-	// Append optional relative coordinates:
-	if (relativeCoordinates.has_value()) armi.rDOFs = *relativeCoordinates;
 
 	// 2) Actual assembly:
 	return std::make_shared<AssembledRigidModel>(armi);
@@ -248,7 +246,30 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 	// ---------------------
 	// Parameters
 	// ---------------------
-	MRPT_TODO("Parse an optional 'parameters' section");
+	std::map<std::string, double> expVars;	// expression variables
+	const std::set<std::string> reservedNames = {
+		"index", "auto", "length", "mass", "I0"};
+
+	if (c.has("parameters"))
+	{
+		ASSERT_(c["parameters"].isMap());
+		for (const auto& kv : c["parameters"].asMap())
+		{
+			const auto name = kv.first.as<std::string>();
+			const auto value = kv.second.as<std::string>();
+
+			ASSERTMSG_(
+				reservedNames.count(name) == 0,
+				mrpt::format(
+					"Cannot use reserved keyword '%s' as parameter name.",
+					name.c_str()));
+
+			CRuntimeCompiledExpression exp;
+			exp.compile(value, expVars, name);
+
+			expVars[name] = exp.eval();
+		}
+	}
 
 	// ---------------------
 	// Points
@@ -260,7 +281,6 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 	m.setPointCount(nPts);
 
 	CRuntimeCompiledExpression expX, expY;
-	std::map<std::string, double> expVars;
 
 	for (size_t idxPt = 0; idxPt < nPts; idxPt++)
 	{
@@ -390,6 +410,40 @@ ModelDefinition ModelDefinition::FromYAML(const mrpt::containers::yaml& c)
 		expVars.erase("mass");
 		expVars.erase("length");
 		expVars.erase("I0");
+	}
+
+	// relative coordinates
+	// ------------------------------------
+	if (c.has("relative_coordinates"))
+	{
+		ASSERT_(c["relative_coordinates"].isSequence());
+		for (const auto& rc : c["relative_coordinates"].asSequence())
+		{
+			ASSERT_(rc.isMap());
+			const auto& rcm = rc.asMap();
+			ASSERT_(rcm.count("type"));
+			ASSERT_(rcm.count("points"));
+			ASSERT_(rcm.at("points").isSequence());
+
+			// parse:
+			const auto type = rcm.at("type").as<std::string>();
+			std::vector<size_t> ptIndices;
+			for (const auto& e : rcm.at("points").asSequence())
+				ptIndices.push_back(e.as<size_t>());
+
+			// create rDoF:
+			if (type == "RelativeAngleAbsoluteDOF")
+			{
+				ASSERT_EQUAL_(ptIndices.size(), 2);
+				m.rDOFs_.emplace_back(
+					RelativeAngleAbsoluteDOF(ptIndices[0], ptIndices[1]));
+			}
+			else
+			{
+				THROW_EXCEPTION_FMT(
+					"Unknown relative coordinate type: '%s'", type.c_str());
+			}
+		}
 	}
 
 	// Constraints:

@@ -19,20 +19,18 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 	const double L = 0.5;  // [m]
 	const double massPerL = 1.0;  // [kg/m]
 
-	mbse::timelog().enable(false);  // avois clutter in cout
+	mbse::timelog().enable(false);	// avois clutter in cout
 
 	mbse::ModelDefinition model = mbse::buildLongStringMBS(1, L, massPerL);
 
 	// optional relative DOFs:
-	std::vector<mbse::RelativeDOF> rDOFs;
 	if (addRelativeAngle)
 	{
 		// Add angle between points #0 and #1:
-		rDOFs.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
+		model.rDOFs_.emplace_back(mbse::RelativeAngleAbsoluteDOF(0, 1));
 	}
 
-	std::shared_ptr<mbse::AssembledRigidModel> aMBS =
-		model.assembleRigidMBS(rDOFs);
+	std::shared_ptr<mbse::AssembledRigidModel> aMBS = model.assembleRigidMBS();
 
 	aMBS->setGravityVector(0, -9.81, 0);
 
@@ -44,10 +42,10 @@ void testerPendulumDynamics(bool addRelativeAngle = false)
 	dynSimul.solve_ddotq(0.0 /*current time*/, ddotq0);
 
 	const Eigen::VectorXd ddotq_real =
-		addRelativeAngle ?  //
+		addRelativeAngle ?	//
 			Eigen::VectorXd(
 				(Eigen::Vector3d() << 0, -14.7041, -29.43).finished())
-						 :  //
+						 :	//
 			Eigen::VectorXd((Eigen::Vector2d() << 0, -14.7041).finished());
 
 	EXPECT_NEAR(

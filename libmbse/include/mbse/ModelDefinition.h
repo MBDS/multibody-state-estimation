@@ -27,8 +27,13 @@ struct TSymbolicAssembledModel;	 // Frwd. decl.
 class AssembledRigidModel;
 
 /** The class for user-defined MBS problems.
- *  After construction, the user must assure that all fields are correctly
+ *  After construction, the user must ensure that all fields are correctly
  * filled-in to define the MBS joints & elements.
+ * Relative coordinates can be directly added into rDOFs_.
+ *
+ * Mechanism models can be more easily defined in a YAML file and loaded via
+ * FromYAML().
+ *
  */
 class ModelDefinition
 {
@@ -100,9 +105,10 @@ class ModelDefinition
 	 * methods of the returned object.
 	 * Optionally, relative coordinates may be added.
 	 */
-	std::shared_ptr<AssembledRigidModel> assembleRigidMBS(
-		mrpt::optional_ref<const std::vector<RelativeDOF>> relativeCoordinates =
-			std::nullopt) const;
+	std::shared_ptr<AssembledRigidModel> assembleRigidMBS() const;
+
+	/** Additional relative coordinates */
+	std::vector<RelativeDOF> rDOFs_;
 
 	const std::vector<ConstraintBase::Ptr>& constraints() const
 	{
