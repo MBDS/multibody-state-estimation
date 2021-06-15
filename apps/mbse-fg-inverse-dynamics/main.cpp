@@ -17,6 +17,12 @@ bin/mbse-fg-inverse-dynamics   \
   --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
   --imposed-coordinates "[ 4 ]" 
 
+bin/mbse-fg-inverse-dynamics \
+  --mechanism ../config/mechanisms/pick-and-place-robot.yaml \
+  --desired-trajectory Element3Displacements.tab \
+  --imposed-coordinates "[ 0, 1, 2,  3,  4,  5 ]"  \
+  --verbose
+
 bin/mbse-fg-inverse-dynamics   \
   --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
   --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
@@ -80,7 +86,8 @@ TCLAP::ValueArg<double> arg_force_enforcement_sigma(
 
 TCLAP::ValueArg<std::string> arg_indep_coords(
 	"", "imposed-coordinates",
-	"Indices of coordinates whose motion is imposed via the trajectory file",
+	"Comma-separated list of indices of coordinates whose motion is imposed "
+	"via the trajectory file",
 	true, "", "[ 4 ]", cmd);
 
 TCLAP::ValueArg<double> arg_gravity(
@@ -275,6 +282,15 @@ void test_smoother()
 	optParams.absoluteErrorTol = 0;
 	optParams.relativeErrorTol = 1e-5;
 	optParams.maxIterations = arg_lm_iterations.getValue();
+
+	if (arg_verbose.isSet())
+	{
+		optParams.iterationHook = [](size_t iter, double oldError,
+									 double newError) {
+			std::cout << "- LM iteration " << iter << " error: " << oldError
+					  << " -> " << newError << std::endl;
+		};
+	}
 
 	{
 		const auto numFactors = fg.size();
