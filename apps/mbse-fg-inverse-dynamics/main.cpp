@@ -15,9 +15,14 @@ cd build
 bin/mbse-fg-inverse-dynamics   \
   --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
   --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
-  --enforce-coordinate-precisions "[0; 0; 0; 0; 10]" \
-  --enforce-force-sigmas "[0; 0; 0; 0; 1e3]" \
-  --indep-coord-indices "[ 4 ]" \
+  --imposed-coordinates "[ 4 ]" 
+
+bin/mbse-fg-inverse-dynamics   \
+  --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
+  --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
+  --enforce-coordinate-precision 10 \
+  --enforce-force-sigma 1e3 \
+  --imposed-coordinates "[ 4 ]" \
   --noise-vel-sigma 1e-1 \
   --noise-acc-sigma 1e-1 \
   --vel-constraints-sigma 1 \
@@ -56,20 +61,27 @@ TCLAP::ValueArg<std::string> arg_mechanism(
 	"", "mechanism", "Mechanism model YAML file", true, "mechanism.yaml",
 	"YAML model definition", cmd);
 TCLAP::ValueArg<std::string> arg_desired_trajectory(
-	"", "desired-trajectory", "Desired mechanism trajectory", true, "",
-	"file.txt", cmd);
-TCLAP::ValueArg<std::string> arg_enforcement_prec(
-	"", "enforce-coordinate-precisions",
-	"Desired mechanism trajectory enforcement precisions", true, "",
-	"[1e3 ... 0 0]", cmd);
+	"", "desired-trajectory",
+	"Desired mechanism trajectory, with a first column with timestamps, and "
+	"one extra column per imposed degree-of-freedom. The number of these "
+	"additional columns must match the number of coordinates given in "
+	"--imposed-coordinates",
+	true, "", "file.txt", cmd);
 
-TCLAP::ValueArg<std::string> arg_force_enforcement_sigmas(
-	"", "enforce-force-sigmas", "A priori factors for forces in Q (sigmas)",
-	true, "", "[1e3 ... 0 0]", cmd);
+TCLAP::ValueArg<double> arg_enforcement_prec(
+	"", "enforce-coordinate-precision",
+	"Desired mechanism trajectory enforcement precision", false, 10, "10.0",
+	cmd);
+
+TCLAP::ValueArg<double> arg_force_enforcement_sigma(
+	"", "enforce-force-sigma",
+	"A priori factors for null forces in non-actuated Q coordinates (sigma)",
+	false, 1e3, "1e3", cmd);
 
 TCLAP::ValueArg<std::string> arg_indep_coords(
-	"", "indep-coord-indices", "Indices of independent coordinates", true, "",
-	"[ 4 ]", cmd);
+	"", "imposed-coordinates",
+	"Indices of coordinates whose motion is imposed via the trajectory file",
+	true, "", "[ 4 ]", cmd);
 
 TCLAP::ValueArg<double> arg_gravity(
 	"", "gravity", "Gravity acceleration in Y direction", false, -9.81, "g",
@@ -81,17 +93,17 @@ TCLAP::ValueArg<double> arg_dynamics_sigma(
 
 TCLAP::ValueArg<double> arg_q_constr_sigma(
 	"", "pos-constraints-sigma", "Sigma for the position constratint factors",
-	false, 1e-2, "1e-2", cmd);
+	false, 1.0, "1.0", cmd);
 
 TCLAP::ValueArg<double> arg_dq_constr_sigma(
 	"", "vel-constraints-sigma", "Sigma for the velocity constratint factors",
-	false, 1e-2, "1e-2", cmd);
+	false, 1.0, "1.0", cmd);
 
 TCLAP::ValueArg<double> arg_noise_vel_sigma(
-	"", "noise-vel-sigma", "Sigma for q-dq integration", false, 1e-2, "1e-2",
+	"", "noise-vel-sigma", "Sigma for q-dq integration", false, 0.1, "0.1",
 	cmd);
 TCLAP::ValueArg<double> arg_noise_acc_sigma(
-	"", "noise-acc-sigma", "Sigma for dq-ddq integration", false, 1e-2, "1e-2",
+	"", "noise-acc-sigma", "Sigma for dq-ddq integration", false, 0.1, "0.1",
 	cmd);
 
 TCLAP::ValueArg<unsigned int> arg_lm_iterations(
@@ -144,52 +156,19 @@ void test_smoother()
 	trajectory.loadFromTextFile(arg_desired_trajectory.getValue());
 
 	const unsigned int N = trajectory.rows();
-	std::cout << "enforcement trajectory loaded with " << N
-			  << " time points.\n";
+	std::cout << "Desired trajectory loaded with " << N << " time points.\n";
 
 	// autodetect timestep:
 	const double dt = trajectory(1, 0) - trajectory(0, 0);
 	std::cout << "Timestep (from trajectory file): " << dt << std::endl;
 	trajectory.removeColumns({0});
 
-	ASSERT_EQUAL_(trajectory.cols(), n);
-
 	auto noise_vel =
 		gtsam::noiseModel::Isotropic::Sigma(n, arg_noise_vel_sigma.getValue());
 	auto noise_acc =
 		gtsam::noiseModel::Isotropic::Sigma(n, arg_noise_acc_sigma.getValue());
 
-	// Enforcement noise model:
-	mrpt::math::CVectorDouble posEnforcePrecisions;
-	if (!posEnforcePrecisions.fromMatlabStringFormat(
-			arg_enforcement_prec.getValue(), std::cerr))
-		THROW_EXCEPTION_FMT(
-			"Invalid matlab-like vector: '%s'",
-			arg_enforcement_prec.getValue().c_str());
-	std::cout << "q enforcement precisions: "
-			  << posEnforcePrecisions.transpose() << "\n";
-	const gtsam::Vector posEnforcePrecisionsEig =
-		posEnforcePrecisions.asEigen();
-	const auto noise_pos_enforcement =
-		gtsam::noiseModel::Diagonal::Precisions(posEnforcePrecisionsEig);
-
-	// Enforcement noise model for forces:
-	mrpt::math::CVectorDouble forceZerosPrioriEnforcementSigmas;
-	if (!forceZerosPrioriEnforcementSigmas.fromMatlabStringFormat(
-			arg_force_enforcement_sigmas.getValue(), std::cerr))
-		THROW_EXCEPTION_FMT(
-			"Invalid matlab-like vector: '%s'",
-			arg_force_enforcement_sigmas.getValue().c_str());
-	std::cout << "Q enforcement sigmas: "
-			  << forceZerosPrioriEnforcementSigmas.transpose() << "\n";
-	const gtsam::Vector forceZerosPrioriEnforcementSigmasEig =
-		forceZerosPrioriEnforcementSigmas.asEigen();
-	const auto forceZerosPrioriEnforcement =
-		gtsam::noiseModel::Diagonal::Sigmas(
-			forceZerosPrioriEnforcementSigmasEig);
-
-	// x1, y1, x2, y2,  theta
-	// 0   1     2   3,  4
+	// Indep coords:
 	mrpt::math::CVectorDouble indepCoordsVec;
 	if (!indepCoordsVec.fromMatlabStringFormat(
 			arg_indep_coords.getValue(), std::cerr))
@@ -202,7 +181,33 @@ void test_smoother()
 	for (int i = 0; i < indepCoordsVec.size(); i++)
 		indepCoordIndices.push_back(mrpt::round(indepCoordsVec[i]));
 
-	// Velocity prior: large sigma for all dq(i), except dq(i_indep)
+	const size_t nImposedDOFs = indepCoordIndices.size();
+
+	ASSERT_GE_(trajectory.cols(), indepCoordsVec.size());
+
+	// Enforcement noise model:
+	mrpt::math::CVectorDouble posEnforcePrecisions;
+	posEnforcePrecisions.setZero(n);
+	for (const auto i : indepCoordIndices)
+		posEnforcePrecisions[i] = arg_enforcement_prec.getValue();
+	const gtsam::Vector posEnforcePrecisionsEig =
+		posEnforcePrecisions.asEigen();
+	const auto noise_pos_enforcement =
+		gtsam::noiseModel::Diagonal::Precisions(posEnforcePrecisionsEig);
+
+	// Enforcement noise model for forces:
+	mrpt::math::CVectorDouble forceZerosPrioriEnforcementSigmas;
+	forceZerosPrioriEnforcementSigmas.setZero(n);
+	for (const auto i : indepCoordIndices)
+		forceZerosPrioriEnforcementSigmas[i] =
+			arg_force_enforcement_sigma.getValue();
+	const gtsam::Vector forceZerosPrioriEnforcementSigmasEig =
+		forceZerosPrioriEnforcementSigmas.asEigen();
+	const auto forceZerosPrioriEnforcement =
+		gtsam::noiseModel::Diagonal::Sigmas(
+			forceZerosPrioriEnforcementSigmasEig);
+
+	// Between Q factor for smooth motion (solve branching).
 	gtsam::Vector betweenQSigmas;
 	const double large_std = 1;
 	betweenQSigmas.setConstant(n, large_std);
@@ -240,8 +245,10 @@ void test_smoother()
 	for (unsigned int timeStep = 0; timeStep < N; timeStep++)
 	{
 		// Position enforcement factor:
-		gtsam::Vector qn;
-		trajectory.extractRow(timeStep, qn);
+		gtsam::Vector qn = gtsam::Vector::Zero(n);
+		for (size_t i = 0; i < nImposedDOFs; i++)
+			qn[indepCoordIndices.at(i)] = trajectory(timeStep, i);
+
 		fg.emplace_shared<gtsam::PriorFactor<state_t>>(
 			Q(timeStep), qn, noise_pos_enforcement);
 
