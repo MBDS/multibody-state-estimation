@@ -58,8 +58,8 @@ static void num_err_wrt_z(
 	mbse::overwrite_subset(p.arm->dotq_, p.dz, zIndices);
 
 	// Ensure q and dq are updated after the change in "z":
-	AssembledRigidModel::TComputeDependentParams cdp;
-	AssembledRigidModel::TComputeDependentResults cdr;
+	AssembledRigidModel::ComputeDependentParams cdp;
+	AssembledRigidModel::ComputeDependentResults cdr;
 	cdp.nItersMax = 3;
 	p.arm->computeDependentPosVelAcc(
 		zIndices, true /*update_q*/, true /* update_dq*/, cdp, cdr);
@@ -89,8 +89,8 @@ static void num_err_wrt_dz(
 	mbse::overwrite_subset(p.arm->dotq_, new_dz, zIndices);
 
 	// Ensure q and dq are updated after the change in "z":
-	AssembledRigidModel::TComputeDependentParams cdp;
-	AssembledRigidModel::TComputeDependentResults cdr;
+	AssembledRigidModel::ComputeDependentParams cdp;
+	AssembledRigidModel::ComputeDependentResults cdr;
 	cdp.nItersMax = 3;
 	p.arm->computeDependentPosVelAcc(
 		zIndices, true /*update_q*/, true /* update_dq*/, cdp, cdr);

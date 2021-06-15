@@ -17,11 +17,12 @@ bin/mbse-fg-inverse-dynamics   \
   --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
   --imposed-coordinates "[ 4 ]" 
 
-bin/mbse-fg-inverse-dynamics \
+bin/mbse-fg-inverse-dynamics  \
   --mechanism ../config/mechanisms/pick-and-place-robot.yaml \
-  --desired-trajectory Element3Displacements.tab \
-  --imposed-coordinates "[ 0, 1, 2,  3,  4,  5 ]"  \
-  --verbose
+  --desired-trajectory motors.txt \
+  --imposed-coordinates "[ 20 ; 21 ]" \
+  --verbose \
+  --lm-iterations 15
 
 bin/mbse-fg-inverse-dynamics   \
   --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
@@ -119,6 +120,12 @@ TCLAP::ValueArg<unsigned int> arg_lm_iterations(
 
 TCLAP::SwitchArg arg_verbose("v", "verbose", "Verbose console output", cmd);
 
+TCLAP::SwitchArg arg_skipInverseDynamics(
+	"", "skip-inverse-dynamics",
+	"Run all preliminary steps but skip actual inverse dynamics, saving the "
+	"preliminary results.",
+	cmd);
+
 TCLAP::SwitchArg arg_debugPrintGraphs(
 	"", "debug-print-graphs", "Debug: print factor graphs", cmd);
 
@@ -176,7 +183,7 @@ void test_smoother()
 		gtsam::noiseModel::Isotropic::Sigma(n, arg_noise_acc_sigma.getValue());
 
 	// Indep coords:
-	mrpt::math::CVectorDouble indepCoordsVec;
+	mrpt::math::CMatrixDouble indepCoordsVec;
 	if (!indepCoordsVec.fromMatlabStringFormat(
 			arg_indep_coords.getValue(), std::cerr))
 		THROW_EXCEPTION_FMT(
@@ -231,7 +238,26 @@ void test_smoother()
 	// Create null vector, for use in velocity and accelerations:
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
 
-	// Extract q_ from the assembled multibody problem:
+	// Extract an initial q_0 from the assembled multibody problem:
+	std::cout << "nImposedDOFs: " << nImposedDOFs << "\n";
+
+	// Position enforcement factor:
+	{
+		gtsam::Vector qn = gtsam::Vector::Zero(n);
+		for (size_t i = 0; i < nImposedDOFs; i++)
+			qn[indepCoordIndices.at(i)] = trajectory(0, i);
+
+		aMBS->q_ = qn;
+		AssembledRigidModel::ComputeDependentParams dp;
+		dp.maxPhiNorm = 1e-8;
+		dp.nItersMax = 100;
+		AssembledRigidModel::ComputeDependentResults dr;
+
+		aMBS->computeDependentPosVelAcc(indepCoordIndices, true, false, dp, dr);
+
+		ASSERT_LT_(dr.pos_final_phi, 0.01);
+	}
+
 	state_t q_0 = gtsam::Vector(aMBS->q_);
 	std::cout << "q0: " << q_0.transpose() << "\n";
 
@@ -292,6 +318,11 @@ void test_smoother()
 		};
 	}
 
+	const auto lmbdPrintErr = [](const gtsam::Factor*, double err, size_t) {
+		return err > arg_printFactorErrors.getValue();
+	};
+	const auto defKeyFrm = gtsam::DefaultKeyFormatter;
+
 	{
 		const auto numFactors = fg.size();
 		const double errorBefore = fg.error(values);
@@ -319,11 +350,7 @@ void test_smoother()
 		values = result1;
 
 		if (arg_printFactorErrors.isSet())
-			fg.printErrors(
-				values, "", gtsam::DefaultKeyFormatter,
-				[](const gtsam::Factor*, double err, size_t) {
-					return err > arg_printFactorErrors.getValue();
-				});
+			fg.printErrors(values, "", defKeyFrm, lmbdPrintErr);
 	}
 
 	/* =======================================================================
@@ -382,11 +409,7 @@ void test_smoother()
 		values = result1;
 
 		if (arg_printFactorErrors.isSet())
-			fg.printErrors(
-				values, "", gtsam::DefaultKeyFormatter,
-				[](const gtsam::Factor*, double err, size_t) {
-					return err > arg_printFactorErrors.getValue();
-				});
+			fg.printErrors(values, "", defKeyFrm, lmbdPrintErr);
 	}
 
 	/* =======================================================================
@@ -434,11 +457,7 @@ void test_smoother()
 		values = result1;
 
 		if (arg_printFactorErrors.isSet())
-			fg.printErrors(
-				values, "", gtsam::DefaultKeyFormatter,
-				[](const gtsam::Factor*, double err, size_t) {
-					return err > arg_printFactorErrors.getValue();
-				});
+			fg.printErrors(values, "", defKeyFrm, lmbdPrintErr);
 	}
 
 	/* =======================================================================
@@ -451,55 +470,54 @@ void test_smoother()
 	 *
 	 * =======================================================================
 	 */
-	for (unsigned int timeStep = 0; timeStep < N; timeStep++)
+	if (!arg_skipInverseDynamics.isSet())
 	{
-		// A priori factor for forces:
-		fg.emplace_shared<gtsam::PriorFactor<state_t>>(
-			F(timeStep), zeros, forceZerosPrioriEnforcement);
+		for (unsigned int timeStep = 0; timeStep < N; timeStep++)
+		{
+			// A priori factor for forces:
+			fg.emplace_shared<gtsam::PriorFactor<state_t>>(
+				F(timeStep), zeros, forceZerosPrioriEnforcement);
 
-		// Create Inverse Dynamics factors:
-		fg.emplace_shared<FactorInverseDynamics>(
-			&dynSimul, noise_dyn, Q(timeStep), V(timeStep), A(timeStep),
-			F(timeStep));
+			// Create Inverse Dynamics factors:
+			fg.emplace_shared<FactorInverseDynamics>(
+				&dynSimul, noise_dyn, Q(timeStep), V(timeStep), A(timeStep),
+				F(timeStep));
 
-		// Create initial estimates (so we can run the optimizer)
-		values.insert(F(timeStep), zeros);
-	}
+			// Create initial estimates (so we can run the optimizer)
+			values.insert(F(timeStep), zeros);
+		}
 
-	{
-		const auto numFactors = fg.size();
-		const double errorBefore = fg.error(values);
+		{
+			const auto numFactors = fg.size();
+			const double errorBefore = fg.error(values);
 
-		std::cout << " PASS 4: inverse dynamics\n"
-					 " ==================================\n";
+			std::cout << " PASS 4: inverse dynamics\n"
+						 " ==================================\n";
 
-		std::cout << " ErrorBefore=" << errorBefore
-				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
-				  << " numFactors=" << numFactors << "\n";
+			std::cout << " ErrorBefore=" << errorBefore
+					  << " RMSE=" << std::sqrt(errorBefore / numFactors)
+					  << " numFactors=" << numFactors << "\n";
 
-		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
+			// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+			gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
 
-		if (arg_debugPrintGraphs.isSet()) fg.print();
+			if (arg_debugPrintGraphs.isSet()) fg.print();
 
-		const gtsam::Values& result1 = lm1.optimize();
+			const gtsam::Values& result1 = lm1.optimize();
 
-		const double errorAfter = fg.error(result1);
+			const double errorAfter = fg.error(result1);
 
-		std::cout << " ErrorAfter=" << errorAfter
-				  << " RMSE=" << std::sqrt(errorAfter / numFactors)
-				  << " numFactors=" << numFactors
-				  << " Iterations: " << lm1.iterations() << "\n\n";
+			std::cout << " ErrorAfter=" << errorAfter
+					  << " RMSE=" << std::sqrt(errorAfter / numFactors)
+					  << " numFactors=" << numFactors
+					  << " Iterations: " << lm1.iterations() << "\n\n";
 
-		values = result1;
+			values = result1;
 
-		if (arg_printFactorErrors.isSet())
-			fg.printErrors(
-				values, "", gtsam::DefaultKeyFormatter,
-				[](const gtsam::Factor*, double err, size_t) {
-					return err > arg_printFactorErrors.getValue();
-				});
+			if (arg_printFactorErrors.isSet())
+				fg.printErrors(values, "", defKeyFrm, lmbdPrintErr);
+		}
 	}
 
 	/* =======================================================================
@@ -537,11 +555,12 @@ void test_smoother()
 	}
 
 	std::cout << "Saving results to TXT files...\n";
-	Qs.saveToTextFile("q.txt", {}, false, "% TIMESTAMP q[0]  ... q[n]");
-	dotQs.saveToTextFile("dq.txt", {}, false, "% TIMESTAMP dq[0]  ... dq[n]");
+	Qs.saveToTextFile("q.txt", {}, false, "% TIMESTAMP q[0]  ... q[n]\n");
+	dotQs.saveToTextFile("dq.txt", {}, false, "% TIMESTAMP dq[0]  ... dq[n]\n");
 	ddotQs.saveToTextFile(
-		"ddq.txt", {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]");
-	Fs.saveToTextFile("Q_forces.txt", {}, false, "% TIMESTAMP Q[0]  ... Q[n]");
+		"ddq.txt", {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]\n");
+	Fs.saveToTextFile(
+		"Q_forces.txt", {}, false, "% TIMESTAMP Q[0]  ... Q[n]\n");
 }
 
 int main(int argc, char** argv)

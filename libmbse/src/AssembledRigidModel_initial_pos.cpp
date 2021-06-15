@@ -89,7 +89,7 @@ double AssembledRigidModel::finiteDisplacement(
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
 	const size_t nDepCoords = q_.size() - z_indices.size();
-	std::vector<size_t> idxs_d;  // make a list with the rest of indices
+	std::vector<size_t> idxs_d;	 // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
 	for (int i = 0; i < q_.size(); i++)
@@ -177,8 +177,8 @@ MRPT_TODO("Split into several methods?")
 
 void AssembledRigidModel::computeDependentPosVelAcc(
 	const std::vector<size_t>& z_indices, bool update_q, bool update_dq,
-	const TComputeDependentParams& params,
-	TComputeDependentResults& out_results, const Eigen::VectorXd* ptr_ddotz)
+	const ComputeDependentParams& params, ComputeDependentResults& out_results,
+	const Eigen::VectorXd* ptr_ddotz)
 {
 	timelog().enter("computeDependentPosVelAcc");
 
@@ -188,7 +188,7 @@ void AssembledRigidModel::computeDependentPosVelAcc(
 	for (size_t i = 0; i < z_indices.size(); i++) q_fixed[z_indices[i]] = true;
 
 	const size_t nDepCoords = q_.size() - z_indices.size();
-	std::vector<size_t> idxs_d;  // make a list with the rest of indices
+	std::vector<size_t> idxs_d;	 // make a list with the rest of indices
 	idxs_d.reserve(nDepCoords);
 
 	for (int i = 0; i < q_.size(); i++)

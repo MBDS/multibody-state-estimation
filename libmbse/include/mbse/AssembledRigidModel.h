@@ -93,17 +93,17 @@ class AssembledRigidModel
 	/** Evaluate current energy of the system. */
 	void evaluateEnergy(TEnergyValues& e) const;
 
-	struct TComputeDependentParams
+	struct ComputeDependentParams
 	{
-		TComputeDependentParams() : maxPhiNorm(1e-13), nItersMax(10) {}
+		ComputeDependentParams() : maxPhiNorm(1e-13), nItersMax(10) {}
 
 		double maxPhiNorm;
 		size_t nItersMax;
 	};
 
-	struct TComputeDependentResults
+	struct ComputeDependentResults
 	{
-		TComputeDependentResults() : pos_final_phi(0), ddotq(nullptr) {}
+		ComputeDependentResults() : pos_final_phi(0), ddotq(nullptr) {}
 
 		double pos_final_phi;  //!< Output for the final Phi(q) after refining
 							   //!< positions (only valid if update_q=true).
@@ -115,8 +115,8 @@ class AssembledRigidModel
 	 * independent ones and current state */
 	void computeDependentPosVelAcc(
 		const std::vector<size_t>& z_indices, bool update_q, bool update_dq,
-		const TComputeDependentParams& params,
-		TComputeDependentResults& out_results,
+		const ComputeDependentParams& params,
+		ComputeDependentResults& out_results,
 		const Eigen::VectorXd* ddotz = nullptr);
 
 	/** Retrieves the current coordinates of a point, which may include either

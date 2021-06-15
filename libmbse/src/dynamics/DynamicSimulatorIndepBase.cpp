@@ -203,7 +203,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 		};
 
 		// Save last ddotq:
-		AssembledRigidModel::TComputeDependentResults cdr;
+		AssembledRigidModel::ComputeDependentResults cdr;
 		cdr.ddotq = &arm_->ddotq_;
 		arm_->computeDependentPosVelAcc(
 			independent_coordinate_indices(), false /*update q*/,

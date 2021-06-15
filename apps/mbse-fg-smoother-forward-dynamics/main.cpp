@@ -133,8 +133,8 @@ void test_smoother()
 	// Create a feasible Q(0):
 	if (0)	// initial pos & vel & acc
 	{
-		AssembledRigidModel::TComputeDependentParams cdp;  // default params
-		AssembledRigidModel::TComputeDependentResults cdr;
+		AssembledRigidModel::ComputeDependentParams cdp;  // default params
+		AssembledRigidModel::ComputeDependentResults cdr;
 		// Solve the position problem:
 		aMBS->computeDependentPosVelAcc(
 			indepCoordIndices, true, true, cdp, cdr);

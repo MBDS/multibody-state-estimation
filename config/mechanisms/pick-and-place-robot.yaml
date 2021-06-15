@@ -3,8 +3,8 @@
 # Pick-and-place parallel planar robot arm
 # See e.g. picture in patent US 7090458
 points:
-  - { x: 0, y: 0, fixed: true }      # 0 (support, motor 1)
-  - { x: 0.5, y: -0.5, fixed: true } # 1 (support)
+  - { x: 0, y: 0, fixed: true }      # 0 (support)
+  - { x: 0.5, y: -0.5, fixed: true } # 1 (support, motor 1)
   - { x: -1.0, y: -1.0 }  # 2
   - { x: -0.5, y: -1.5 }  # 3
   - { x: -1.0, y: -2.0 }  # 4
@@ -15,8 +15,8 @@ points:
   - { x:  2.5, y: -2.0 }  # 9
   - { x:  2.0, y: -1.5 }  # 10
   - { x:  2.5, y: -1.0 }  # 11
-  - { x: 1.0, y: -0.5, fixed: true } # 12 (support)
-  - { x: 1.5, y: 0, fixed: true }    # 13 (support, motor 2)
+  - { x: 1.0, y: -0.5, fixed: true } # 12 (support, motor 2)
+  - { x: 1.5, y: 0, fixed: true }    # 13 (support)
 planar_bodies:
   # 0
   - points: [0, 2]
@@ -88,7 +88,7 @@ planar_bodies:
 relative_coordinates:
   # 0
   - type: RelativeAngleAbsoluteDOF
-    points: [0, 2]
+    points: [1, 3]
   # 1
   - type: RelativeAngleAbsoluteDOF
-    points: [13, 11]
+    points: [12, 10]
