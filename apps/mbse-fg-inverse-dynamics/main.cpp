@@ -255,6 +255,9 @@ void test_smoother()
 
 		aMBS->computeDependentPosVelAcc(indepCoordIndices, true, false, dp, dr);
 
+		std::cout << "Position problem final |Phi(q)|=" << aMBS->Phi_.norm()
+				  << ", Phi(q)=" << aMBS->Phi_.transpose() << std::endl;
+
 		ASSERT_LT_(dr.pos_final_phi, 0.01);
 	}
 
