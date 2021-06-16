@@ -19,24 +19,13 @@ bin/mbse-fg-inverse-dynamics   \
 
 bin/mbse-fg-inverse-dynamics  \
   --mechanism ../config/mechanisms/pick-and-place-robot.yaml \
-  --desired-trajectory motors.txt \
+  --desired-trajectory ../config/trajectories/pick-and-place-robot-trajectory.txt \
   --imposed-coordinates "[ 20 ; 21 ]" \
   --verbose \
-  --lm-iterations 15
-
-bin/mbse-fg-inverse-dynamics   \
-  --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
-  --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
-  --enforce-coordinate-precision 10 \
-  --enforce-force-sigma 1e3 \
-  --imposed-coordinates "[ 4 ]" \
-  --noise-vel-sigma 1e-1 \
-  --noise-acc-sigma 1e-1 \
-  --vel-constraints-sigma 1 \
-  --dynamics-sigma 1 \
-  --pos-constraints-sigma 1
-
+  --lm-iterations 40
+  
  */
+
 // clang-format on
 
 #include <fstream>
