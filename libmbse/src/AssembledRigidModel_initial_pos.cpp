@@ -238,6 +238,8 @@ void AssembledRigidModel::computeDependentPosVelAcc(
 			phi_norm = new_phi_norm;
 		}
 
+		out_results.pos_final_phi = phi_norm;
+
 		timelog().registerUserMeasure(
 			"computeDependentPosVelAcc.num_iters", iter);
 	}
