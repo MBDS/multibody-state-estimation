@@ -20,6 +20,8 @@
 
 using namespace mbse;
 
+const double FINITE_DIFF_DELTA = 1e-9;
+
 FactorInverseDynamics::~FactorInverseDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorInverseDynamics::clone() const
@@ -152,7 +154,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 		const gtsam::Vector x = p.q;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), FINITE_DIFF_DELTA);
 
 		mrpt::math::estimateJacobian(
 			x,
@@ -180,7 +182,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 		const gtsam::Vector x = p.dq;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), FINITE_DIFF_DELTA);
 
 		mrpt::math::estimateJacobian(
 			x,
@@ -212,7 +214,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 
 		const gtsam::Vector x = p.Q;
 		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), 1e-5);
+			Eigen::VectorXd::Constant(x.rows(), x.cols(), FINITE_DIFF_DELTA);
 
 		mrpt::math::estimateJacobian(
 			x,

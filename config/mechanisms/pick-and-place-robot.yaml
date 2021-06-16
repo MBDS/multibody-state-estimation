@@ -34,7 +34,7 @@ planar_bodies:
   - points: [2, 3, 4]
     #length: auto  # length is ignored for 3-ary or higher-order bodies
     mass: 1
-    I0: 2/3
+    I0: 2/3 # verified
     cog: [0.5*length12, 0.0]
   # 3
   - points: [4, 6]
@@ -52,7 +52,7 @@ planar_bodies:
   - points: [5, 7, 6, 8]
     #length: auto  # length is ignored for 3-ary or higher-order bodies
     mass: 6.0
-    I0: 2.0 #mass*(bt^2/9+b^2/12+h^2/4) (1/2)*mass*length12^2
+    I0: 11.375 #mass*(bt^2/9+b^2/12+h^2/4) (1/2)*mass*length12^2 + Huygens-Steiner
     cog: [ 1.5/2, -0.5/2 ]
   # 6
   - points: [8, 9]
