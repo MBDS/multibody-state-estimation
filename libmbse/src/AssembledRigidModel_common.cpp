@@ -117,6 +117,24 @@ AssembledRigidModel::AssembledRigidModel(const TSymbolicAssembledModel& armi)
 
 			// reverse look up table:
 			relCoordinate2Index_[i] = idxInQ;
+
+			// Initial value from coordinates:
+			const auto pt0 = getPointCurrentCoords(c.point_idx0);
+			const auto pt1 = getPointCurrentCoords(c.point_idx1);
+			const auto ptV = pt1 - pt0;
+			if (ptV.norm() != 0)
+			{
+				auto expectedAng = std::atan2(ptV.y, ptV.x);
+				if (std::abs(q_[idxInQ] - expectedAng) > 0.01)
+				{
+					printf(
+						"*WARNING* RelativeAngleAbsoluteDOF at q[%i]=%f deg: "
+						"Overriding with angle from coordinates = %f deg.\n",
+						static_cast<int>(idxInQ), mrpt::RAD2DEG(q_[idxInQ]),
+						mrpt::RAD2DEG(expectedAng));
+					q_[idxInQ] = expectedAng;
+				}
+			}
 		}
 		else
 		{

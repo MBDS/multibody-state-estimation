@@ -243,7 +243,7 @@ void test_smoother()
 
 	// Position enforcement factor:
 	{
-		gtsam::Vector qn = gtsam::Vector::Zero(n);
+		gtsam::Vector qn = aMBS->q_;
 		for (size_t i = 0; i < nImposedDOFs; i++)
 			qn[indepCoordIndices.at(i)] = trajectory(0, i);
 

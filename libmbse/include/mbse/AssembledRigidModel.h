@@ -124,6 +124,13 @@ class AssembledRigidModel
 	void getPointCurrentCoords(
 		const size_t pt_idx, mrpt::math::TPoint2D& pt) const;
 
+	mrpt::math::TPoint2D getPointCurrentCoords(const size_t pt_idx) const
+	{
+		mrpt::math::TPoint2D pt;
+		getPointCurrentCoords(pt_idx, pt);
+		return pt;
+	}
+
 	/** Retrieves the current velocity of a point, which may include either
 	 * fixed or variable components */
 	void getPointCurrentVelocity(
