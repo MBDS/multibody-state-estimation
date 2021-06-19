@@ -146,8 +146,8 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 #if USE_NUMERIC_JACOBIAN
 
 		const double cacheTol_q = 1e-3;
-		const double cacheTol_dq = 1e-3;
-		const double cacheTol_ddq = 1e-3;
+		const double cacheTol_dq = 1e-2;
+		const double cacheTol_ddq = 1e-1;
 
 		if (cached_q_.size() == q_k.size() &&
 			(cached_q_ - q_k).array().abs().maxCoeff() < cacheTol_q &&

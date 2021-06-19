@@ -31,6 +31,7 @@ bin/mbse-fg-inverse-dynamics  \
 #include <fstream>
 #include <gtsam/inference/Symbol.h>
 #include <gtsam/nonlinear/LevenbergMarquardtOptimizer.h>
+#include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam/slam/BetweenFactor.h>
@@ -69,10 +70,11 @@ TCLAP::ValueArg<double> arg_enforcement_prec(
 	"Desired mechanism trajectory enforcement precision", false, 10, "10.0",
 	cmd);
 
-TCLAP::ValueArg<double> arg_force_enforcement_sigma(
-	"", "enforce-force-sigma",
-	"A priori factors for null forces in non-actuated Q coordinates (sigma)",
-	false, 1e3, "1e3", cmd);
+TCLAP::ValueArg<double> arg_force_enforcement_precision(
+	"", "enforce-force-precision",
+	"A priori factors for null forces in non-actuated Q coordinates "
+	"(precision)",
+	false, 10, "10", cmd);
 
 TCLAP::ValueArg<std::string> arg_indep_coords(
 	"", "imposed-coordinates",
@@ -203,21 +205,23 @@ void test_smoother()
 		gtsam::noiseModel::Diagonal::Precisions(posEnforcePrecisionsEig);
 
 	// Enforcement noise model for forces:
-	mrpt::math::CVectorDouble forceZerosPrioriEnforcementSigmas;
-	forceZerosPrioriEnforcementSigmas.setZero(n);
+	mrpt::math::CVectorDouble forceZerosPrioriEnforcementPrecisions;
+	forceZerosPrioriEnforcementPrecisions.setConstant(
+		n, arg_force_enforcement_precision.getValue());
 	for (const auto i : indepCoordIndices)
-		forceZerosPrioriEnforcementSigmas[i] =
-			arg_force_enforcement_sigma.getValue();
-	const gtsam::Vector forceZerosPrioriEnforcementSigmasEig =
-		forceZerosPrioriEnforcementSigmas.asEigen();
+		forceZerosPrioriEnforcementPrecisions[i] = 0;
+	const gtsam::Vector forceZerosPrioriEnforcementPrecisionsEig =
+		forceZerosPrioriEnforcementPrecisions.asEigen();
 	const auto forceZerosPrioriEnforcement =
-		gtsam::noiseModel::Diagonal::Sigmas(
-			forceZerosPrioriEnforcementSigmasEig);
+		gtsam::noiseModel::Diagonal::Precisions(
+			forceZerosPrioriEnforcementPrecisionsEig);
 
 	// Between Q factor for smooth motion (solve branching).
 	auto noise_between_q = gtsam::noiseModel::Isotropic::Sigma(n, 10.0);
-	auto noise_between_dq = gtsam::noiseModel::Isotropic::Sigma(n, 100.0);
-	auto noise_between_ddq = gtsam::noiseModel::Isotropic::Sigma(n, 1000.0);
+	auto noise_between_dq = gtsam::noiseModel::Isotropic::Sigma(n, 10000.0);
+	auto noise_between_ddq = gtsam::noiseModel::Isotropic::Sigma(n, 10000.0);
+
+	// const auto noise_prior_dq = gtsam::noiseModel::Isotropic::Sigma(n, 1.0);
 
 	auto noise_dyn =
 		gtsam::noiseModel::Isotropic::Sigma(n, arg_dynamics_sigma.getValue());
@@ -296,13 +300,22 @@ void test_smoother()
 		}
 	}
 
-	gtsam::LevenbergMarquardtParams optParams;
+#if 1
+	using optimizer_t = gtsam::LevenbergMarquardtOptimizer;
+	using optimizer_params_t = gtsam::LevenbergMarquardtParams;
+#else
+	using optimizer_t = gtsam::GaussNewtonOptimizer;
+	using optimizer_params_t = gtsam::GaussNewtonParams;
+#endif
+
+	optimizer_params_t optParams;
+
 	// optParams.verbosityLM = gtsam::LevenbergMarquardtParams::DAMPED;
-	optParams.lambdaUpperBound = 1e10;
+	optParams.lambdaUpperBound = 1e20;
 	optParams.lambdaFactor = 2.0;
-	optParams.diagonalDamping = true;
+	optParams.diagonalDamping = false;
 	optParams.absoluteErrorTol = 0;
-	optParams.relativeErrorTol = 1e-5;
+	optParams.relativeErrorTol = 1e-7;
 	optParams.maxIterations = arg_lm_iterations.getValue();
 
 	if (arg_verbose.isSet())
@@ -332,7 +345,7 @@ void test_smoother()
 
 		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+		optimizer_t lm1(fg, values, optParams);
 		if (arg_debugPrintGraphs.isSet()) fg.print();
 
 		const gtsam::Values& result1 = lm1.optimize();
@@ -380,6 +393,13 @@ void test_smoother()
 			fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
 				A(timeStep - 1), A(timeStep), zeros, noise_between_ddq);
 		}
+#if 0
+		if (timeStep == 0)
+		{
+			fg.emplace_shared<gtsam::PriorFactor<state_t>>(
+				V(timeStep), zeros, noise_prior_dq);
+		}
+#endif
 
 		// Create initial estimates (so we can run the optimizer)
 		values.insert(A(timeStep), zeros);
@@ -397,7 +417,7 @@ void test_smoother()
 				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 				  << " numFactors=" << numFactors << "\n";
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+		optimizer_t lm1(fg, values, optParams);
 
 		if (arg_debugPrintGraphs.isSet()) fg.print();
 
@@ -443,9 +463,10 @@ void test_smoother()
 				  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 				  << " numFactors=" << numFactors << "\n";
 
-		// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
+		// lmParams.verbosityLM =
+		// gtsam::LevenbergMarquardtParams::LAMBDA;
 
-		gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+		optimizer_t lm1(fg, values, optParams);
 
 		if (arg_debugPrintGraphs.isSet()) fg.print();
 
@@ -508,9 +529,10 @@ void test_smoother()
 					  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 					  << " numFactors=" << numFactors << "\n";
 
-			// lmParams.verbosityLM = gtsam::LevenbergMarquardtParams::LAMBDA;
+			// lmParams.verbosityLM =
+			// gtsam::LevenbergMarquardtParams::LAMBDA;
 
-			gtsam::LevenbergMarquardtOptimizer lm1(fg, values, optParams);
+			optimizer_t lm1(fg, values, optParams);
 
 			if (arg_debugPrintGraphs.isSet()) fg.print();
 
