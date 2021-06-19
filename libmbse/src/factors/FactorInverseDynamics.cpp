@@ -20,7 +20,7 @@
 
 using namespace mbse;
 
-const double FINITE_DIFF_DELTA = 1e-3;
+const double FINITE_DIFF_DELTA = 1e-4;
 
 FactorInverseDynamics::~FactorInverseDynamics() = default;
 
@@ -145,9 +145,9 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 		auto& Hv = d_e_Q.value();
 #if USE_NUMERIC_JACOBIAN
 
-		const double cacheTol_q = 1e-3;
-		const double cacheTol_dq = 1e-2;
-		const double cacheTol_ddq = 1e-1;
+		const double cacheTol_q = 0.01;
+		const double cacheTol_dq = 0.1;
+		const double cacheTol_ddq = 0.5;
 
 		if (cached_q_.size() == q_k.size() &&
 			(cached_q_ - q_k).array().abs().maxCoeff() < cacheTol_q &&

@@ -107,7 +107,7 @@ TCLAP::ValueArg<double> arg_noise_acc_sigma(
 
 TCLAP::ValueArg<double> arg_constant_force_sigma(
 	"", "noise-constant-force-sigma", "Sigma for constant-force constraints",
-	false, 100, "100", cmd);
+	false, 10, "10", cmd);
 
 TCLAP::ValueArg<unsigned int> arg_lm_iterations(
 	"", "lm-iterations", "LevMarq optimization maximum iterations", false, 100,
@@ -148,7 +148,8 @@ void test_smoother()
 
 	aMBS->printCoordinates();
 
-	CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
+	// CDynamicSimulator_R_matrix_dense dynSimul(aMBS);
+	CDynamicSimulator_ALi3_Dense dynSimul(aMBS);
 	// CDynamicSimulator_Lagrange_LU_dense dynSimul(aMBS);
 
 	// Must be called before solve_ddotq(), needed inside the dynamics factors
@@ -311,11 +312,11 @@ void test_smoother()
 	optimizer_params_t optParams;
 
 	// optParams.verbosityLM = gtsam::LevenbergMarquardtParams::DAMPED;
-	optParams.lambdaUpperBound = 1e20;
-	optParams.lambdaFactor = 2.0;
+	optParams.lambdaUpperBound = 1e30;
+	optParams.lambdaFactor = 10.0;
 	optParams.diagonalDamping = false;
 	optParams.absoluteErrorTol = 0;
-	optParams.relativeErrorTol = 1e-7;
+	optParams.relativeErrorTol = 1e-4;
 	optParams.maxIterations = arg_lm_iterations.getValue();
 
 	if (arg_verbose.isSet())
