@@ -31,15 +31,16 @@ namespace mbse
  *
  * Fixed data: multibody model (inertias, masses, etc.)
  */
-class FactorInverseDynamics : public gtsam::NoiseModelFactor4<
-								  state_t /* q_k */, state_t /* dq_k */,
-								  state_t /* ddq_k */, state_t /* Q_k */>
+class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 {
    private:
 	using This = FactorInverseDynamics;
-	using Base = gtsam::NoiseModelFactor4<state_t, state_t, state_t, state_t>;
+	using Base = gtsam::NoiseModelFactor1<state_t>;
 
 	CDynamicSimulatorBase* dynamic_solver_ = nullptr;
+
+	gtsam::Key key_q_k_, key_dq_k_, key_ddq_k_;
+	const gtsam::Values* valuesFor_q_dq_ = nullptr;
 
    public:
 	// shorthand for a smart pointer to a factor
@@ -52,9 +53,14 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor4<
 	FactorInverseDynamics(
 		CDynamicSimulatorBase* dynamic_solver,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
-		gtsam::Key key_dq_k, gtsam::Key key_ddq_k, gtsam::Key key_Q_k)
-		: Base(noiseModel, key_q_k, key_dq_k, key_ddq_k, key_Q_k),
-		  dynamic_solver_(dynamic_solver)
+		gtsam::Key key_dq_k, gtsam::Key key_ddq_k, gtsam::Key key_Q_k,
+		const gtsam::Values& valuesFor_q_dq)
+		: Base(noiseModel, key_Q_k),
+		  dynamic_solver_(dynamic_solver),
+		  key_q_k_(key_q_k),
+		  key_dq_k_(key_dq_k),
+		  key_ddq_k_(key_ddq_k),
+		  valuesFor_q_dq_(&valuesFor_q_dq)
 	{
 	}
 
@@ -79,14 +85,11 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor4<
 
 	/** vector of errors */
 	gtsam::Vector evaluateError(
-		const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-		const state_t& Q_k, boost::optional<gtsam::Matrix&> H1 = boost::none,
-		boost::optional<gtsam::Matrix&> H2 = boost::none,
-		boost::optional<gtsam::Matrix&> H3 = boost::none,
-		boost::optional<gtsam::Matrix&> H4 = boost::none) const override;
+		const state_t& Q_k,
+		boost::optional<gtsam::Matrix&> d_e_Q = boost::none) const override;
 
 	/** number of variables attached to this factor */
-	std::size_t size() const { return 4; }
+	std::size_t size() const { return 2; }
 
    private:
 	/** Serialization function */

@@ -109,6 +109,7 @@ double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 		// Integrate:
 		// ------------------------------
 		this->pre_iteration(t);
+		arm_->realize_operating_point();
 
 		const bool custom_integrator =
 			this->internal_integrate(t, t_step, params.ode_solver);

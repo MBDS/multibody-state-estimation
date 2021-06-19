@@ -67,7 +67,7 @@ static void num_err_wrt_z(
 	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
 	p.dynamic_solver->solve_ddotz(t, zpp_predicted);
@@ -98,7 +98,7 @@ static void num_err_wrt_dz(
 	ASSERT_LT_(cdr.pos_final_phi, 1e-3);
 
 	// Predict accelerations:
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
 	Eigen::VectorXd zpp_predicted;
 
 	p.dynamic_solver->solve_ddotz(t, zpp_predicted);
@@ -153,7 +153,9 @@ gtsam::Vector FactorDynamicsIndep::evaluateError(
 
 	// Predict accelerations:
 	Eigen::VectorXd zpp_predicted;
-	const double t = 0;  // wallclock time (useless?)
+	const double t = 0;	 // wallclock time (useless?)
+
+	dynamic_solver_->get_model()->realize_operating_point();
 	dynamic_solver_->solve_ddotz(t, zpp_predicted);
 
 	// Evaluate error:

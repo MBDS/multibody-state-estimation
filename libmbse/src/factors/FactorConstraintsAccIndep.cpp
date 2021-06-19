@@ -75,6 +75,7 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	arm_->ddotq_ = ddotq_k;
 
 	// Update Jacobian and Hessian tensor:
+	arm_->realize_operating_point();
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	const auto m = arm_->Phi_.rows();

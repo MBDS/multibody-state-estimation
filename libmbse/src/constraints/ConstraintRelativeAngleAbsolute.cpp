@@ -26,7 +26,8 @@ void ConstraintRelativeAngleAbsolute::buildSparseStructures(
 		"Useless relative coordinate added between two fixed points!");
 }
 
-void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
+void ConstraintRelativeAngleAbsolute::realizeOperatingPoint(
+	const AssembledRigidModel& arm) const
 {
 	// Get references to the point coordinates and velocities
 	// (either fixed or variables in q):
@@ -38,14 +39,28 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 
 	// Always recalculating L leads to failed numerical Jacobian tests,
 	// since it introduces fake dependencies between (x,y) coordinates.
-	const double Lsqr_now = Ax * Ax + Ay * Ay;
-	if (Lsqr_ == 0 || std::abs(Lsqr_ / Lsqr_now - 1.0) > 0.02)
+	const auto LsqrNow = Ax * Ax + Ay * Ay;
+	if (Lsqr_ == 0 || std::abs(Lsqr_ / LsqrNow - 1.0) > 0.02)
 	{
-		// Update cached values
-		Lsqr_ = Lsqr_now;
-		L_ = std::sqrt(Lsqr_);
+		Lsqr_ = LsqrNow;
+		L_ = std::sqrt(LsqrNow);
 	}
-	const double L = L_;
+
+	const double theta = angle.x;
+	const double sinTh = std::sin(theta);
+
+	useCos_ = std::abs(sinTh) > 0.707;
+}
+
+void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
+{
+	// Get references to the point coordinates and velocities
+	// (either fixed or variables in q):
+	PointRef p[2] = {actual_coords(arm, 0), actual_coords(arm, 1)};
+	RelCoordRef angle = actual_rel_coords(arm, 0);
+
+	const double Ax = p[1].x - p[0].x;
+	const double Ay = p[1].y - p[0].y;
 
 	const double Adotx = p[1].dotx - p[0].dotx;
 	const double Adoty = p[1].doty - p[0].doty;
@@ -57,33 +72,27 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 	const double theta = angle.x;
 	const double w = angle.dotx;
 	const double angAcc = angle.ddotx;
-
 	const double sinTh = std::sin(theta), cosTh = std::cos(theta);
-
-	// Hysteresis in the use of sin/cos, since since always deciding it on an
-	// exact threshold leads to errors in numerical Jacobians:
-	const double thPlus = w > 0 ? 0.1 : -0.1;
-	const bool useCos = std::abs(sinTh) > (0.707 + thPlus);
 
 	// Update Phi[i]
 	// ----------------------------------
-	const double PhiVal = useCos ? Ax - L * cosTh : Ay - L * sinTh;
+	const double PhiVal = useCos_ ? Ax - L_ * cosTh : Ay - L_ * sinTh;
 	arm.Phi_[idx_constr_[0]] = PhiVal;
 
 	// Update dotPhi[i]
 	// ----------------------------------
 	arm.dotPhi_[idx_constr_[0]] =
-		useCos ? Adotx + L * sinTh * w : Adoty - L * cosTh * w;
+		useCos_ ? Adotx + L_ * sinTh * w : Adoty - L_ * cosTh * w;
 
 	auto& j = jacob.at(0);	// 1st (and unique) jacob row
 
 	// Update Jacobian dPhi_dq(i,:)
 	// ----------------------------------
-	if (useCos)
+	if (useCos_)
 	{
 		set(j.dPhi_dx[0], -1);
 		set(j.dPhi_dx[1], 1);
-		set(j.dPhi_drel[0], L * sinTh);
+		set(j.dPhi_drel[0], L_ * sinTh);
 
 		set(j.dPhi_dy[0], 0);
 		set(j.dPhi_dy[1], 0);
@@ -92,7 +101,7 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 	{
 		set(j.dPhi_dy[0], -1);
 		set(j.dPhi_dy[1], 1);
-		set(j.dPhi_drel[0], -L * cosTh);
+		set(j.dPhi_drel[0], -L_ * cosTh);
 
 		set(j.dPhi_dx[0], 0);
 		set(j.dPhi_dx[1], 0);
@@ -104,10 +113,10 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 	set(j.dot_dPhi_dy[0], 0);
 	set(j.dot_dPhi_dx[1], 0);
 	set(j.dot_dPhi_dy[1], 0);
-	if (useCos)
-		set(j.dot_dPhi_drel[0], L * cosTh * w);
+	if (useCos_)
+		set(j.dot_dPhi_drel[0], L_ * cosTh * w);
 	else
-		set(j.dot_dPhi_drel[0], L * sinTh * w);
+		set(j.dot_dPhi_drel[0], L_ * sinTh * w);
 
 	// Update Phiqq_times_ddq
 	// ----------------------------------
@@ -115,10 +124,10 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 	set(j.Phiqq_times_ddq_dy[0], 0);
 	set(j.Phiqq_times_ddq_dx[1], 0);
 	set(j.Phiqq_times_ddq_dy[1], 0);
-	if (useCos)
-		set(j.Phiqq_times_ddq_drel[0], L * cosTh * angAcc);
+	if (useCos_)
+		set(j.Phiqq_times_ddq_drel[0], L_ * cosTh * angAcc);
 	else
-		set(j.Phiqq_times_ddq_drel[0], L * sinTh * angAcc);
+		set(j.Phiqq_times_ddq_drel[0], L_ * sinTh * angAcc);
 
 	// Update dotPhiqq_times_dq
 	// ----------------------------------
@@ -126,10 +135,10 @@ void ConstraintRelativeAngleAbsolute::update(AssembledRigidModel& arm) const
 	set(j.dotPhiqq_times_dq_dy[0], 0);
 	set(j.dotPhiqq_times_dq_dx[1], 0);
 	set(j.dotPhiqq_times_dq_dy[1], 0);
-	if (useCos)
-		set(j.dotPhiqq_times_dq_drel[0], -L * w * w * sinTh);
+	if (useCos_)
+		set(j.dotPhiqq_times_dq_drel[0], -L_ * w * w * sinTh);
 	else
-		set(j.dotPhiqq_times_dq_drel[0], L * w * w * cosTh);
+		set(j.dotPhiqq_times_dq_drel[0], L_ * w * w * cosTh);
 }
 
 void ConstraintRelativeAngleAbsolute::print(std::ostream& o) const

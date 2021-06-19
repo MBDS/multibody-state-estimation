@@ -31,6 +31,7 @@ CDynamicSimulatorIndepBase::~CDynamicSimulatorIndepBase() {}
 void CDynamicSimulatorIndepBase::solve_ddotz(double t, VectorXd& ddot_z)
 {
 	ASSERT_(init_);
+	arm_->realize_operating_point();
 	this->internal_solve_ddotz(t, ddot_z);
 }
 
@@ -65,6 +66,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 		}
 
 		timelog().enter("mbs.run_complete_timestep");
+		arm_->realize_operating_point();
 
 		// Integrate:
 		// ------------------------------
@@ -83,7 +85,7 @@ double CDynamicSimulatorIndepBase::run(const double t_ini, const double t_end)
 
 			case ODE_RK4:
 			{
-				q0 = arm_->q_;  // Make backup copy of state (velocities will
+				q0 = arm_->q_;	// Make backup copy of state (velocities will
 								// be in "v1")
 
 				// k1 = f(t,y);

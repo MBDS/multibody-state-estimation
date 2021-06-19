@@ -102,6 +102,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	arm_->dotq_ = dotq_k;
 
 	// Update Jacobian and Hessian tensor:
+	arm_->realize_operating_point();
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	// Evaluate error:

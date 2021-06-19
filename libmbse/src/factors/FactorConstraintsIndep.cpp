@@ -66,6 +66,7 @@ gtsam::Vector FactorConstraintsIndep::evaluateError(
 	arm_->q_ = q_k;
 
 	// Update Jacobians:
+	arm_->realize_operating_point();
 	arm_->update_numeric_Phi_and_Jacobians();
 
 	const auto m = arm_->Phi_.rows();

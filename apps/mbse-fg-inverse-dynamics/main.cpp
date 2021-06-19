@@ -103,6 +103,10 @@ TCLAP::ValueArg<double> arg_noise_acc_sigma(
 	"", "noise-acc-sigma", "Sigma for dq-ddq integration", false, 0.1, "0.1",
 	cmd);
 
+TCLAP::ValueArg<double> arg_constant_force_sigma(
+	"", "noise-constant-force-sigma", "Sigma for constant-force constraints",
+	false, 100, "100", cmd);
+
 TCLAP::ValueArg<unsigned int> arg_lm_iterations(
 	"", "lm-iterations", "LevMarq optimization maximum iterations", false, 100,
 	"xxx", cmd);
@@ -212,7 +216,7 @@ void test_smoother()
 
 	// Between Q factor for smooth motion (solve branching).
 	gtsam::Vector betweenQSigmas;
-	const double large_std = 1;
+	const double large_std = 1e4;
 	betweenQSigmas.setConstant(n, large_std);
 
 	auto noise_between_q = gtsam::noiseModel::Diagonal::Sigmas(betweenQSigmas);
@@ -222,7 +226,8 @@ void test_smoother()
 		gtsam::noiseModel::Isotropic::Sigma(m, arg_q_constr_sigma.getValue());
 	auto noise_constr_dq =
 		gtsam::noiseModel::Isotropic::Sigma(m, arg_dq_constr_sigma.getValue());
-	auto noise_constant_F = gtsam::noiseModel::Isotropic::Sigma(n, 1.0);
+	auto noise_constant_F = gtsam::noiseModel::Isotropic::Sigma(
+		n, arg_constant_force_sigma.getValue());
 
 	// Create null vector, for use in velocity and accelerations:
 	const state_t zeros = gtsam::Vector(gtsam::Vector::Zero(n, 1));
@@ -369,6 +374,14 @@ void test_smoother()
 				A(timeStep + 1));
 		}
 
+		if (timeStep > 0)
+		{
+			fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
+				V(timeStep - 1), V(timeStep), zeros, noise_between_q);
+			fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
+				A(timeStep - 1), A(timeStep), zeros, noise_between_q);
+		}
+
 		// Create initial estimates (so we can run the optimizer)
 		values.insert(A(timeStep), zeros);
 		values.insert(V(timeStep), zeros);
@@ -473,7 +486,13 @@ void test_smoother()
 			// Create Inverse Dynamics factors:
 			fg.emplace_shared<FactorInverseDynamics>(
 				&dynSimul, noise_dyn, Q(timeStep), V(timeStep), A(timeStep),
-				F(timeStep));
+				F(timeStep), values);
+
+			if (timeStep > 0)
+			{
+				fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
+					F(timeStep - 1), F(timeStep), zeros, noise_constant_F);
+			}
 
 			// Create initial estimates (so we can run the optimizer)
 			values.insert(F(timeStep), zeros);

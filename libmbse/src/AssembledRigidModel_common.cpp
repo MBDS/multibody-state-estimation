@@ -171,6 +171,13 @@ void AssembledRigidModel::update_numeric_Phi_and_Jacobians()
 		constraints_[i]->update(*this);
 }
 
+void AssembledRigidModel::realize_operating_point() const
+{
+	// Update numeric values of the constraint Jacobians:
+	for (size_t i = 0; i < constraints_.size(); i++)
+		constraints_[i]->realizeOperatingPoint(*this);
+}
+
 /** Returns a 3D visualization of the model */
 void AssembledRigidModel::getAs3DRepresentation(
 	mrpt::opengl::CSetOfObjects::Ptr& outObj,

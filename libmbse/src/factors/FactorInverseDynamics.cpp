@@ -34,9 +34,7 @@ void FactorInverseDynamics::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
 {
 	std::cout << s << "mbse::FactorInverseDynamics("
-			  << keyFormatter(this->key1()) << "," << keyFormatter(this->key2())
-			  << "," << keyFormatter(this->key3()) << keyFormatter(this->key4())
-			  << ")\n";
+			  << keyFormatter(this->key()) << ")\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
 	noiseModel_->print("  noise model: ");
 }
@@ -109,12 +107,15 @@ bool FactorInverseDynamics::equals(
 }
 
 gtsam::Vector FactorInverseDynamics::evaluateError(
-	const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-	const state_t& Q_k, boost::optional<gtsam::Matrix&> H1,
-	boost::optional<gtsam::Matrix&> H2, boost::optional<gtsam::Matrix&> H3,
-	boost::optional<gtsam::Matrix&> H4) const
+	const state_t& Q_k, boost::optional<gtsam::Matrix&> d_e_Q) const
 {
 	MRPT_START
+
+	ASSERT_(valuesFor_q_dq_ != nullptr);
+
+	const auto q_k = valuesFor_q_dq_->at<state_t>(key_q_k_);
+	const auto dq_k = valuesFor_q_dq_->at<state_t>(key_dq_k_);
+	const auto ddq_k = valuesFor_q_dq_->at<state_t>(key_ddq_k_);
 
 	const auto n = q_k.size();
 	ASSERT_EQUAL_(dq_k.size(), q_k.size());
@@ -132,77 +133,16 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	Eigen::VectorXd qpp_predicted;
 	const double t = 0;	 // wallclock time (useless?)
 
+	dynamic_solver_->get_model()->realize_operating_point();
+
 	dynamic_solver_->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:
 	gtsam::Vector err = qpp_predicted - ddq_k;
 
-	// d err / d q_k
-	if (H1)
+	if (d_e_Q)
 	{
-		auto& Hv = H1.value();
-#if 0
-		Hv.setZero(n, n);
-#else
-		NumericJacobParams p;
-		p.arm = &arm;
-		p.dynamic_solver = dynamic_solver_;
-		p.q = q_k;
-		p.dq = dq_k;
-		p.ddq = ddq_k;
-		p.Q = Q_k;
-
-		const gtsam::Vector x = p.q;
-		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), FINITE_DIFF_DELTA);
-
-		mrpt::math::estimateJacobian(
-			x,
-			std::function<void(
-				const gtsam::Vector& new_q, const NumericJacobParams& p,
-				gtsam::Vector& err)>(&num_err_wrt_q),
-			x_incr, p, Hv);
-
-#endif
-	}
-	// d err / d dq_k
-	if (H2)
-	{
-		auto& Hv = H2.value();
-#if 0
-		Hv.setZero(n, n);
-#else
-		NumericJacobParams p;
-		p.arm = &arm;
-		p.dynamic_solver = dynamic_solver_;
-		p.q = q_k;
-		p.dq = dq_k;
-		p.ddq = ddq_k;
-		p.Q = Q_k;
-
-		const gtsam::Vector x = p.dq;
-		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), FINITE_DIFF_DELTA);
-
-		mrpt::math::estimateJacobian(
-			x,
-			std::function<void(
-				const gtsam::Vector& new_q, const NumericJacobParams& p,
-				gtsam::Vector& err)>(&num_err_wrt_dq),
-			x_incr, p, Hv);
-
-#endif
-	}
-	// d err / d ddq_k
-	if (H3)
-	{
-		auto& Hv = H3.value();
-		Hv = -Eigen::MatrixXd::Identity(n, n);
-	}
-
-	if (H4)
-	{
-		auto& Hv = H4.value();
+		auto& Hv = d_e_Q.value();
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = &arm;
@@ -222,6 +162,9 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 				const gtsam::Vector& new_Q, const NumericJacobParams& p,
 				gtsam::Vector& err)>(&num_err_wrt_Q),
 			x_incr, p, Hv);
+
+		//		std::cout << "\nde/d{Q}:\n" << Hv << "\n\n";
+
 #else
 		THROW_EXCEPTION("Implement me!");
 #endif

@@ -116,6 +116,8 @@ gtsam::Vector FactorDynamics::evaluateError(
 	Eigen::VectorXd qpp_predicted;
 	const double t = 0;	 // wallclock time (useless?)
 
+	dynamic_solver_->get_model()->realize_operating_point();
+
 	dynamic_solver_->solve_ddotq(t, qpp_predicted);
 
 	// Evaluate error:

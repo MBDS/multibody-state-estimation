@@ -46,6 +46,11 @@ class ConstraintBase
 	/** Clone operator for smart pointers */
 	virtual Ptr clone() const = 0;
 
+	/** Checks current working point and select between one of several possible
+	 * linearization or working points. Avoids errors in numerical derivation.
+	 */
+	virtual void realizeOperatingPoint(const AssembledRigidModel& arm) const {}
+
 	/** Creates a 3D representation of the constraint, if applicable (e.g.the
 	 * line of a fixed slider).
 	 * \return false if the constraint has no 3D representation

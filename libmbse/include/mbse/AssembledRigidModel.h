@@ -305,6 +305,9 @@ class AssembledRigidModel
 	 * corresponding parts in the sparse Jacobians */
 	void update_numeric_Phi_and_Jacobians();
 
+	/** See constrainst realize_operating_point(). */
+	void realize_operating_point() const;
+
 	/** @} */
 
    private:

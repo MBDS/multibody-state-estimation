@@ -47,9 +47,12 @@ class ConstraintRelativeAngleAbsolute
 
 	Ptr clone() const override { return std::make_shared<me_t>(*this); }
 
+	void realizeOperatingPoint(const AssembledRigidModel& arm) const override;
+
    protected:
 	/** Proxy for length between the two points */
 	mutable double L_ = .0, Lsqr_ = .0;
+	mutable bool useCos_ = true;
 };
 
 }  // namespace mbse
