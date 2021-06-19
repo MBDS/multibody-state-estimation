@@ -20,7 +20,7 @@
 
 using namespace mbse;
 
-const double FINITE_DIFF_DELTA = 1e-9;
+const double FINITE_DIFF_DELTA = 1e-3;
 
 FactorInverseDynamics::~FactorInverseDynamics() = default;
 
@@ -144,24 +144,44 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	{
 		auto& Hv = d_e_Q.value();
 #if USE_NUMERIC_JACOBIAN
-		NumericJacobParams p;
-		p.arm = &arm;
-		p.dynamic_solver = dynamic_solver_;
-		p.q = q_k;
-		p.dq = dq_k;
-		p.ddq = ddq_k;
-		p.Q = Q_k;
 
-		const gtsam::Vector x = p.Q;
-		const gtsam::Vector x_incr =
-			Eigen::VectorXd::Constant(x.rows(), x.cols(), FINITE_DIFF_DELTA);
+		const double cacheTol_q = 1e-3;
+		const double cacheTol_dq = 1e-3;
+		const double cacheTol_ddq = 1e-3;
 
-		mrpt::math::estimateJacobian(
-			x,
-			std::function<void(
-				const gtsam::Vector& new_Q, const NumericJacobParams& p,
-				gtsam::Vector& err)>(&num_err_wrt_Q),
-			x_incr, p, Hv);
+		if (cached_q_.size() == q_k.size() &&
+			(cached_q_ - q_k).array().abs().maxCoeff() < cacheTol_q &&
+			(cached_dq_ - dq_k).array().abs().maxCoeff() < cacheTol_dq &&
+			(cached_ddq_ - ddq_k).array().abs().maxCoeff() < cacheTol_ddq)
+		{
+			Hv = cached_d_e_Q_;
+		}
+		else
+		{
+			NumericJacobParams p;
+			p.arm = &arm;
+			p.dynamic_solver = dynamic_solver_;
+			p.q = q_k;
+			p.dq = dq_k;
+			p.ddq = ddq_k;
+			p.Q = Q_k;
+
+			const gtsam::Vector x = p.Q;
+			const gtsam::Vector x_incr = Eigen::VectorXd::Constant(
+				x.rows(), x.cols(), FINITE_DIFF_DELTA);
+
+			mrpt::math::estimateJacobian(
+				x,
+				std::function<void(
+					const gtsam::Vector& new_Q, const NumericJacobParams& p,
+					gtsam::Vector& err)>(&num_err_wrt_Q),
+				x_incr, p, Hv);
+
+			cached_d_e_Q_ = Hv;
+			cached_q_ = q_k;
+			cached_dq_ = dq_k;
+			cached_ddq_ = ddq_k;
+		}
 
 		//		std::cout << "\nde/d{Q}:\n" << Hv << "\n\n";
 

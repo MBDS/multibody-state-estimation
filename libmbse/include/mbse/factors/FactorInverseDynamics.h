@@ -42,6 +42,9 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	gtsam::Key key_q_k_, key_dq_k_, key_ddq_k_;
 	const gtsam::Values* valuesFor_q_dq_ = nullptr;
 
+	mutable state_t cached_q_, cached_dq_, cached_ddq_, cached_Q_;
+	mutable gtsam::Matrix cached_d_e_Q_;
+
    public:
 	// shorthand for a smart pointer to a factor
 	using shared_ptr = boost::shared_ptr<This>;

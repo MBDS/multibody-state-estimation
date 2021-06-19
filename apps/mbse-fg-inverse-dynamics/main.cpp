@@ -215,11 +215,10 @@ void test_smoother()
 			forceZerosPrioriEnforcementSigmasEig);
 
 	// Between Q factor for smooth motion (solve branching).
-	gtsam::Vector betweenQSigmas;
-	const double large_std = 1e4;
-	betweenQSigmas.setConstant(n, large_std);
+	auto noise_between_q = gtsam::noiseModel::Isotropic::Sigma(n, 10.0);
+	auto noise_between_dq = gtsam::noiseModel::Isotropic::Sigma(n, 100.0);
+	auto noise_between_ddq = gtsam::noiseModel::Isotropic::Sigma(n, 1000.0);
 
-	auto noise_between_q = gtsam::noiseModel::Diagonal::Sigmas(betweenQSigmas);
 	auto noise_dyn =
 		gtsam::noiseModel::Isotropic::Sigma(n, arg_dynamics_sigma.getValue());
 	auto noise_constr_q =
@@ -377,9 +376,9 @@ void test_smoother()
 		if (timeStep > 0)
 		{
 			fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
-				V(timeStep - 1), V(timeStep), zeros, noise_between_q);
+				V(timeStep - 1), V(timeStep), zeros, noise_between_dq);
 			fg.emplace_shared<gtsam::BetweenFactor<state_t>>(
-				A(timeStep - 1), A(timeStep), zeros, noise_between_q);
+				A(timeStep - 1), A(timeStep), zeros, noise_between_ddq);
 		}
 
 		// Create initial estimates (so we can run the optimizer)
