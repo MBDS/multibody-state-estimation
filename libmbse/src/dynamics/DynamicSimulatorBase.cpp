@@ -65,6 +65,7 @@ void CDynamicSimulatorBase::solve_ddotq(
 	double t, VectorXd& ddot_q, VectorXd* lagrangre)
 {
 	ASSERT_(init_);
+	arm_->realize_operating_point();
 	this->internal_solve_ddotq(t, ddot_q, lagrangre);
 }
 

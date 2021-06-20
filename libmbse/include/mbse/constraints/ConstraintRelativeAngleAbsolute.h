@@ -16,7 +16,7 @@
 namespace mbse
 {
 /** Constraint (for relative coordinates): relative angle in "point 0" between
- * the absolute +X axis and the rod pt0-pt1 (CCW=positive):
+ * the absolute +X axis and the FIXED-LENGTH rod pt0-pt1 (CCW=positive):
  * \code
  *        pt1
  *       /
@@ -51,7 +51,7 @@ class ConstraintRelativeAngleAbsolute
 
    protected:
 	/** Proxy for length between the two points */
-	mutable double L_ = .0, Lsqr_ = .0;
+	mutable double L_ = .0;
 	mutable bool useCos_ = true;
 };
 

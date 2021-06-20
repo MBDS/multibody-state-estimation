@@ -182,6 +182,8 @@ void AssembledRigidModel::computeDependentPosVelAcc(
 {
 	timelog().enter("computeDependentPosVelAcc");
 
+	this->realize_operating_point();
+
 	// Build list of coordinates indices:
 	std::vector<bool> q_fixed;
 	q_fixed.assign(q_.size(), false);

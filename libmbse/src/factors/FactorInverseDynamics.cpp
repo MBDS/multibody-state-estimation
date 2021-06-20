@@ -20,8 +20,6 @@
 
 using namespace mbse;
 
-// const double FINITE_DIFF_DELTA = 1e-4;
-
 FactorInverseDynamics::~FactorInverseDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorInverseDynamics::clone() const
@@ -36,8 +34,12 @@ void FactorInverseDynamics::print(
 	std::cout << s << "mbse::FactorInverseDynamics("
 			  << keyFormatter(this->key()) << ")\n";
 	// gtsam::traits<double>::Print(timestep_, "  timestep: ");
+	// actuatedDegreesOfFreedomInQ
 	noiseModel_->print("  noise model: ");
 }
+
+#if USE_NUMERIC_JACOBIAN
+const double FINITE_DIFF_DELTA = 1e-4;
 
 struct NumericJacobParams
 {
@@ -97,6 +99,7 @@ static void num_err_wrt_dq(
 	// Evaluate error:
 	err = qpp_predicted - p.ddq;
 }
+#endif
 
 bool FactorInverseDynamics::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
@@ -145,9 +148,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	{
 		auto& Hv = d_e_Q.value();
 
-		MRPT_TODO("Pass list of indices at ctor!!");
-		const std::vector<size_t> DOF_indices = {20, 21};
-		const size_t g = DOF_indices.size();
+		const size_t& g = actuatedDegreesOfFreedomInQ_.size();
 
 		Eigen::MatrixXd R(n, g);
 		for (size_t i = 0; i < g; i++)
@@ -156,8 +157,9 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 			AssembledRigidModel::ComputeDependentResults dr;
 
 			arm.dotq_.setZero();
-			arm.dotq_[DOF_indices[i]] = 1.0;
-			arm.computeDependentPosVelAcc(DOF_indices, false, true, dp, dr);
+			arm.dotq_[actuatedDegreesOfFreedomInQ_[i]] = 1.0;
+			arm.computeDependentPosVelAcc(
+				actuatedDegreesOfFreedomInQ_, false, true, dp, dr);
 			R.col(i) = arm.dotq_;
 		}
 		arm.dotq_ = dq_k;
@@ -168,9 +170,12 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 		const Eigen::MatrixXd J_z = Mr.inverse() * R.transpose();
 
 		Hv.setZero(n, n);
-		for (size_t i = 0; i < g; i++) Hv.row(DOF_indices[i]) = J_z.row(i);
+		for (size_t i = 0; i < g; i++)
+		{
+			Hv.row(actuatedDegreesOfFreedomInQ_[i]) = J_z.row(i);
+		}
 
-			// std::cout << "\nde/d{Q} THEORETHICAL:\n" << Hv << "\n\n";
+		// std::cout << "\nde/d{Q} THEORETHICAL:\n" << Hv << "\n\n";
 
 #if USE_NUMERIC_JACOBIAN
 

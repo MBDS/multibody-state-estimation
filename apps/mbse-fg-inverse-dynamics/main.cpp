@@ -16,13 +16,13 @@ bin/mbse-fg-inverse-dynamics   \
   --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
   --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
   --imposed-coordinates "[ 4 ]" 
+  # --verbose \
 
 bin/mbse-fg-inverse-dynamics  \
   --mechanism ../config/mechanisms/pick-and-place-robot.yaml \
   --desired-trajectory ../config/trajectories/pick-and-place-robot-trajectory.txt \
-  --imposed-coordinates "[ 20 ; 21 ]" \
-  --verbose \
-  --lm-iterations 40
+  --imposed-coordinates "[ 20 ; 21 ]" 
+  #--verbose \
   
  */
 
@@ -507,7 +507,7 @@ void test_smoother()
 			// Create Inverse Dynamics factors:
 			fg.emplace_shared<FactorInverseDynamics>(
 				&dynSimul, noise_dyn, Q(timeStep), V(timeStep), A(timeStep),
-				F(timeStep), values);
+				F(timeStep), values, indepCoordIndices);
 
 			if (timeStep > 0)
 			{
@@ -530,8 +530,9 @@ void test_smoother()
 					  << " RMSE=" << std::sqrt(errorBefore / numFactors)
 					  << " numFactors=" << numFactors << "\n";
 
-			// lmParams.verbosityLM =
-			// gtsam::LevenbergMarquardtParams::LAMBDA;
+			if (arg_verbose.isSet())
+				optParams.verbosityLM =
+					gtsam::LevenbergMarquardtParams::TRYCONFIG;
 
 			optimizer_t lm1(fg, values, optParams);
 

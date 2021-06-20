@@ -39,11 +39,11 @@ void ConstraintRelativeAngleAbsolute::realizeOperatingPoint(
 
 	// Always recalculating L leads to failed numerical Jacobian tests,
 	// since it introduces fake dependencies between (x,y) coordinates.
-	const auto LsqrNow = Ax * Ax + Ay * Ay;
-	if (Lsqr_ == 0 || std::abs(Lsqr_ / LsqrNow - 1.0) > 0.02)
+	if (L_ == 0)
 	{
-		Lsqr_ = LsqrNow;
-		L_ = std::sqrt(LsqrNow);
+		const auto Lsqr = Ax * Ax + Ay * Ay;
+		L_ = std::sqrt(Lsqr);
+		// std::cout << "UPDATING L: " << L_ << std::endl;
 	}
 
 	const double theta = angle.x;
