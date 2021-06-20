@@ -269,7 +269,7 @@ void AssembledRigidModel::computeDependentPosVelAcc(
 		}
 
 		mbse::removeColumns(Phi_q, z_indices);
-		const Eigen::VectorXd dotq_d = Phi_q.lu().solve(p);
+		const Eigen::VectorXd dotq_d = Phi_q.fullPivLu().solve(p);
 
 		for (size_t i = 0; i < idxs_d.size(); i++) dotq_[idxs_d[i]] = dotq_d[i];
 
@@ -320,7 +320,7 @@ void AssembledRigidModel::computeDependentPosVelAcc(
 		}
 
 		mbse::removeColumns(Phiq, z_indices);
-		const Eigen::VectorXd ddotq_d = Phiq.lu().solve(p);
+		const Eigen::VectorXd ddotq_d = Phiq.fullPivLu().solve(p);
 
 		// ------------------------------------
 		// Store accelerations:

@@ -224,7 +224,11 @@ std::shared_ptr<AssembledRigidModel> ModelDefinition::assembleRigidMBS() const
 	this->assembleRigidMBS(armi);
 
 	// 2) Actual assembly:
-	return std::make_shared<AssembledRigidModel>(armi);
+	auto arm = std::make_shared<AssembledRigidModel>(armi);
+
+	arm->realize_operating_point();
+
+	return arm;
 }
 
 // -------------------------------------------------------------------

@@ -12,7 +12,7 @@
 #include <mbse/factors/FactorInverseDynamics.h>
 #include <mbse/AssembledRigidModel.h>
 
-#define USE_NUMERIC_JACOBIAN 1
+//#define USE_NUMERIC_JACOBIAN 1
 
 #if USE_NUMERIC_JACOBIAN
 #include <mrpt/math/num_jacobian.h>
@@ -20,7 +20,7 @@
 
 using namespace mbse;
 
-const double FINITE_DIFF_DELTA = 1e-4;
+// const double FINITE_DIFF_DELTA = 1e-4;
 
 FactorInverseDynamics::~FactorInverseDynamics() = default;
 
@@ -124,6 +124,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	ASSERT_(q_k.size() > 0);
 
 	// Set q & dq in the multibody model:
+	// TODO: separate model & state
 	AssembledRigidModel& arm = *dynamic_solver_->get_model_non_const();
 	arm.q_ = q_k;
 	arm.dotq_ = dq_k;
@@ -143,6 +144,34 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 	if (d_e_Q)
 	{
 		auto& Hv = d_e_Q.value();
+
+		MRPT_TODO("Pass list of indices at ctor!!");
+		const std::vector<size_t> DOF_indices = {20, 21};
+		const size_t g = DOF_indices.size();
+
+		Eigen::MatrixXd R(n, g);
+		for (size_t i = 0; i < g; i++)
+		{
+			AssembledRigidModel::ComputeDependentParams dp;
+			AssembledRigidModel::ComputeDependentResults dr;
+
+			arm.dotq_.setZero();
+			arm.dotq_[DOF_indices[i]] = 1.0;
+			arm.computeDependentPosVelAcc(DOF_indices, false, true, dp, dr);
+			R.col(i) = arm.dotq_;
+		}
+		arm.dotq_ = dq_k;
+
+		const Eigen::MatrixXd M = arm.buildMassMatrix_dense();
+		const auto Mr = R.transpose() * M * R;
+
+		const Eigen::MatrixXd J_z = Mr.inverse() * R.transpose();
+
+		Hv.setZero(n, n);
+		for (size_t i = 0; i < g; i++) Hv.row(DOF_indices[i]) = J_z.row(i);
+
+			// std::cout << "\nde/d{Q} THEORETHICAL:\n" << Hv << "\n\n";
+
 #if USE_NUMERIC_JACOBIAN
 
 		const double cacheTol_q = 0.01;
@@ -183,10 +212,7 @@ gtsam::Vector FactorInverseDynamics::evaluateError(
 			cached_ddq_ = ddq_k;
 		}
 
-		//		std::cout << "\nde/d{Q}:\n" << Hv << "\n\n";
-
-#else
-		THROW_EXCEPTION("Implement me!");
+		std::cout << "\nde/d{Q} NUMERIC:\n" << Hv << "\n\n";
 #endif
 	}
 	return err;
