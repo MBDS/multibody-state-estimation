@@ -230,6 +230,13 @@ void test_smoother()
 		}
 	};
 
+	gtsam::LevenbergMarquardtParams lp =
+		gtsam::LevenbergMarquardtParams::LegacyDefaults();
+
+	lp.maxIterations = arg_smoother_iterations.getValue();
+	lp.absoluteErrorTol = 0;
+	lp.relativeErrorTol = 1e-8;
+
 	for (unsigned int timeStep = 0; timeStep < N; timeStep++, t += dt)
 	{
 		// Create Trapezoidal Integrator factors:
@@ -338,11 +345,6 @@ void test_smoother()
 			fgWindow.emplace_shared<gtsam::NonlinearEquality<state_t>>(
 				V(firstTimeIndexInWindow), dq_init_win);
 		}
-
-		gtsam::LevenbergMarquardtParams lp =
-			gtsam::LevenbergMarquardtParams::LegacyDefaults();
-
-		lp.maxIterations = arg_smoother_iterations.getValue();
 
 #if 0
     lp.iterationHook = [&fgWindow](size_t iter, double errBef,

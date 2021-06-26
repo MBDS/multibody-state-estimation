@@ -130,11 +130,15 @@ void test_smoother()
 	auto noise_prior_dz_0 =
 		gtsam::noiseModel::Isotropic::Sigma(nDofs, 1e-10);	// fixed
 
-	auto noise_dyn_z = gtsam::noiseModel::Isotropic::Sigma(nDofs, 1e-4);
-	auto noise_constr_z = gtsam::noiseModel::Isotropic::Sigma(m + nDofs, 1e-6);
-	auto noise_constr_dz = gtsam::noiseModel::Isotropic::Sigma(m + nDofs, 1e-6);
-	auto noise_vel_z = gtsam::noiseModel::Isotropic::Sigma(nDofs, 1e-2);
-	auto noise_acc_z = gtsam::noiseModel::Isotropic::Sigma(nDofs, 1e-2);
+	const double small_std = 1e-3;
+
+	auto noise_dyn_z = gtsam::noiseModel::Isotropic::Sigma(nDofs, small_std);
+	auto noise_constr_z =
+		gtsam::noiseModel::Isotropic::Sigma(m + nDofs, small_std);
+	auto noise_constr_dz =
+		gtsam::noiseModel::Isotropic::Sigma(m + nDofs, small_std);
+	auto noise_vel_z = gtsam::noiseModel::Isotropic::Sigma(nDofs, small_std);
+	auto noise_acc_z = gtsam::noiseModel::Isotropic::Sigma(nDofs, small_std);
 	const auto softBetweenNoise = gtsam::noiseModel::Isotropic::Sigma(n, 1e+2);
 
 	const double dt = arg_step_time.getValue();
@@ -252,6 +256,13 @@ void test_smoother()
 			};
 		}
 	};
+
+	gtsam::LevenbergMarquardtParams lp =
+		gtsam::LevenbergMarquardtParams::LegacyDefaults();
+
+	lp.maxIterations = arg_smoother_iterations.getValue();
+	lp.absoluteErrorTol = 0;
+	lp.relativeErrorTol = 1e-8;
 
 	for (unsigned int timeStep = 0; timeStep < N; timeStep++, t += dt)
 	{
@@ -397,11 +408,6 @@ void test_smoother()
 			fgWindow.emplace_shared<gtsam::PriorFactor<state_t>>(
 				sZp(firstTimeIndexInWindow), dz_init_win, noise_prior_dz_0);
 		}
-
-		gtsam::LevenbergMarquardtParams lp =
-			gtsam::LevenbergMarquardtParams::LegacyDefaults();
-
-		lp.maxIterations = arg_smoother_iterations.getValue();
 
 #if 0
     lp.iterationHook = [&fgWindow](size_t iter, double errBef,
