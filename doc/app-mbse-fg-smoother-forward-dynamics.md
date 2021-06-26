@@ -8,6 +8,10 @@ dynamic simulation using factor graphs (FG).
 	mbse-fg-smoother-forward-dynamics \
 	  --mechanism ../config/mechanisms/fourbars1.yaml \
 	  --dt 5e-3 --end-time 2.0 --lag-time 15e-3
+	
+	mbse-viewer \
+	  --mechanism ../config/mechanisms/fourbars1.yaml \
+	  -q q.txt
 
 See also: \ref pageMechDefYaml
 
