@@ -1,11 +1,7 @@
 *~
 build*
 html
-<<<<<<< HEAD
 .vs
-=======
-
->>>>>>> origin/master
 # qtcreator:
 CMakeLists.txt.user
 .cmake
@@ -13,3 +9,4 @@ doc/build
 doc/mainpage.md
 doc/source/mainpage.md
 doc/html
+experiments/*.txt
