@@ -33,9 +33,9 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
-            add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
+            add-apt-repository ppa:borglab/gtsam-develop -y
             apt install build-essential g++ cmake -yq
-            apt install libmrpt-dev libgtsam-dev -yq
+            apt install libmrpt-dev libgtsam-dev libgtsam-unstable-dev -yq
             apt install libboost-timer-dev -yq
       - checkout
       - run:
@@ -55,9 +55,9 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
-            add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
+            add-apt-repository ppa:borglab/gtsam-develop -y
             apt install build-essential clang cmake -yq
-            apt install cmake libmrpt-dev libgtsam-dev -yq
+            apt install libmrpt-dev libgtsam-dev libgtsam-unstable-dev -yq
             apt install libboost-timer-dev -yq
       - checkout
       - run:
@@ -79,9 +79,9 @@ jobs:
             export DEBIAN_FRONTEND=noninteractive
             apt install software-properties-common -yq
             add-apt-repository ppa:joseluisblancoc/mrpt -y
-            add-apt-repository ppa:joseluisblancoc/gtsam-develop -y
+            add-apt-repository ppa:borglab/gtsam-develop -y
             apt install build-essential clang cmake -yq
-            apt install cmake libmrpt-dev libgtsam-dev -yq
+            apt install cmake libmrpt-dev libgtsam-dev libgtsam-unstable-dev -yq
             apt install libboost-timer-dev -yq
       - checkout
       - run:
