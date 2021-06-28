@@ -35,13 +35,15 @@ From the `MBSE/experiments` directory, run:
 ../build/bin/mbse-fg-inverse-dynamics   \
   --mechanism ../config/mechanisms/fourbars1-with-rel-angle.yaml \
   --desired-trajectory ../config/trajectories/fourbars1-with-rel-angle-trajectory.txt \
-  --imposed-coordinates "[ 4 ]"
+  --imposed-coordinates "[ 4 ]" \
+  --output-prefix invdyn_4bars_
   # --verbose
 
 ../build/bin/mbse-fg-inverse-dynamics  \
   --mechanism ../config/mechanisms/pick-and-place-robot.yaml \
   --desired-trajectory ../config/trajectories/pick-and-place-robot-trajectory.txt \
-  --imposed-coordinates "[ 20 ; 21 ]"
+  --imposed-coordinates "[ 20 ; 21 ]" \
+  --output-prefix invdyn_pprobot_
   #--verbose
 ```  
 
@@ -49,4 +51,5 @@ And see results with:
 
 ```octave
 plot_inverse_dynamics_results_4bars
+plot_inverse_dynamics_results_pprobot
 ```

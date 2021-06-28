@@ -540,9 +540,12 @@ void test_smoother()
 
 	using namespace std::string_literals;  // "s"
 
-	Qs.saveToTextFile(prefix + "q.txt"s);
-	dotQs.saveToTextFile(prefix + "dq.txt"s);
-	ddotQs.saveToTextFile(prefix + "ddq.txt"s);
+	Qs.saveToTextFile(
+		prefix + "q.txt"s, {}, false, "% TIMESTAMP q[0]  ... q[n]\n");
+	dotQs.saveToTextFile(
+		prefix + "dq.txt"s, {}, false, "% TIMESTAMP dq[0]  ... dq[n]\n");
+	ddotQs.saveToTextFile(
+		prefix + "ddq.txt"s, {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]\n");
 }
 
 int main(int argc, char** argv)

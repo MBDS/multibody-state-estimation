@@ -82,6 +82,9 @@ TCLAP::ValueArg<std::string> arg_indep_coords(
 	"via the trajectory file",
 	true, "", "[ 4 ]", cmd);
 
+TCLAP::ValueArg<std::string> arg_output_prefix(
+	"", "output-prefix", "Output files prefix", false, "", "prefix", cmd);
+
 TCLAP::ValueArg<double> arg_gravity(
 	"", "gravity", "Gravity acceleration in Y direction", false, -9.81, "g",
 	cmd);
@@ -588,13 +591,21 @@ void test_smoother()
 		};
 	}
 
-	std::cout << "Saving results to TXT files...\n";
-	Qs.saveToTextFile("q.txt", {}, false, "% TIMESTAMP q[0]  ... q[n]\n");
-	dotQs.saveToTextFile("dq.txt", {}, false, "% TIMESTAMP dq[0]  ... dq[n]\n");
+	const auto prefix = arg_output_prefix.getValue();
+
+	std::cout << "Saving results to TXT files with prefix '" << prefix
+			  << "'...\n";
+
+	using namespace std::string_literals;  // "s"
+
+	Qs.saveToTextFile(
+		prefix + "q.txt"s, {}, false, "% TIMESTAMP q[0]  ... q[n]\n");
+	dotQs.saveToTextFile(
+		prefix + "dq.txt"s, {}, false, "% TIMESTAMP dq[0]  ... dq[n]\n");
 	ddotQs.saveToTextFile(
-		"ddq.txt", {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]\n");
+		prefix + "ddq.txt"s, {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]\n");
 	Fs.saveToTextFile(
-		"Q_forces.txt", {}, false, "% TIMESTAMP Q[0]  ... Q[n]\n");
+		prefix + "Q_forces.txt"s, {}, false, "% TIMESTAMP Q[0]  ... Q[n]\n");
 }
 
 int main(int argc, char** argv)

@@ -17,7 +17,8 @@ using namespace Eigen;
 
 mrpt::system::CTimeLogger& mbse::timelog()
 {
-	static thread_local mrpt::system::CTimeLogger tl("mbse_global");
+	static thread_local mrpt::system::CTimeLogger tl(
+		true /*enabled*/, "mbse_global");
 	return tl;
 }
 
