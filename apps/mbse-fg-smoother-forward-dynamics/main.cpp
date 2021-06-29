@@ -56,6 +56,12 @@ TCLAP::SwitchArg arg_dont_add_dq_constraints(
 TCLAP::SwitchArg arg_show_factor_errors(
 	"", "show-factor-errors", "Show factor errors for the final state", cmd);
 
+TCLAP::SwitchArg arg_evaluate_constraints(
+	"", "eval-constraints",
+	"Evaluates the fulfilment of Phi(q) constraints over time and saves the "
+	"result to a file.",
+	cmd);
+
 TCLAP::SwitchArg arg_do_not_show_error_progress(
 	"", "dont-show-error-progress",
 	"Do NOT show the error for each timestep (this saves some CPU time).", cmd);
@@ -491,6 +497,22 @@ void test_smoother()
 		prefix + "dq.txt"s, {}, false, "% TIMESTAMP dq[0]  ... dq[n]\n");
 	ddotQs.saveToTextFile(
 		prefix + "ddq.txt"s, {}, false, "% TIMESTAMP ddq[0]  ... ddq[n]\n");
+
+	// Eval Phi(q) over time )
+	if (arg_evaluate_constraints.isSet())
+	{
+		mrpt::math::CMatrixDouble evalPhi(N, 1);
+		evalPhi.setZero();
+		for (unsigned int timeStep = 0; timeStep < N; timeStep++)
+		{
+			aMBS->q_ = Qs.asEigen().row(timeStep).rightCols(n);
+			aMBS->update_numeric_Phi_and_Jacobians();
+			evalPhi(timeStep, 0) = aMBS->Phi_.norm();
+		}
+
+		evalPhi.saveToTextFile(
+			prefix + "PhiNorm.txt"s, {}, false, "% |Phi(q)|\n");
+	}
 }
 
 int main(int argc, char** argv)
