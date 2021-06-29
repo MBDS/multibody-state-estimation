@@ -23,8 +23,9 @@ for lag in $lags; do
       --indep-coord-indices "[ 4 ]" \
       --end-time $endtime \
       --smoother-iterations $smootheriterations \
+      --dont-show-error-progress \
       --output-prefix bars4_ic_dt=0.001_lag=${lag}_iters=${smootheriterations}_ #\
-      > /dev/null
+      #> /dev/null
 done
 }
 

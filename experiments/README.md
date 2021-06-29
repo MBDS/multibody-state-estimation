@@ -13,7 +13,7 @@ From within this `MBSE/experiments` directory, run:
 
 ```bash
 ./run-experiments-forward-dynamics-dcoord.sh
-./run-experiments-forward-dynamics-icoord.sh
+./run-experiments-forward-dynamics-icoords.sh
 ```
 
 - Then, from MATLAB/Octave, generate the graphics with:

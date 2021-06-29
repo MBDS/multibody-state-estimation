@@ -52,11 +52,13 @@ TCLAP::SwitchArg arg_dont_add_q_constraints(
 	"Do NOT add the q manifold constraint factors", cmd);
 TCLAP::SwitchArg arg_dont_add_dq_constraints(
 	"", "dont-add-dq-constraints",
-	"Do NOT add the dq manifold constraint factors",
-
-	cmd);
+	"Do NOT add the dq manifold constraint factors", cmd);
 TCLAP::SwitchArg arg_show_factor_errors(
 	"", "show-factor-errors", "Show factor errors for the final state", cmd);
+
+TCLAP::SwitchArg arg_do_not_show_error_progress(
+	"", "dont-show-error-progress",
+	"Do NOT show the error for each timestep (this saves some CPU time).", cmd);
 
 TCLAP::SwitchArg argRunFinalBatch(
 	"", "final-batch", "Run an additional final batch optimizer", cmd);
@@ -230,6 +232,9 @@ void test_smoother()
 		}
 	};
 
+	const bool buildWholeFG =
+		arg_show_factor_errors.isSet() || argRunFinalBatch.isSet();
+
 	gtsam::LevenbergMarquardtParams lp =
 		gtsam::LevenbergMarquardtParams::LegacyDefaults();
 
@@ -239,6 +244,9 @@ void test_smoother()
 
 	for (unsigned int timeStep = 0; timeStep < N; timeStep++, t += dt)
 	{
+		mrpt::system::CTimeLoggerEntry tleStep(
+			mbse::timelog(), "wholeTimeStep");
+
 		// Create Trapezoidal Integrator factors:
 		factorsByTime.emplace(
 			t, boost::make_shared<FactorTrapInt>(
@@ -366,19 +374,22 @@ void test_smoother()
     estimated.print("estimated:");
 #endif
 
-		const double errorBeforeLM = fgWindow.error(valuesWindow);
-		const double errorAfterLM = fgWindow.error(estimated);
-		const auto numFactorsLM = fgWindow.size();
+		if (!arg_do_not_show_error_progress.isSet())
+		{
+			const double errorBeforeLM = fgWindow.error(valuesWindow);
+			const double errorAfterLM = fgWindow.error(estimated);
+			const auto numFactorsLM = fgWindow.size();
 
-		std::cout << "n=" << timeStep << "/" << N
-				  << " sliding window LevMarq."
-					 " ErrorBefore = "
-				  << errorBeforeLM
-				  << " RMSE=" << std::sqrt(errorBeforeLM / numFactorsLM)
-				  << " ErrorAfter  = " << errorAfterLM
-				  << " RMSE=" << std::sqrt(errorAfterLM / numFactorsLM)
-				  << " numFactors=" << numFactorsLM
-				  << " iters:" << lm.iterations() << "\n";
+			std::cout << "n=" << timeStep << "/" << N
+					  << " sliding window LevMarq."
+						 " ErrorBefore = "
+					  << errorBeforeLM
+					  << " RMSE=" << std::sqrt(errorBeforeLM / numFactorsLM)
+					  << " ErrorAfter  = " << errorAfterLM
+					  << " RMSE=" << std::sqrt(errorAfterLM / numFactorsLM)
+					  << " numFactors=" << numFactorsLM
+					  << " iters:" << lm.iterations() << "\n";
+		}
 
 #endif
 
@@ -398,7 +409,8 @@ void test_smoother()
 	}
 
 	// Build FG with all factors:
-	for (auto timFactor : factorsByTime) wholeFG += timFactor.second;
+	if (buildWholeFG)
+		for (auto timFactor : factorsByTime) wholeFG += timFactor.second;
 
 #if 0
   const double errorAfter = smoother.getFactors().error(estimated);

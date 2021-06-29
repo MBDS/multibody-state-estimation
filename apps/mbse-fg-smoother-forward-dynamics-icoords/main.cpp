@@ -66,6 +66,10 @@ TCLAP::SwitchArg arg_show_factor_errors(
 TCLAP::SwitchArg argRunFinalBatch(
 	"", "final-batch", "Run an additional final batch optimizer", cmd);
 
+TCLAP::SwitchArg arg_do_not_show_error_progress(
+	"", "dont-show-error-progress",
+	"Do NOT show the error for each timestep (this saves some CPU time).", cmd);
+
 TCLAP::ValueArg<std::string> arg_indep_coords(
 	"", "indep-coord-indices", "Indices of independent coordinates", true, "",
 	"[ 4 ]", cmd);
@@ -257,6 +261,9 @@ void test_smoother()
 		}
 	};
 
+	const bool buildWholeFG =
+		arg_show_factor_errors.isSet() || argRunFinalBatch.isSet();
+
 	gtsam::LevenbergMarquardtParams lp =
 		gtsam::LevenbergMarquardtParams::LegacyDefaults();
 
@@ -266,6 +273,9 @@ void test_smoother()
 
 	for (unsigned int timeStep = 0; timeStep < N; timeStep++, t += dt)
 	{
+		mrpt::system::CTimeLoggerEntry tleStep(
+			mbse::timelog(), "wholeTimeStep");
+
 		// Create Trapezoidal Integrator factors:
 		factorsByTime.emplace(
 			t, boost::make_shared<FactorTrapInt>(
@@ -440,16 +450,21 @@ void test_smoother()
     // estimated.print("estimated:");
 #endif
 
-		const double errorBeforeLM = fgWindow.error(valuesWindow);
-		const double errorAfterLM = fgWindow.error(estimated);
-		const auto numFactorsLM = fgWindow.size();
+		if (!arg_do_not_show_error_progress.isSet())
+		{
+			const double errorBeforeLM = fgWindow.error(valuesWindow);
+			const double errorAfterLM = fgWindow.error(estimated);
+			const auto numFactorsLM = fgWindow.size();
 
-		std::cout << "n=" << timeStep << "/" << N << " sliding window LM"
-				  << " before RMSE=" << std::sqrt(errorBeforeLM / numFactorsLM)
-				  << " after RMSE=" << std::sqrt(errorAfterLM / numFactorsLM)
-				  << " numFactors=" << numFactorsLM
-				  << " iters:" << lm.iterations()
-				  << " q= " << last_q.transpose() << "\n";
+			std::cout << "n=" << timeStep << "/" << N << " sliding window LM"
+					  << " before RMSE="
+					  << std::sqrt(errorBeforeLM / numFactorsLM)
+					  << " after RMSE="
+					  << std::sqrt(errorAfterLM / numFactorsLM)
+					  << " numFactors=" << numFactorsLM
+					  << " iters:" << lm.iterations()
+					  << " q= " << last_q.transpose() << "\n";
+		}
 
 		ASSERT_(lm.iterations() > 0);
 
@@ -468,7 +483,8 @@ void test_smoother()
 	}
 
 	// Build FG with all factors:
-	for (auto timFactor : factorsByTime) wholeFG += timFactor.second;
+	if (buildWholeFG)
+		for (auto timFactor : factorsByTime) wholeFG += timFactor.second;
 
 #if 0
   const double errorAfter = smoother.getFactors().error(estimated);

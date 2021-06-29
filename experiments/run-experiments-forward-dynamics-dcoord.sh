@@ -16,14 +16,15 @@ smootheriterations=15
 
 for lag in $lags; do
   echo "Running: lag=$lag smoother-iterations=$smootheriterations..."
-  mbse-fg-smoother-forward-dynamics \
+  time mbse-fg-smoother-forward-dynamics \
     --mechanism ../config/mechanisms/fourbars1.yaml \
       --dt 0.001 \
       --lag-time $lag \
       --end-time $endtime \
       --smoother-iterations $smootheriterations \
-      --output-prefix bars4_dc_dt=0.001_lag=${lag}_iters=${smootheriterations}_ \
-	  > /dev/null
+      --dont-show-error-progress \
+      --output-prefix bars4_dc_dt=0.001_lag=${lag}_iters=${smootheriterations}_ #\
+	  #> /dev/null
 done
 }
 
