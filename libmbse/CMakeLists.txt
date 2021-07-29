@@ -99,7 +99,7 @@ configure_package_config_file(
 
 write_basic_package_version_file(
     ${CMAKE_BINARY_DIR}/cmake/${PROJECT_NAME}-config-version.cmake
-    VERSION ${YART_VERSION}
+    VERSION ${MBSE_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
