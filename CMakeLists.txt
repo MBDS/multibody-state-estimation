@@ -33,6 +33,7 @@ endif ()
 
 find_package(MRPT REQUIRED gui opengl)
 find_package(GTSAM REQUIRED)
+find_package(GTSAM_UNSTABLE REQUIRED)
 
 
 # Set optimized building:

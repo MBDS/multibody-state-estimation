@@ -10,3 +10,4 @@ doc/mainpage.md
 doc/source/mainpage.md
 doc/html
 experiments/*.txt
+.vscode

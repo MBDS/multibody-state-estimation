@@ -57,7 +57,7 @@ gtsam::Vector FactorGyroscope::evaluateError(
 	arm_->dotq_ = dq_k;
 
 	const std::vector<Body>& bodies = arm_->mechanism_.bodies();
-	ASSERT_BELOW_(body_idx_, bodies.size());
+	ASSERT_LT_(body_idx_, bodies.size());
 
 	const Body& body = bodies[body_idx_];
 

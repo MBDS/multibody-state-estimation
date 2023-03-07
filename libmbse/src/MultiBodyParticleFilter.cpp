@@ -55,7 +55,7 @@ void MultiBodyParticleFilter::run_PF_step(
 	// -----------------------------------------------------
 	timelog().enter("PF.1.forward_model");
 
-	ASSERT_ABOVE_(t_end, t_ini);
+	ASSERT_GT_(t_end, t_ini);
 	const double t_increment = t_end - t_ini;
 	const size_t nTimeSteps = ceil(t_increment / max_t_step);
 

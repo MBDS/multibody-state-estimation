@@ -167,14 +167,14 @@ struct CompressedRowSparseMatrix
 	template <class MATRIX>
 	void asDense(MATRIX& M) const
 	{
-		ASSERT_ABOVE_(getNumRows(), 0U);
-		ASSERT_ABOVE_(getNumCols(), 0U);
+		ASSERT_GT_(getNumRows(), 0U);
+		ASSERT_GT_(getNumCols(), 0U);
 		M.resize(getNumRows(), getNumCols());
 		M.fill(0);
 		for (size_t row = 0; row < matrix.size(); row++)
 			for (const auto& row_val : matrix[row])
 			{
-				ASSERT_BELOW_(row_val.first, ncols);
+				ASSERT_LT_(row_val.first, ncols);
 				M(row, row_val.first) = row_val.second;
 			}
 	}

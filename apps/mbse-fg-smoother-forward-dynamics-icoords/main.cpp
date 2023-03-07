@@ -164,7 +164,7 @@ void test_smoother()
 			indepCoordIndices, true, true, cdp, cdr);
 		std::cout << "Position problem final |Phi(q)|=" << cdr.pos_final_phi
 				  << "\n";
-		ASSERT_BELOW_(cdr.pos_final_phi, 1e-4);
+		ASSERT_LT_(cdr.pos_final_phi, 1e-4);
 	}
 	else
 	{
