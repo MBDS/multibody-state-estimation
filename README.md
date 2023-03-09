@@ -1,4 +1,5 @@
-[![MBSE](https://circleci.com/gh/MBDS/multibody-state-estimation.svg?style=svg)](https://circleci.com/gh/MBDS/multibody-state-estimation)
+[![CI Linux](https://github.com/MBDS/multibody-state-estimation/actions/workflows/linux-build.yml/badge.svg)](https://github.com/MBDS/multibody-state-estimation/actions/workflows/linux-build.yml)
+[![CI Check clang-format](https://github.com/MBDS/multibody-state-estimation/actions/workflows/check-clang-format.yml/badge.svg)](https://github.com/MBDS/multibody-state-estimation/actions/workflows/check-clang-format.yml)
 [![Docs](https://readthedocs.org/projects/libmbse/badge/)](https://libmbse.readthedocs.io/)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/MBDS/multibody-state-estimation)
 
