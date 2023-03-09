@@ -65,31 +65,31 @@ jobs:
       - name: Install Dependencies
         run: |
           # See bug/issue: https://github.com/orgs/community/discussions/47863
-          apt-mark hold grub-efi-amd64-signed
+          sudo apt-mark hold grub-efi-amd64-signed
 
-          apt-get -y update
-          apt-get -y upgrade
+          sudo apt-get -y update
+          sudo apt-get -y upgrade
 
           if [ "${{ matrix.install_mrpt_ppa }}" = "ON" ]; then
-            apt install software-properties-common -yq
-            add-apt-repository ppa:joseluisblancoc/mrpt -y
+            sudo apt install software-properties-common -yq
+            sudo add-apt-repository ppa:joseluisblancoc/mrpt -y
           fi
 
-          add-apt-repository ppa:borglab/gtsam-develop -y
+          sudo add-apt-repository ppa:borglab/gtsam-develop -y
 
 
-          apt install -yq \
+          sudo apt install -yq \
             cmake build-essential \
             libmrpt-dev \
             libgtsam-dev libgtsam-unstable-dev
             libboost-timer-dev
 
           if [ "${{ matrix.compiler }}" = "gcc" ]; then
-            apt-get install -y g++ g++
+            sudo apt-get install -y g++ g++
             echo "CC=gcc" >> $GITHUB_ENV
             echo "CXX=g++" >> $GITHUB_ENV
           else
-            apt-get install -y clang g++-multilib
+            sudo apt-get install -y clang g++-multilib
             echo "CC=clang" >> $GITHUB_ENV
             echo "CXX=clang++" >> $GITHUB_ENV
           fi
