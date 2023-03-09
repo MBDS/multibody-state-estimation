@@ -81,7 +81,7 @@ jobs:
           sudo apt install -yq \
             cmake build-essential \
             libmrpt-dev \
-            libgtsam-dev libgtsam-unstable-dev
+            libgtsam-dev libgtsam-unstable-dev \
             libboost-timer-dev
 
           if [ "${{ matrix.compiler }}" = "gcc" ]; then

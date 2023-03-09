@@ -13,8 +13,8 @@
 set +e
 set +x
 
-DIRS_IN="mvsim_node_src modules/comms/include modules/comms/src modules/simulator"
-DIRS_OUT="externals"
+DIRS_IN="libmbse"
+DIRS_OUT=""
 LANGS=cpp
 FORMAT_CODE_BIN=".github/clang_git_format/format_code.py"
 
