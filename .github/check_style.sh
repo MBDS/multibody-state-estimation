@@ -13,8 +13,9 @@
 set +e
 set +x
 
-DIRS_IN="libmbse"
-DIRS_OUT=""
+DIRS_IN="libmbse apps"
+DIRS_OUT="libmbse/tests/gtest*"
+
 LANGS=cpp
 FORMAT_CODE_BIN=".github/clang_git_format/format_code.py"
 

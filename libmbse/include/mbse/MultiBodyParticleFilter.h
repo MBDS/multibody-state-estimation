@@ -38,7 +38,7 @@ struct TMBState_Particle
 	}
 
 	TSymbolicAssembledModel
-		sym_assembly_model;  //!< Symbolic assembly instructions
+		sym_assembly_model;	 //!< Symbolic assembly instructions
 	std::shared_ptr<AssembledRigidModel> num_model_ptr;
 	AssembledRigidModel& num_model;
 	CDynamicSimulatorIndepBase::Ptr dyn_simul;
@@ -117,10 +117,10 @@ class MultiBodyParticleFilter
 
 	TTransitionModelOptions model_options;
 	mrpt::bayes::CParticleFilter::TParticleFilterOptions
-		PF_options;  //!< Parameters for the PF algorithm.
+		PF_options;	 //!< Parameters for the PF algorithm.
 
 	mrpt::random::CRandomGenerator random_generator;
 
-};  // end class MultiBodyParticleFilter
+};	// end class MultiBodyParticleFilter
 
 }  // namespace mbse

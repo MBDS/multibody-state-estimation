@@ -17,17 +17,17 @@
 namespace mbse
 {
 /** Factor for acceleration constraints in independent coordinates.
- * Here the constraints equation $\f \dot{\PHI}_{\q}(\q_t)\dq_t + \Phiq(\q_t)\ddq_t $\f is implemented; for fixed
- * constraints Phi_t(q)=0.
+ * Here the constraints equation $\f \dot{\PHI}_{\q}(\q_t)\dq_t +
+ * \Phiq(\q_t)\ddq_t $\f is implemented; for fixed constraints Phi_t(q)=0.
  */
 class FactorConstraintsAccIndep
 	: public gtsam::NoiseModelFactor4<
-		  state_t /*Q*/, state_t /*dotQ*/,state_t /*ddotQ*/, state_t /*ddotZ*/>
+		  state_t /*Q*/, state_t /*dotQ*/, state_t /*ddotQ*/, state_t /*ddotZ*/>
 {
    private:
 	using This = FactorConstraintsAccIndep;
 	using Base = gtsam::NoiseModelFactor4<
-		state_t /*Q*/, state_t /*dotQ*/,state_t /*ddotQ*/, state_t /*ddotZ*/>;
+		state_t /*Q*/, state_t /*dotQ*/, state_t /*ddotQ*/, state_t /*ddotZ*/>;
 
 	// Class parameters (pointer to type "ConstraintBase")
 	AssembledRigidModel::Ptr arm_;
@@ -46,7 +46,7 @@ class FactorConstraintsAccIndep
 		const AssembledRigidModel::Ptr& arm,
 		const std::vector<size_t>& indCoordsIndices,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
-		gtsam::Key key_dotq_k, gtsam::Key key_ddotq_k,gtsam::Key key_ddotz_k);
+		gtsam::Key key_dotq_k, gtsam::Key key_ddotq_k, gtsam::Key key_ddotz_k);
 
 	virtual ~FactorConstraintsAccIndep() override;
 
@@ -66,7 +66,8 @@ class FactorConstraintsAccIndep
 	/** implement functions needed to derive from Factor */
 	/** vector of errors */
 	gtsam::Vector evaluateError(
-		const state_t& q_k, const state_t& dotq_k, const state_t& ddotq_k, const state_t& ddotz_k,
+		const state_t& q_k, const state_t& dotq_k, const state_t& ddotq_k,
+		const state_t& ddotz_k,
 		boost::optional<gtsam::Matrix&> de_dq = boost::none,
 		boost::optional<gtsam::Matrix&> de_dqp = boost::none,
 		boost::optional<gtsam::Matrix&> de_dqpp = boost::none,

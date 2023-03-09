@@ -77,9 +77,9 @@ TEST(Jacobians, FactorDynamics)
 		// For different instants of time and mechanism positions and
 		// velocities, test the factor jacobian:
 		const double t_end = 3.0;  // end simulation time
-		const double t_steps = 1.0;  // "large steps" to run the tests at
+		const double t_steps = 1.0;	 // "large steps" to run the tests at
 
-		dynSimul.params.time_step = 0.001;  // integrators timesteps
+		dynSimul.params.time_step = 0.001;	// integrators timesteps
 
 		mrpt::system::CTimeLogger timlog;
 		timlog.enable(false);

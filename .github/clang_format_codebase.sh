@@ -10,8 +10,9 @@
 # Provides a handy wrapper for long clang_git_format commands. Run this from
 # the  **root** of the MRPT repository
 
-DIRS_IN="mvsim_node_src modules/comms/include modules/comms/src modules/simulator"
-DIRS_OUT="externals"
+DIRS_IN="apps libmbse"
+DIRS_OUT="libmbse/tests/gtest*"
+
 LANGS=cpp
 FORMAT_CODE_BIN=".github/clang_git_format/format_code.py"
 
@@ -51,7 +52,7 @@ exit $?
 ######################
 
 # Make sure we are running it from the root
-if [ ! -f package.xml ]
+if [ ! -f README.md ]
 then
 	show_help 
 

@@ -103,8 +103,8 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		Hv.setZero(1, n);
 
 		// point0 & point1:
-		const Point2ToDOF pts_dofs[2] = {arm_->points2DOFs_[pt0_idx],
-										 arm_->points2DOFs_[pt1_idx]};
+		const Point2ToDOF pts_dofs[2] = {
+			arm_->points2DOFs_[pt0_idx], arm_->points2DOFs_[pt1_idx]};
 
 		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{
@@ -155,8 +155,8 @@ gtsam::Vector FactorGyroscope::evaluateError(
 		Hv.setZero(1, n);
 
 		// point0 & point1:
-		const Point2ToDOF pts_dofs[2] = {arm_->points2DOFs_[pt0_idx],
-										 arm_->points2DOFs_[pt1_idx]};
+		const Point2ToDOF pts_dofs[2] = {
+			arm_->points2DOFs_[pt0_idx], arm_->points2DOFs_[pt1_idx]};
 
 		if (size_t i = pts_dofs[0].dof_x; i != INVALID_DOF)
 		{
