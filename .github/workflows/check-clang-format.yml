@@ -32,9 +32,9 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt install clang-format-11 -yq
-          pip3 install --user -r .circleci/python_reqs.txt
+          pip3 install --user -r .github/python_reqs.txt
 
       - name: Check code style
         run: |
           echo "TASK=lint_all" >> $GITHUB_ENV
-          bash .circleci/check_style.sh
+          bash .github/check_style.sh
