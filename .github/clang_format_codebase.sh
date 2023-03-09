@@ -13,7 +13,7 @@
 DIRS_IN="mvsim_node_src modules/comms/include modules/comms/src modules/simulator"
 DIRS_OUT="externals"
 LANGS=cpp
-FORMAT_CODE_BIN=".circleci/clang_git_format/format_code.py"
+FORMAT_CODE_BIN=".github/clang_git_format/format_code.py"
 
 
 # Functions
