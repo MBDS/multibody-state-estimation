@@ -40,7 +40,7 @@ Dependencies:
   * [MRPT](https://github.com/mrpt/mrpt/) (>=2.0.0)
     * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/mrpt)
   * [GTSAM](https://github.com/borglab/gtsam)
-    * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/gtsam-develop)
+    * Ubuntu: Use [this PPA](https://launchpad.net/~borglab/+archive/ubuntu/gtsam-release-4.1)
 
 In Ubuntu, install dependencies with:
 
