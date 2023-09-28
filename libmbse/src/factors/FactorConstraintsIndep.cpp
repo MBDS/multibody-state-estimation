@@ -30,7 +30,7 @@ FactorConstraintsIndep::~FactorConstraintsIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsIndep::clone() const
 {
-	return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+	return std::static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -51,9 +51,8 @@ bool FactorConstraintsIndep::equals(
 }
 
 gtsam::Vector FactorConstraintsIndep::evaluateError(
-	const state_t& z_k, const state_t& q_k,
-	boost::optional<gtsam::Matrix&> de_dz,
-	boost::optional<gtsam::Matrix&> de_dq) const
+	const state_t& z_k, const state_t& q_k, gtsam::OptionalMatrixType de_dz,
+	gtsam::OptionalMatrixType de_dq) const
 {
 	MRPT_START
 
@@ -81,7 +80,7 @@ gtsam::Vector FactorConstraintsIndep::evaluateError(
 	// d err / d z_k
 	if (de_dz)
 	{
-		auto& Hv = de_dz.value();
+		auto& Hv = *de_dz;
 		Hv.setZero(m + d, d);
 		Hv.block(m, 0, d, d) = -gtsam::Matrix::Identity(d, d);
 	}
@@ -89,7 +88,7 @@ gtsam::Vector FactorConstraintsIndep::evaluateError(
 	// d err / d q_k
 	if (de_dq)
 	{
-		auto& Hv = de_dq.value();
+		auto& Hv = *de_dq;
 		Hv.resize(m + d, n);
 		Hv.block(0, 0, m, n) = arm_->Phi_q_.asDense();
 		// Build "I_idx", as called in the paper (sect. 6.7)

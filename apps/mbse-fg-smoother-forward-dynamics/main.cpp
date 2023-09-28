@@ -14,7 +14,7 @@
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/nonlinear/NonlinearEquality.h>
-#include <gtsam_unstable/nonlinear/BatchFixedLagSmoother.h>
+#include <gtsam/nonlinear/BatchFixedLagSmoother.h>
 #include <gtsam_unstable/nonlinear/IncrementalFixedLagSmoother.h>
 #include <iostream>
 #include <mbse/AssembledRigidModel.h>
@@ -164,9 +164,9 @@ void test_smoother()
 
 	// Create Prior factors:
 	factorsByTime.emplace(
-		0.0, boost::make_shared<gtsam::NonlinearEquality<state_t>>(Q(0), q_0));
+		0.0, std::make_shared<gtsam::NonlinearEquality<state_t>>(Q(0), q_0));
 	factorsByTime.emplace(
-		0.0, boost::make_shared<gtsam::PriorFactor<state_t>>(
+		0.0, std::make_shared<gtsam::PriorFactor<state_t>>(
 				 V(0), zeros, noise_prior_dq_0));
 
 	const double lag = arg_lag_time.getValue();	 // seconds
@@ -255,34 +255,34 @@ void test_smoother()
 
 		// Create Trapezoidal Integrator factors:
 		factorsByTime.emplace(
-			t, boost::make_shared<FactorTrapInt>(
+			t, std::make_shared<FactorTrapInt>(
 				   dt, noise_vel, Q(timeStep), Q(timeStep + 1), V(timeStep),
 				   V(timeStep + 1)));
 		factorsByTime.emplace(
-			t, boost::make_shared<FactorTrapInt>(
+			t, std::make_shared<FactorTrapInt>(
 				   dt, noise_acc, V(timeStep), V(timeStep + 1), A(timeStep),
 				   A(timeStep + 1)));
 
 		// Create Dynamics factors:
 		factorsByTime.emplace(
-			t + dt, boost::make_shared<FactorDynamics>(
+			t + dt, std::make_shared<FactorDynamics>(
 						&dynSimul, noise_dyn, Q(timeStep + 1), V(timeStep + 1),
 						A(timeStep + 1)));
 		if (timeStep == 0)
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorDynamics>(
+				t, std::make_shared<FactorDynamics>(
 					   &dynSimul, noise_dyn, Q(timeStep), V(timeStep),
 					   A(timeStep)));
 
 		// Add dependent-coordinates constraint factor:
 		if (!arg_dont_add_q_constraints.isSet())
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorConstraints>(
+				t, std::make_shared<FactorConstraints>(
 					   aMBS, noise_constr_q, Q(timeStep)));
 
 		if (!arg_dont_add_dq_constraints.isSet())
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorConstraintsVel>(
+				t, std::make_shared<FactorConstraintsVel>(
 					   aMBS, noise_constr_dq, Q(timeStep), V(timeStep)));
 
 		// Create initial estimates:

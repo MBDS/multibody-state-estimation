@@ -31,7 +31,7 @@ FactorConstraintsAccIndep::~FactorConstraintsAccIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsAccIndep::clone() const
 {
-	return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+	return std::static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -53,10 +53,9 @@ bool FactorConstraintsAccIndep::equals(
 
 gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	const state_t& q_k, const state_t& dotq_k, const state_t& ddotq_k,
-	const state_t& ddotz_k, boost::optional<gtsam::Matrix&> de_dq,
-	boost::optional<gtsam::Matrix&> de_dqp,
-	boost::optional<gtsam::Matrix&> de_dqpp,
-	boost::optional<gtsam::Matrix&> de_dzpp) const
+	const state_t& ddotz_k, gtsam::OptionalMatrixType de_dq,
+	gtsam::OptionalMatrixType de_dqp, gtsam::OptionalMatrixType de_dqpp,
+	gtsam::OptionalMatrixType de_dzpp) const
 {
 	MRPT_START
 
@@ -95,7 +94,7 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	// d err / d q_k
 	if (de_dq)
 	{
-		auto& Hv = de_dq.value();
+		auto& Hv = *de_dq;
 		Hv.resize(m + d, n);
 		// first block = 	\dotPhiqq(\q_t) \dq_t + \Phiqq(\q_t) \ddq_t
 		const Eigen::MatrixXd t1 = arm_->Phiqq_times_ddq_.asDense();
@@ -106,7 +105,7 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 
 	if (de_dqp)
 	{
-		auto& Hv = de_dqp.value();
+		auto& Hv = *de_dqp;
 		Hv.resize(m + d, n);
 		Hv.block(0, 0, m, n) = 2 * arm_->dotPhi_q_.asDense();
 		Hv.block(m, 0, d, n).setZero();
@@ -114,7 +113,7 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 
 	if (de_dqpp)
 	{
-		auto& Hv = de_dqpp.value();
+		auto& Hv = *de_dqpp;
 		Hv.resize(m + d, n);
 		Hv.block(0, 0, m, n) = arm_->Phi_q_.asDense();
 		Hv.block(m, 0, d, n) = matrix_Iidx_;
@@ -122,7 +121,7 @@ gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 
 	if (de_dzpp)
 	{
-		auto& Hv = de_dzpp.value();
+		auto& Hv = *de_dzpp;
 		Hv.setZero(m + d, d);
 		Hv.block(m, 0, d, d) = -gtsam::Matrix::Identity(d, d);
 	}

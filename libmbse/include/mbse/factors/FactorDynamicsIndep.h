@@ -44,7 +44,7 @@ class FactorDynamicsIndep
 
    public:
 	// shorthand for a smart pointer to a factor
-	using shared_ptr = boost::shared_ptr<This>;
+	using shared_ptr = std::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
 	FactorDynamicsIndep() = default;
@@ -90,9 +90,9 @@ class FactorDynamicsIndep
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& z_k, const state_t& dz_k, const state_t& ddz_k,
-		boost::optional<gtsam::Matrix&> de_dz = boost::none,
-		boost::optional<gtsam::Matrix&> de_dzp = boost::none,
-		boost::optional<gtsam::Matrix&> de_dzpp = boost::none) const override;
+		gtsam::OptionalMatrixType de_dz = OptionalNone,
+		gtsam::OptionalMatrixType de_dzp = OptionalNone,
+		gtsam::OptionalMatrixType de_dzpp = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 3; }
@@ -103,9 +103,11 @@ class FactorDynamicsIndep
 	template <class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
+#ifdef GTSAM_ENABLE_BOOST_SERIALIZATION
 		ar& boost::serialization::make_nvp(
 			"FactorDynamicsIndep",
 			boost::serialization::base_object<Base>(*this));
+#endif
 	}
 };
 

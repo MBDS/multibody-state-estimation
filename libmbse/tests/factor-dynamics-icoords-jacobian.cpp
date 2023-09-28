@@ -95,7 +95,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 	gtsam::Values valuesForQ;
 
 	// Create a dummy factor:
-	auto factorDyn = boost::make_shared<FactorDynamicsIndep>(
+	auto factorDyn = std::make_shared<FactorDynamicsIndep>(
 		&dynSimul, noise_dyn, Z(1), DZ(1), DDZ(1), Q(1), valuesForQ);
 
 	// For different instants of time and mechanism positions and
@@ -141,7 +141,7 @@ TEST(Jacobians, FactorDynamicsIndepCoords)
 		gtsam::Matrix H[3];
 		timlog.enter("factorsDynIndep.theoretical_jacob");
 
-		factorDyn->evaluateError(z, dotz, ddotz, H[0], H[1], H[2]);
+		factorDyn->evaluateError(z, dotz, ddotz, &H[0], &H[1], &H[2]);
 
 		timlog.leave("factorsDynIndep.theoretical_jacob");
 

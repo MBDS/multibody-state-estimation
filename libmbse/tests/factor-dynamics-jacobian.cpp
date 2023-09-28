@@ -71,7 +71,7 @@ TEST(Jacobians, FactorDynamics)
 		auto noise_dyn = gtsam::noiseModel::Isotropic::Sigma(n, 0.1);
 
 		// Create a dummy factor:
-		auto factorDyn = boost::make_shared<FactorDynamics>(
+		auto factorDyn = std::make_shared<FactorDynamics>(
 			&dynSimul, noise_dyn, Q(1), V(1), A(1));
 
 		// For different instants of time and mechanism positions and
@@ -105,7 +105,7 @@ TEST(Jacobians, FactorDynamics)
 			gtsam::Matrix H[3];
 			timlog.enter("factorsDyn.theoretical_jacob");
 
-			factorDyn->evaluateError(q, dotq, ddotq, H[0], H[1], H[2]);
+			factorDyn->evaluateError(q, dotq, ddotq, &H[0], &H[1], &H[2]);
 
 			timlog.leave("factorsDyn.theoretical_jacob");
 

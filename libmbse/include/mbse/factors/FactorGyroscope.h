@@ -33,7 +33,7 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 
    public:
 	// shorthand for a smart pointer to a factor
-	using shared_ptr = boost::shared_ptr<This>;
+	using shared_ptr = std::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
 	FactorGyroscope() = default;
@@ -71,8 +71,8 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dq_k,
-		boost::optional<gtsam::Matrix&> H1 = boost::none,
-		boost::optional<gtsam::Matrix&> H2 = boost::none) const override;
+		gtsam::OptionalMatrixType H1 = OptionalNone,
+		gtsam::OptionalMatrixType H2 = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 2; }
@@ -83,8 +83,10 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 	template <class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
+#ifdef GTSAM_ENABLE_BOOST_SERIALIZATION
 		ar& boost::serialization::make_nvp(
 			"FactorGyroscope", boost::serialization::base_object<Base>(*this));
+#endif
 	}
 };
 

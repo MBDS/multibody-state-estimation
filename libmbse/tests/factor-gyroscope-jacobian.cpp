@@ -74,7 +74,7 @@ TEST(Jacobians, gyroscope)
 	FactorGyroscope::shared_ptr factorsGyro[3];
 	for (unsigned int body_idx = 0; body_idx < 3; body_idx++)
 	{
-		factorsGyro[body_idx] = boost::make_shared<FactorGyroscope>(
+		factorsGyro[body_idx] = std::make_shared<FactorGyroscope>(
 			*aMBS, body_idx, dummy_sensor_observation, noise_gyro, Q(1), V(1));
 	}
 
@@ -109,7 +109,7 @@ TEST(Jacobians, gyroscope)
 			gtsam::Matrix H[2];
 			timlog.enter("factorsGyro.theoretical_jacob");
 
-			factorsGyro[body_idx]->evaluateError(q, dotq, H[0], H[1]);
+			factorsGyro[body_idx]->evaluateError(q, dotq, &H[0], &H[1]);
 
 			timlog.leave("factorsGyro.theoretical_jacob");
 

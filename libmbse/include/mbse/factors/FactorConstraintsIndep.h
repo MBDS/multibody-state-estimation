@@ -32,7 +32,7 @@ class FactorConstraintsIndep
 
    public:
 	// shorthand for a smart pointer to a factor
-	using shared_ptr = boost::shared_ptr<This>;
+	using shared_ptr = std::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
 	FactorConstraintsIndep() = default;
@@ -63,8 +63,8 @@ class FactorConstraintsIndep
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& z_k, const state_t& q_k,
-		boost::optional<gtsam::Matrix&> de_dz = boost::none,
-		boost::optional<gtsam::Matrix&> de_dq = boost::none) const override;
+		gtsam::OptionalMatrixType de_dz = OptionalNone,
+		gtsam::OptionalMatrixType de_dq = OptionalNone) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 2; }
@@ -75,9 +75,11 @@ class FactorConstraintsIndep
 	template <class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
+#ifdef GTSAM_ENABLE_BOOST_SERIALIZATION
 		ar& boost::serialization::make_nvp(
 			"FactorConstraintsIndep",
 			boost::serialization::base_object<Base>(*this));
+#endif
 	}
 };
 

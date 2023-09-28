@@ -51,7 +51,7 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 
    public:
 	// shorthand for a smart pointer to a factor
-	using shared_ptr = boost::shared_ptr<This>;
+	using shared_ptr = std::shared_ptr<This>;
 
 	/** default constructor - only use for serialization */
 	FactorInverseDynamics() = default;
@@ -95,7 +95,7 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& Q_k,
-		boost::optional<gtsam::Matrix&> d_e_Q = boost::none) const override;
+		gtsam::OptionalMatrixType d_e_Q = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 2; }
@@ -106,9 +106,11 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	template <class ARCHIVE>
 	void serialize(ARCHIVE& ar, const unsigned int /*version*/)
 	{
+#ifdef GTSAM_ENABLE_BOOST_SERIALIZATION
 		ar& boost::serialization::make_nvp(
 			"FactorInverseDynamics",
 			boost::serialization::base_object<Base>(*this));
+#endif
 	}
 };
 

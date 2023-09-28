@@ -39,7 +39,7 @@ Dependencies:
   * SuiteSparse
   * [MRPT](https://github.com/mrpt/mrpt/) (>=2.0.0)
     * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/mrpt)
-  * [GTSAM](https://github.com/borglab/gtsam)
+  * [GTSAM](https://github.com/borglab/gtsam) >=4.2
     * Ubuntu: Use [this PPA](https://launchpad.net/~borglab/+archive/ubuntu/gtsam-release-4.1)
 
 In Ubuntu, install dependencies with:

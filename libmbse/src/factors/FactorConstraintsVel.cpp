@@ -27,7 +27,7 @@ FactorConstraintsVel::~FactorConstraintsVel() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsVel::clone() const
 {
-	return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+	return std::static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -86,8 +86,8 @@ static void num_err_wrt_dq(
 
 gtsam::Vector FactorConstraintsVel::evaluateError(
 	const state_t& q_k, const state_t& dotq_k,
-	boost::optional<gtsam::Matrix&> H1,
-	boost::optional<gtsam::Matrix&> H2) const
+	gtsam::OptionalMatrixType H1,
+	gtsam::OptionalMatrixType H2) const
 {
 	MRPT_START
 
@@ -115,7 +115,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 	// d err / d q_k
 	if (H1)
 	{
-		auto& Hv = H1.value();
+		auto& Hv = *H1;
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = arm_.get();
@@ -140,7 +140,7 @@ gtsam::Vector FactorConstraintsVel::evaluateError(
 
 	if (H2)
 	{
-		auto& Hv = H2.value();
+		auto& Hv = *H2;
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = arm_.get();

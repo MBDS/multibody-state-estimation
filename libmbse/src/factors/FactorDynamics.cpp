@@ -33,7 +33,7 @@ FactorDynamics::~FactorDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorDynamics::clone() const
 {
-	return boost::static_pointer_cast<gtsam::NonlinearFactor>(
+	return std::static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -97,8 +97,8 @@ bool FactorDynamics::equals(
 
 gtsam::Vector FactorDynamics::evaluateError(
 	const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-	boost::optional<gtsam::Matrix&> H1, boost::optional<gtsam::Matrix&> H2,
-	boost::optional<gtsam::Matrix&> H3) const
+	gtsam::OptionalMatrixType H1, gtsam::OptionalMatrixType H2,
+	gtsam::OptionalMatrixType H3) const
 {
 	MRPT_START
 
@@ -126,7 +126,7 @@ gtsam::Vector FactorDynamics::evaluateError(
 	// d err / d q_k
 	if (H1)
 	{
-		auto& Hv = H1.value();
+		auto& Hv = *H1;
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = &arm;
@@ -192,7 +192,7 @@ Jacc_qt = ddq_I+ddq_II+ddq_III+ddq_IV+ddq_V;
 	// d err / d dq_k
 	if (H2)
 	{
-		auto& Hv = H2.value();
+		auto& Hv = *H2;
 #if USE_NUMERIC_JACOBIAN
 		NumericJacobParams p;
 		p.arm = &arm;
@@ -233,7 +233,7 @@ Jacc_dqt = -2*invM*B;
 	// d err / d ddq_k
 	if (H3)
 	{
-		auto& Hv = H3.value();
+		auto& Hv = *H3;
 		Hv = -Eigen::MatrixXd::Identity(n, n);
 	}
 	return err;

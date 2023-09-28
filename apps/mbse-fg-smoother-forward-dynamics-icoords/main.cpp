@@ -25,7 +25,7 @@
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/PriorFactor.h>
-#include <gtsam_unstable/nonlinear/BatchFixedLagSmoother.h>
+#include <gtsam/nonlinear/BatchFixedLagSmoother.h>
 #include <gtsam_unstable/nonlinear/IncrementalFixedLagSmoother.h>
 #include <iostream>
 #include <mbse/AssembledRigidModel.h>
@@ -186,10 +186,10 @@ void test_smoother()
 
 	// Create Prior factors:
 	factorsByTime.emplace(
-		0.0, boost::make_shared<gtsam::PriorFactor<state_t>>(
+		0.0, std::make_shared<gtsam::PriorFactor<state_t>>(
 				 sZ(0), z_0, noise_prior_z_0));
 	factorsByTime.emplace(
-		0.0, boost::make_shared<gtsam::PriorFactor<state_t>>(
+		0.0, std::make_shared<gtsam::PriorFactor<state_t>>(
 				 sZp(0), zeros_z, noise_prior_dz_0));
 
 	const double lag = arg_lag_time.getValue();	 // seconds
@@ -278,47 +278,47 @@ void test_smoother()
 
 		// Create Trapezoidal Integrator factors:
 		factorsByTime.emplace(
-			t, boost::make_shared<FactorTrapInt>(
+			t, std::make_shared<FactorTrapInt>(
 				   dt, noise_vel_z, sZ(timeStep), sZ(timeStep + 1),
 				   sZp(timeStep), sZp(timeStep + 1)));
 		factorsByTime.emplace(
-			t, boost::make_shared<FactorTrapInt>(
+			t, std::make_shared<FactorTrapInt>(
 				   dt, noise_acc_z, sZp(timeStep), sZp(timeStep + 1),
 				   sZpp(timeStep), sZpp(timeStep + 1)));
 
 		// Create Dynamics factors:
 		factorsByTime.emplace(
 			t + dt,
-			boost::make_shared<FactorDynamicsIndep>(
+			std::make_shared<FactorDynamicsIndep>(
 				&dynSimul, noise_dyn_z, sZ(timeStep + 1), sZp(timeStep + 1),
 				sZpp(timeStep + 1), sQ(timeStep + 1), wholeValues));
 		if (timeStep == 0)
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorDynamicsIndep>(
+				t, std::make_shared<FactorDynamicsIndep>(
 					   &dynSimul, noise_dyn_z, sZ(timeStep), sZp(timeStep),
 					   sZpp(timeStep), sQ(timeStep), wholeValues));
 
 		// "Soft equality" constraints between q_i and q_{i+1} to solve
 		// configuration/branches ambiguities:
 		factorsByTime.emplace(
-			t, boost::make_shared<gtsam::BetweenFactor<state_t>>(
+			t, std::make_shared<gtsam::BetweenFactor<state_t>>(
 				   sQ(timeStep), sQ(timeStep + 1), zeros_q, softBetweenNoise));
 
 		// Add dependent-coordinates constraint factor:
 		if (timeStep == 0)
 		{
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorConstraintsIndep>(
+				t, std::make_shared<FactorConstraintsIndep>(
 					   aMBS, indepCoordIndices, noise_constr_z, sZ(timeStep),
 					   sQ(timeStep)));
 
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorConstraintsVelIndep>(
+				t, std::make_shared<FactorConstraintsVelIndep>(
 					   aMBS, indepCoordIndices, noise_constr_dz, sQ(timeStep),
 					   sQp(timeStep), sZp(timeStep)));
 
 			factorsByTime.emplace(
-				t, boost::make_shared<FactorConstraintsAccIndep>(
+				t, std::make_shared<FactorConstraintsAccIndep>(
 					   aMBS, indepCoordIndices, noise_constr_dz, sQ(timeStep),
 					   sQp(timeStep), sQpp(timeStep), sZpp(timeStep)));
 		}
@@ -326,19 +326,19 @@ void test_smoother()
 		// if (timeStep < N - 1)
 		{
 			factorsByTime.emplace(
-				t + dt, boost::make_shared<FactorConstraintsIndep>(
+				t + dt, std::make_shared<FactorConstraintsIndep>(
 							aMBS, indepCoordIndices, noise_constr_z,
 							sZ(timeStep + 1), sQ(timeStep + 1)));
 
 			factorsByTime.emplace(
 				t + dt,
-				boost::make_shared<FactorConstraintsVelIndep>(
+				std::make_shared<FactorConstraintsVelIndep>(
 					aMBS, indepCoordIndices, noise_constr_dz, sQ(timeStep + 1),
 					sQp(timeStep + 1), sZp(timeStep + 1)));
 
 			factorsByTime.emplace(
 				t + dt,
-				boost::make_shared<FactorConstraintsAccIndep>(
+				std::make_shared<FactorConstraintsAccIndep>(
 					aMBS, indepCoordIndices, noise_constr_dz, sQ(timeStep + 1),
 					sQp(timeStep + 1), sQpp(timeStep + 1), sZpp(timeStep + 1)));
 		}
