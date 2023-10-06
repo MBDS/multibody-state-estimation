@@ -89,8 +89,8 @@ static void runViewer()
 		q.extractColumn(0, timestamps);
 
 		q.removeColumns({0});
-		dq.removeColumns({0});
-		ddq.removeColumns({0});
+		if (dq.cols() > 0) dq.removeColumns({0});
+		if (ddq.cols() > 0) ddq.removeColumns({0});
 	}
 
 	// Prepare 3D scene:
