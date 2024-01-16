@@ -67,3 +67,7 @@ In your CMake project, add:
 
 For CMake to find the library, in `cmake-gui` or `ccmake`, set the variable `mbse_DIR` to
 `BUILD_DIR/cmake`, where `BUILD_DIR` is the compilation directory where you built MBSE.
+
+## License
+
+Distributed under the 3-clause BSD license.

@@ -1,7 +1,7 @@
 /*+-------------------------------------------------------------------------+
   |            Multi Body State Estimation (mbse) C++ library               |
   |                                                                         |
-  | Copyright (C) 2014-2021 University of Almeria                           |
+  | Copyright (C) 2014-2024 University of Almeria                           |
   | Copyright (C) 2021 University of Salento                                |
   | See README for list of authors and papers                               |
   | Distributed under 3-clause BSD license                                  |
@@ -85,8 +85,7 @@ static void num_err_wrt_dq(
 #endif
 
 gtsam::Vector FactorConstraintsVel::evaluateError(
-	const state_t& q_k, const state_t& dotq_k,
-	gtsam::OptionalMatrixType H1,
+	const state_t& q_k, const state_t& dotq_k, gtsam::OptionalMatrixType H1,
 	gtsam::OptionalMatrixType H2) const
 {
 	MRPT_START

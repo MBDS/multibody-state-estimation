@@ -1,7 +1,7 @@
 /*+-------------------------------------------------------------------------+
   |            Multi Body State Estimation (mbse) C++ library               |
   |                                                                         |
-  | Copyright (C) 2014-2021 University of Almeria                           |
+  | Copyright (C) 2014-2024 University of Almeria                           |
   | Copyright (C) 2021 University of Salento                                |
   | See README for list of authors and papers                               |
   | Distributed under 3-clause BSD license                                  |
@@ -75,8 +75,7 @@ class FactorTrapInt
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& x_k, const state_t& x_kp1, const state_t& v_k,
-		const state_t& v_kp1,
-		gtsam::OptionalMatrixType H1 = OptionalNone,
+		const state_t& v_kp1, gtsam::OptionalMatrixType H1 = OptionalNone,
 		gtsam::OptionalMatrixType H2 = OptionalNone,
 		gtsam::OptionalMatrixType H3 = OptionalNone,
 		gtsam::OptionalMatrixType H4 = OptionalNone) const override;
