@@ -31,8 +31,7 @@ FactorConstraintsAccIndep::~FactorConstraintsAccIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsAccIndep::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 void FactorConstraintsAccIndep::print(
@@ -53,9 +52,9 @@ bool FactorConstraintsAccIndep::equals(
 
 gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	const state_t& q_k, const state_t& dotq_k, const state_t& ddotq_k,
-	const state_t& ddotz_k, gtsam::OptionalMatrixType de_dq,
-	gtsam::OptionalMatrixType de_dqp, gtsam::OptionalMatrixType de_dqpp,
-	gtsam::OptionalMatrixType de_dzpp) const
+	const state_t& ddotz_k, boost::optional<gtsam::Matrix&>  de_dq,
+	boost::optional<gtsam::Matrix&>  de_dqp, boost::optional<gtsam::Matrix&>  de_dqpp,
+	boost::optional<gtsam::Matrix&>  de_dzpp) const
 {
 	MRPT_START
 

@@ -32,8 +32,7 @@ FactorConstraintsIndep::~FactorConstraintsIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsIndep::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+    return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 
@@ -57,8 +56,8 @@ bool FactorConstraintsIndep::equals(
 
 
 gtsam::Vector FactorConstraintsIndep::evaluateError(
-	const state_t& z_k, const state_t& q_k, gtsam::Optional de_dz,
-	gtsam::OptionalMatrixType de_dq) const
+	const state_t& z_k, const state_t& q_k, boost::optional<gtsam::Matrix&> de_dz,
+	boost::optional<gtsam::Matrix&>  de_dq) const
 {
 	MRPT_START
 

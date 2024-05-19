@@ -17,8 +17,7 @@ FactorEulerInt::~FactorEulerInt() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorEulerInt::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+	return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 void FactorEulerInt::print(
@@ -41,8 +40,8 @@ bool FactorEulerInt::equals(
 
 gtsam::Vector FactorEulerInt::evaluateError(
 	const state_t& x_k, const state_t& x_kp1, const state_t& v_k,
-	gtsam::OptionalMatrixType H1, gtsam::OptionalMatrixType H2,
-	gtsam::OptionalMatrixType H3) const
+	boost::optional<gtsam::Matrix&> H1, boost::optional<gtsam::Matrix&> H2,
+    boost::optional<gtsam::Matrix&> H3) const
 {
 	const auto n = x_k.size();
 

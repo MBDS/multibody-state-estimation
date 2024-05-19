@@ -95,7 +95,7 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& Q_k,
-		gtsam::OptionalMatrixType d_e_Q = OptionalNone) const override;
+		boost::optional<gtsam::Matrix&>  d_e_Q = boost::none) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 2; }

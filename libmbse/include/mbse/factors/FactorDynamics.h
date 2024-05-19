@@ -75,9 +75,9 @@ class FactorDynamics
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-		gtsam::OptionalMatrixType H1 = OptionalNone,
-		gtsam::OptionalMatrixType H2 = OptionalNone,
-		gtsam::OptionalMatrixType H3 = OptionalNone) const override;
+        boost::optional<gtsam::Matrix&> H1 = boost::none,
+        boost::optional<gtsam::Matrix&> H2 = boost::none,
+        boost::optional<gtsam::Matrix&> H3 = boost::none) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 3; }

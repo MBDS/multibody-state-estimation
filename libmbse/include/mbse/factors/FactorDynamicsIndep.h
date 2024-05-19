@@ -90,9 +90,9 @@ class FactorDynamicsIndep
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& z_k, const state_t& dz_k, const state_t& ddz_k,
-		gtsam::OptionalMatrixType de_dz = OptionalNone,
-		gtsam::OptionalMatrixType de_dzp = OptionalNone,
-		gtsam::OptionalMatrixType de_dzpp = OptionalNone) const override;
+        boost::optional<gtsam::Matrix&>  de_dz = boost::none,
+        boost::optional<gtsam::Matrix&>  de_dzp = boost::none,
+        boost::optional<gtsam::Matrix&> de_dzpp = boost::none) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 3; }

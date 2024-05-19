@@ -24,8 +24,7 @@ FactorInverseDynamics::~FactorInverseDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorInverseDynamics::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 void FactorInverseDynamics::print(
@@ -110,7 +109,7 @@ bool FactorInverseDynamics::equals(
 }
 
 gtsam::Vector FactorInverseDynamics::evaluateError(
-	const state_t& Q_k, gtsam::OptionalMatrixType d_e_Q) const
+	const state_t& Q_k, boost::optional<gtsam::Matrix&>  d_e_Q) const
 {
 	MRPT_START
 

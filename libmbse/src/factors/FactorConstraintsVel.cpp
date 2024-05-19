@@ -27,8 +27,7 @@ FactorConstraintsVel::~FactorConstraintsVel() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsVel::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 void FactorConstraintsVel::print(
@@ -85,8 +84,8 @@ static void num_err_wrt_dq(
 #endif
 
 gtsam::Vector FactorConstraintsVel::evaluateError(
-	const state_t& q_k, const state_t& dotq_k, gtsam::OptionalMatrixType H1,
-	gtsam::OptionalMatrixType H2) const
+	const state_t& q_k, const state_t& dotq_k, boost::optional<gtsam::Matrix&>  H1,
+	boost::optional<gtsam::Matrix&>  H2) const
 {
 	MRPT_START
 

@@ -33,8 +33,7 @@ FactorDynamics::~FactorDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorDynamics::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+	return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 void FactorDynamics::print(
@@ -97,8 +96,8 @@ bool FactorDynamics::equals(
 
 gtsam::Vector FactorDynamics::evaluateError(
 	const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-	gtsam::OptionalMatrixType H1, gtsam::OptionalMatrixType H2,
-	gtsam::OptionalMatrixType H3) const
+	boost::optional<gtsam::Matrix&> H1 , boost::optional<gtsam::Matrix&> H2,
+    boost::optional<gtsam::Matrix&> H3) const
 {
 	MRPT_START
 

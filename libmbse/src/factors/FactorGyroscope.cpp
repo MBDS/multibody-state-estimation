@@ -22,8 +22,7 @@ using namespace mrpt::math;
 
 gtsam::NonlinearFactor::shared_ptr FactorGyroscope::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
-		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
+return gtsam::NonlinearFactor::shared_ptr(new This(*this));
 }
 
 void FactorGyroscope::print(
@@ -44,8 +43,8 @@ bool FactorGyroscope::equals(
 }
 
 gtsam::Vector FactorGyroscope::evaluateError(
-	const state_t& q_k, const state_t& dq_k, gtsam::OptionalMatrixType H1,
-	gtsam::OptionalMatrixType H2) const
+	const state_t& q_k, const state_t& dq_k, boost::optional<gtsam::Matrix&>  H1,
+	boost::optional<gtsam::Matrix&>  H2) const
 {
 	const auto n = q_k.size();
 	if (dq_k.size() != n)
