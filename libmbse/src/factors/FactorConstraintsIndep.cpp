@@ -26,6 +26,8 @@ FactorConstraintsIndep::FactorConstraintsIndep(
 {
 }
 
+
+
 FactorConstraintsIndep::~FactorConstraintsIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsIndep::clone() const
@@ -33,6 +35,7 @@ gtsam::NonlinearFactor::shared_ptr FactorConstraintsIndep::clone() const
 	return std::static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
+
 
 void FactorConstraintsIndep::print(
 	const std::string& s, const gtsam::KeyFormatter& keyFormatter) const
@@ -43,6 +46,8 @@ void FactorConstraintsIndep::print(
 	noiseModel_->print("  noise model: ");
 }
 
+
+
 bool FactorConstraintsIndep::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
 {
@@ -50,8 +55,9 @@ bool FactorConstraintsIndep::equals(
 	return e != nullptr && Base::equals(*e, tol);
 }
 
+
 gtsam::Vector FactorConstraintsIndep::evaluateError(
-	const state_t& z_k, const state_t& q_k, gtsam::OptionalMatrixType de_dz,
+	const state_t& z_k, const state_t& q_k, gtsam::Optional de_dz,
 	gtsam::OptionalMatrixType de_dq) const
 {
 	MRPT_START

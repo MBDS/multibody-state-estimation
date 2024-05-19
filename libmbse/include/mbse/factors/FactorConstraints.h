@@ -13,6 +13,7 @@
 #include <mbse/factors/factor-common.h>
 #include <gtsam/nonlinear/NonlinearFactor.h>
 #include <mbse/AssembledRigidModel.h>
+#include <gtsam/base/OptionalJacobian.h>
 
 namespace mbse
 {
@@ -61,7 +62,7 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k,
-		gtsam::OptionalMatrixType H1 = OptionalNone) const override;
+        boost::optional<gtsam::Matrix&> H1 ) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 1; }

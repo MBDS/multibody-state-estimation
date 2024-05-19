@@ -11,3 +11,4 @@ doc/source/mainpage.md
 doc/html
 experiments/*.txt
 .vscode
+/cmake-build-debug/

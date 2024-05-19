@@ -63,8 +63,8 @@ class FactorConstraintsIndep
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& z_k, const state_t& q_k,
-		gtsam::OptionalMatrixType de_dz = OptionalNone,
-		gtsam::OptionalMatrixType de_dq = OptionalNone) const override;
+		boost::optional<gtsam::Matrix&> de_dz = boost::none,
+		boost::optional<gtsam::Matrix&> de_dq = boost::none) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 2; }
