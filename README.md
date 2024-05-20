@@ -59,9 +59,9 @@ You should also be able to compile this project under Windows and Visual Studio.
 
 To Run the FourBar.YAML example do the following in terminal
 
-        ```
+        
         <path to build directory>/bin/mbse-dynamic-simulation --mechanism <path_to_yaml_model_definition> [other_optional_arguments]
-        ```
+        
 
 ## Using mbse as a library in a user program
 
