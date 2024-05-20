@@ -40,7 +40,7 @@ Dependencies:
   * [MRPT](https://github.com/mrpt/mrpt/) (>=2.0.0)
     * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/mrpt)
   * [GTSAM](https://github.com/borglab/gtsam) =4.2
-    * Ubuntu: built by using system's default Eigen v3.4 with command : `cmake -DGTSAM_USE_SYSTEM_EIGEN=ON ..`
+    * Ubuntu: gtsam was built by using system's default Eigen v3.4 with command : `cmake -DGTSAM_USE_SYSTEM_EIGEN=ON ..`
 
 In Ubuntu, install dependencies with:
 
@@ -59,7 +59,7 @@ You should also be able to compile this project under Windows and Visual Studio.
 
 To Run the FourBar.YAML example do the following in terminal
 
-        ```sh
+        ```bash
         <path to build direvtory>/bin/mbse-dynamic-simulation --mechanism <path_to_yaml_model_definition> [other_optional_arguments]
         ```
 
