@@ -32,19 +32,19 @@ For the theory behinds this work, refer to :
 
 ![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/doc/source/_static/mbde-pf-screenshot.jpg)
 
-## Compiling
+## My config for running this project
 Dependencies:
   * A C++ compiler
   * CMake
   * SuiteSparse
   * [MRPT](https://github.com/mrpt/mrpt/) (>=2.0.0)
     * Ubuntu: Use [this PPA](https://launchpad.net/~joseluisblancoc/+archive/ubuntu/mrpt)
-  * [GTSAM](https://github.com/borglab/gtsam) >=4.2
-    * Ubuntu: Use [this PPA](https://launchpad.net/~borglab/+archive/ubuntu/gtsam-release-4.1)
+  * [GTSAM](https://github.com/borglab/gtsam) =4.2
+    * Ubuntu: built by using system's default Eigen v3.4 with command : `cmake -DGTSAM_USE_SYSTEM_EIGEN=ON ..`
 
 In Ubuntu, install dependencies with:
 
-        sudo apt-get install build-essential cmake libsuitesparse-dev libmrpt-dev libgtsam-dev
+        sudo apt-get install build-essential cmake libsuitesparse-dev 
 
 To build:
 
@@ -56,6 +56,12 @@ To build:
         make test_legacy   # To run unit tests
 
 You should also be able to compile this project under Windows and Visual Studio.
+
+To Run the FourBar.YAML example do the following in terminal
+
+        ```sh
+        <path to build direvtory>/bin/mbse-dynamic-simulation --mechanism <path_to_yaml_model_definition> [other_optional_arguments]
+        ```
 
 ## Using mbse as a library in a user program
 
