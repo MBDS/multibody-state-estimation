@@ -14,9 +14,9 @@
 #include <mbse/AssembledRigidModel.h>
 
 #include <gtsam/config.h>
-#if defined(GTSAM_USE_TBB)
-#error "So far, MBSE is incompatible with GTSAM+TBB!"
-#endif
+//#if defined(GTSAM_USE_TBB)
+//#error "So far, MBSE is incompatible with GTSAM+TBB!"
+//#endif
 MRPT_TODO(
 	"**IMPORTANT** Refactor AssembledRigidModel to separate state and model "
 	"data to avoid multithread errors using GTSAM+TBB")
