@@ -20,7 +20,8 @@ factors in a factor graphs, and more.
 For the theory behinds this work, refer to :
   * J.L. Blanco, A. Leanza, G. Reina, "A general framework for modeling and dynamic simulation of multibody systems using factor graphs", 2021.  ([ArXiV](https://arxiv.org/abs/2101.02874))
 
-![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/doc/source/_static/mbde-fg-screenshot.png)
+![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/docs/source/_static/mbde-fg-screenshot.png)
+
 
 ## Paradigm #2: Particle filter estimator
 A Bayesian filter has been implemented as a particle filter.
@@ -30,7 +31,7 @@ For the theory behinds this work, refer to :
 
 <center> [Open video](https://www.youtube.com/watch?v=7Zru0oiz36g) </center>
 
-![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/doc/source/_static/mbde-pf-screenshot.jpg)
+![ScreenShot](https://raw.githubusercontent.com/MBDS/multibody-state-estimation/master/docs/source/_static/mbde-pf-screenshot.jpg)
 
 ## Compiling
 Dependencies:
