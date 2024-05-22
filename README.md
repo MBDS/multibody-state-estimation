@@ -73,6 +73,16 @@ In your CMake project, add:
 For CMake to find the library, in `cmake-gui` or `ccmake`, set the variable `mbse_DIR` to
 `BUILD_DIR/cmake`, where `BUILD_DIR` is the compilation directory where you built MBSE.
 
+## Contributing
+
+Make sure to enable clang-format-14 in your IDE, or manually run:
+
+```bash
+find libmbse/ -iname '*.h' -o -iname '*.cpp' | xargs clang-format-14 -i
+```
+
+to avoid format-only diffs in Git commits.
+
 ## License
 
 Distributed under the 3-clause BSD license.
