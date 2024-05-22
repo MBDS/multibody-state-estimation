@@ -57,6 +57,11 @@ To build:
 
 You should also be able to compile this project under Windows and Visual Studio.
 
+## GTSAM versions
+
+For GTSAM <=4.2, use the `master` branch of this project.
+For GTSAM >=4.3 (or their `develop` branch), use branch `newer-gtsam`.
+
 ## Using mbse as a library in a user program
 
 In your CMake project, add:
