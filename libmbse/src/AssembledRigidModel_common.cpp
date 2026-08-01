@@ -22,60 +22,129 @@ using namespace std;
 
 const double DEFAULT_GRAVITY[3] = {0, -9.81, 0};
 
-/** Constructor */
-AssembledRigidModel::AssembledRigidModel(const TSymbolicAssembledModel& armi)
-	: mechanism_(armi.model)
+/** Builds the read-only topology of a model: which DOFs exist, how they map
+ * to points, and their initial values. This is computed once and can then be
+ * shared (read-only) by any number of independent AssembledRigidModel
+ * "state" instances built from it. */
+AssembledRigidModelTopology::Ptr AssembledRigidModelTopology::Create(
+	const TSymbolicAssembledModel& armi)
 {
-	for (int i = 0; i < 3; i++) gravity_[i] = DEFAULT_GRAVITY[i];
+	std::shared_ptr<AssembledRigidModelTopology> topo(
+		new AssembledRigidModelTopology(armi.model));
 
 	const auto nEuclideanDOFs = armi.DOFs.size();
 	const auto nRelativeDOFs = armi.rDOFs.size();
-
 	const auto nDOFs = nEuclideanDOFs + nRelativeDOFs;
 
 	ASSERTMSG_(
 		nEuclideanDOFs > 0,
 		"Trying to assemble model with 0 Natural Coordinate DOFs");
 
-	q_.setZero(nDOFs);
-	dotq_.setZero(nDOFs);
-	ddotq_.setZero(nDOFs);
-	Q_.setZero(nDOFs);
+	topo->DOFs_ = armi.DOFs;
+	topo->rDOFs_ = armi.rDOFs;
 
-	// Keep a copy of DOF info:
-	DOFs_ = armi.DOFs;
-	rDOFs_ = armi.rDOFs;
+	topo->initialQ_.setZero(nDOFs);
 
 	// Build reverse-lookup table & initialize initial values for "q":
-	points2DOFs_.resize(armi.model.getPointCount());
+	topo->points2DOFs_.resize(armi.model.getPointCount());
 
 	for (dof_index_t i = 0; i < nEuclideanDOFs; i++)
 	{
-		const size_t pt_idx = DOFs_.at(i).point_index;
-		const Point2& pt = mechanism_.getPointInfo(pt_idx);
-		switch (DOFs_.at(i).point_dof)
+		const size_t pt_idx = topo->DOFs_.at(i).point_index;
+		const Point2& pt = topo->mechanism_.getPointInfo(pt_idx);
+		switch (topo->DOFs_.at(i).point_dof)
 		{
 			case PointDOF::X:
-				q_[i] = pt.coords.x;
-				points2DOFs_.at(pt_idx).dof_x = i;
+				topo->initialQ_[i] = pt.coords.x;
+				topo->points2DOFs_.at(pt_idx).dof_x = i;
 				break;
 			case PointDOF::Y:
-				q_[i] = pt.coords.y;
-				points2DOFs_.at(pt_idx).dof_y = i;
+				topo->initialQ_[i] = pt.coords.y;
+				topo->points2DOFs_.at(pt_idx).dof_y = i;
 				break;
 			// case 2: //z
-			//	q_[i] = pt.coords.z;
+			//	topo->initialQ_[i] = pt.coords.z;
 			//	break;
 			default:
 				THROW_EXCEPTION("Unexpected value for DOFs_[i].point_dof");
 		};
 	}
 
+	// Relative coordinates: assign their index in "q" and, if possible, an
+	// initial value derived from the natural coordinates above.
+	topo->relCoordinate2Index_.resize(topo->rDOFs_.size());
+	for (size_t i = 0; i < topo->rDOFs_.size(); i++)
+	{
+		const auto& relConstr = topo->rDOFs_[i];
+		const dof_index_t idxInQ = nEuclideanDOFs + i;
+		topo->relCoordinate2Index_[i] = idxInQ;
+
+		if (std::holds_alternative<RelativeAngleDOF>(relConstr))
+		{
+			// No initial value estimation needed (defaults to 0).
+		}
+		else if (std::holds_alternative<RelativeAngleAbsoluteDOF>(relConstr))
+		{
+			const auto& c = std::get<RelativeAngleAbsoluteDOF>(relConstr);
+
+			// Initial value from coordinates:
+			const auto getCoords =
+				[&](const point_index_t idx) -> mrpt::math::TPoint2D
+			{
+				const Point2ToDOF& dofs = topo->points2DOFs_.at(idx);
+				const Point2& pt = topo->mechanism_.getPointInfo(idx);
+				mrpt::math::TPoint2D p;
+				p.x = (dofs.dof_x != INVALID_DOF) ? topo->initialQ_[dofs.dof_x]
+												  : pt.coords.x;
+				p.y = (dofs.dof_y != INVALID_DOF) ? topo->initialQ_[dofs.dof_y]
+												  : pt.coords.y;
+				return p;
+			};
+			const auto pt0 = getCoords(c.point_idx0);
+			const auto pt1 = getCoords(c.point_idx1);
+			const auto ptV = pt1 - pt0;
+			if (ptV.norm() != 0)
+				topo->initialQ_[idxInQ] = std::atan2(ptV.y, ptV.x);
+		}
+		else
+		{
+			THROW_EXCEPTION("Unknown type of relative coordinate");
+		}
+	}
+
+	return topo;
+}
+
+/** Constructor */
+AssembledRigidModel::AssembledRigidModel(
+	AssembledRigidModelTopology::Ptr topology)
+	: topology_(std::move(topology)),
+	  mechanism_(topology_->mechanism_),
+	  DOFs_(topology_->DOFs_),
+	  points2DOFs_(topology_->points2DOFs_),
+	  rDOFs_(topology_->rDOFs_),
+	  relCoordinate2Index_(topology_->relCoordinate2Index_)
+{
+	ASSERT_(topology_);
+
+	for (int i = 0; i < 3; i++) gravity_[i] = DEFAULT_GRAVITY[i];
+
+	const auto nDOFs = topology_->nDOFs();
+
+	q_ = topology_->initialQ_;
+	dotq_.setZero(nDOFs);
+	ddotq_.setZero(nDOFs);
+	Q_.setZero(nDOFs);
+
 	// Save the number of DOFs as the number of columsn in sparse Jacobians:
 	defineSparseMatricesColumnCount(nDOFs);
 
 	// Generate constraint equations & create structure of sparse Jacobians:
 	// ----------------------------------------------------------------------
+	// Each state instance gets its own private clones of all constraints,
+	// since they cache raw pointers into *this* instance's sparse Jacobian
+	// storage (see ConstraintCommon::jacob), which must not be shared across
+	// different AssembledRigidModel instances.
 	const std::vector<ConstraintBase::Ptr>& parent_constraints =
 		mechanism_.constraints();
 
@@ -88,53 +157,23 @@ AssembledRigidModel::AssembledRigidModel(const TSymbolicAssembledModel& armi)
 	}
 
 	// 2/2: Constraints from relative coordinates:
-	relCoordinate2Index_.resize(rDOFs_.size());
 	for (size_t i = 0; i < rDOFs_.size(); i++)
 	{
 		const auto& relConstr = rDOFs_[i];
-		const dof_index_t idxInQ = nEuclideanDOFs + i;
+		const dof_index_t idxInQ = relCoordinate2Index_[i];
 
 		if (std::holds_alternative<RelativeAngleDOF>(relConstr))
 		{
 			const auto& c = std::get<RelativeAngleDOF>(relConstr);
-
-			// Add constraint:
-			auto co = std::make_shared<ConstraintRelativeAngle>(
-				c.point_idx0, c.point_idx1, c.point_idx2, idxInQ);
-			constraints_.push_back(co);
-
-			// reverse look up table:
-			relCoordinate2Index_[i] = idxInQ;
+			constraints_.push_back(std::make_shared<ConstraintRelativeAngle>(
+				c.point_idx0, c.point_idx1, c.point_idx2, idxInQ));
 		}
 		else if (std::holds_alternative<RelativeAngleAbsoluteDOF>(relConstr))
 		{
 			const auto& c = std::get<RelativeAngleAbsoluteDOF>(relConstr);
-
-			// Add constraint:
-			auto co = std::make_shared<ConstraintRelativeAngleAbsolute>(
-				c.point_idx0, c.point_idx1, idxInQ);
-			constraints_.push_back(co);
-
-			// reverse look up table:
-			relCoordinate2Index_[i] = idxInQ;
-
-			// Initial value from coordinates:
-			const auto pt0 = getPointCurrentCoords(c.point_idx0);
-			const auto pt1 = getPointCurrentCoords(c.point_idx1);
-			const auto ptV = pt1 - pt0;
-			if (ptV.norm() != 0)
-			{
-				auto expectedAng = std::atan2(ptV.y, ptV.x);
-				if (std::abs(q_[idxInQ] - expectedAng) > 0.01)
-				{
-					printf(
-						"*WARNING* RelativeAngleAbsoluteDOF at q[%i]=%f deg: "
-						"Overriding with angle from coordinates = %f deg.\n",
-						static_cast<int>(idxInQ), mrpt::RAD2DEG(q_[idxInQ]),
-						mrpt::RAD2DEG(expectedAng));
-					q_[idxInQ] = expectedAng;
-				}
-			}
+			constraints_.push_back(
+				std::make_shared<ConstraintRelativeAngleAbsolute>(
+					c.point_idx0, c.point_idx1, idxInQ));
 		}
 		else
 		{
@@ -144,6 +183,19 @@ AssembledRigidModel::AssembledRigidModel(const TSymbolicAssembledModel& armi)
 
 	// Final step: build structures
 	for (auto& c : constraints_) c->buildSparseStructures(*this);
+}
+
+AssembledRigidModel::Ptr AssembledRigidModel::clone() const
+{
+	auto other = std::make_shared<AssembledRigidModel>(topology_);
+
+	other->q_ = q_;
+	other->dotq_ = dotq_;
+	other->ddotq_ = ddotq_;
+	other->Q_ = Q_;
+	other->gravity_ = gravity_;
+
+	return other;
 }
 
 void AssembledRigidModel::getGravityVector(

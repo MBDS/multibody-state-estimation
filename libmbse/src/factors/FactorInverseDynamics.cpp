@@ -24,7 +24,7 @@ FactorInverseDynamics::~FactorInverseDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorInverseDynamics::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -105,12 +105,11 @@ bool FactorInverseDynamics::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
 {
 	const This* e = dynamic_cast<const This*>(&expected);
-	return e != nullptr && Base::equals(*e, tol) &&
-		   dynamic_solver_->get_model() == e->dynamic_solver_->get_model();
+	return e != nullptr && Base::equals(*e, tol);
 }
 
 gtsam::Vector FactorInverseDynamics::evaluateError(
-	const state_t& Q_k, gtsam::OptionalMatrixType d_e_Q) const
+	const state_t& Q_k, MBSE_OptionalMatrixType d_e_Q) const
 {
 	MRPT_START
 

@@ -13,14 +13,6 @@
 #include <mbse/factors/FactorDynamics.h>
 #include <mbse/AssembledRigidModel.h>
 
-#include <gtsam/config.h>
-#if defined(GTSAM_USE_TBB)
-#error "So far, MBSE is incompatible with GTSAM+TBB!"
-#endif
-MRPT_TODO(
-	"**IMPORTANT** Refactor AssembledRigidModel to separate state and model "
-	"data to avoid multithread errors using GTSAM+TBB")
-
 #define USE_NUMERIC_JACOBIAN 1
 
 #if USE_NUMERIC_JACOBIAN
@@ -33,7 +25,7 @@ FactorDynamics::~FactorDynamics() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorDynamics::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -91,14 +83,13 @@ bool FactorDynamics::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
 {
 	const This* e = dynamic_cast<const This*>(&expected);
-	return e != nullptr && Base::equals(*e, tol) &&
-		   dynamic_solver_->get_model() == e->dynamic_solver_->get_model();
+	return e != nullptr && Base::equals(*e, tol);
 }
 
 gtsam::Vector FactorDynamics::evaluateError(
 	const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-	gtsam::OptionalMatrixType H1, gtsam::OptionalMatrixType H2,
-	gtsam::OptionalMatrixType H3) const
+	MBSE_OptionalMatrixType H1, MBSE_OptionalMatrixType H2,
+	MBSE_OptionalMatrixType H3) const
 {
 	MRPT_START
 

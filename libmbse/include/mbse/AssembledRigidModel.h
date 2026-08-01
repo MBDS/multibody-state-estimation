@@ -35,6 +35,54 @@ struct TSymbolicAssembledModel
 	}
 };
 
+/** The read-only "topology" of an assembled multibody model: which degrees of
+ * freedom exist, how they map to points, and their initial values.
+ *
+ * This is completely determined by a ModelDefinition and, once built, never
+ * changes. Instances are therefore safe to share (as `const`) across several
+ * independent AssembledRigidModel "state" objects: each of those owns its own
+ * mutable q, dq, ddq, and constraint Jacobians, but all of them can point to
+ * the very same AssembledRigidModelTopology without any risk of a race, e.g.
+ * when different AssembledRigidModel instances built from the same topology
+ * are evaluated concurrently from different threads (as GTSAM does when
+ * built with TBB). \sa AssembledRigidModel::clone()
+ */
+class AssembledRigidModelTopology
+{
+   public:
+	using Ptr = std::shared_ptr<const AssembledRigidModelTopology>;
+
+	/** Builds the topology described by a symbolic assembled model. */
+	static Ptr Create(const TSymbolicAssembledModel& armi);
+
+	const ModelDefinition& mechanism_;	//!< My "parent" model
+
+	/** Info on each Euclidean coordinate DOF in the problem
+	 * Note: DOFs_.size() + rDOFs_.size() == q_.size() */
+	std::vector<NaturalCoordinateDOF> DOFs_;
+
+	/** Info on each Relative coordinate DOF in the problem
+	 * Note: DOFs_.size() + rDOFs_.size() == q_.size() */
+	std::vector<RelativeDOF> rDOFs_;
+
+	/** Reverse look-up list of Euclidean points <-> DOFs in the q vector */
+	std::vector<Point2ToDOF> points2DOFs_;
+
+	/** Maps: indices in rDOFs_ ==> indices in "q_" */
+	std::vector<dof_index_t> relCoordinate2Index_;
+
+	/** Initial values for "q", of length DOFs_.size()+rDOFs_.size() */
+	Eigen::VectorXd initialQ_;
+
+	size_t nDOFs() const { return DOFs_.size() + rDOFs_.size(); }
+
+   private:
+	explicit AssembledRigidModelTopology(const ModelDefinition& model)
+		: mechanism_(model)
+	{
+	}
+};
+
 class AssembledRigidModel
 {
 	friend class ModelDefinition;  // So that class can create instances of
@@ -43,11 +91,22 @@ class AssembledRigidModel
    public:
 	using Ptr = std::shared_ptr<AssembledRigidModel>;
 
-	/** Constructor, from a symbolic assembled model.
-	 * The object "armi" can be destroyed safely after this call. The parent
-	 * model in armi.model cannot.
+	/** Constructor: builds a fresh mutable state (q, dq, ddq, constraint
+	 * Jacobians, ...) bound to the given, immutable, and potentially-shared
+	 * topology.
 	 */
-	AssembledRigidModel(const TSymbolicAssembledModel& armi);
+	explicit AssembledRigidModel(AssembledRigidModelTopology::Ptr topology);
+
+	/** Returns an independent copy of this object, sharing the same
+	 * (read-only) topology but with its own private copy of the mutable state
+	 * (q, dq, ddq, Q, constraint Jacobians, ...).
+	 *
+	 * Since evaluating a factor mutates this state as scratch space, each
+	 * factor (or, more generally, each concurrent user) must own its own
+	 * clone to be safely evaluated in parallel, e.g. from different threads
+	 * as GTSAM does when built with TBB.
+	 */
+	Ptr clone() const;
 
 	/** To be called from constraints' buildSparseStructures() methods.
 	 * \return the index of the newly created row in Phi and its Jacobians.
@@ -149,6 +208,10 @@ class AssembledRigidModel
 	void printConstraints(std::ostream& o = std::cout) const;
 
    private:
+	/** The read-only, potentially-shared topology this state was built from.
+	 * \sa clone() */
+	AssembledRigidModelTopology::Ptr topology_;
+
 	/** Created upon call to getAs3DRepresentation(), this holds a list of the
 	 * 3D object associated to each body in the MBS, in the same order than in
 	 * parent_.bodies_[] */
@@ -158,22 +221,27 @@ class AssembledRigidModel
 
    public:
 	/** A reference to the parent MBS. Used to access the data of bodies, etc.
+	 * (Aliases topology_->mechanism_.)
 	 */
 	const ModelDefinition& mechanism_;
 
 	/** Info on each Euclidean coordinate DOF in the problem
-	 * Note: m_DOFs.size() + m_rDOFs.size() == m_q.size() */
-	std::vector<NaturalCoordinateDOF> DOFs_;
+	 * Note: m_DOFs.size() + m_rDOFs.size() == m_q.size()
+	 * (Aliases topology_->DOFs_.) */
+	const std::vector<NaturalCoordinateDOF>& DOFs_;
 
-	/** Reverse look-up list of Euclidean points <-> DOFs in the q vector */
-	std::vector<Point2ToDOF> points2DOFs_;
+	/** Reverse look-up list of Euclidean points <-> DOFs in the q vector
+	 * (Aliases topology_->points2DOFs_.) */
+	const std::vector<Point2ToDOF>& points2DOFs_;
 
 	/** Info on each Relative coordinate DOF in the problem
-	 * Note: m_DOFs.size() + m_rDOFs.size() == m_q.size() */
-	std::vector<RelativeDOF> rDOFs_;
+	 * Note: m_DOFs.size() + m_rDOFs.size() == m_q.size()
+	 * (Aliases topology_->rDOFs_.) */
+	const std::vector<RelativeDOF>& rDOFs_;
 
-	/** Maps: indices in rDOFs_ ==> indices in "q_" */
-	std::vector<dof_index_t> relCoordinate2Index_;
+	/** Maps: indices in rDOFs_ ==> indices in "q_"
+	 * (Aliases topology_->relCoordinate2Index_.) */
+	const std::vector<dof_index_t>& relCoordinate2Index_;
 
 	/** The list of all constraints (of different kinds/classes).
 	 * \note This list DOES include constant-distance constraints (not like

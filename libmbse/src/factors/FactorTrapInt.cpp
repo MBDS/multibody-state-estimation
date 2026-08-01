@@ -17,7 +17,7 @@ FactorTrapInt::~FactorTrapInt() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorTrapInt::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -45,9 +45,9 @@ bool FactorTrapInt::equals(
 
 gtsam::Vector FactorTrapInt::evaluateError(
 	const state_t& x_k, const state_t& x_kp1, const state_t& v_k,
-	const state_t& v_kp1, gtsam::OptionalMatrixType H1,
-	gtsam::OptionalMatrixType H2, gtsam::OptionalMatrixType H3,
-	gtsam::OptionalMatrixType H4) const
+	const state_t& v_kp1, MBSE_OptionalMatrixType H1,
+	MBSE_OptionalMatrixType H2, MBSE_OptionalMatrixType H3,
+	MBSE_OptionalMatrixType H4) const
 {
 	const auto n = x_k.size();
 

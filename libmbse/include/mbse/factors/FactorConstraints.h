@@ -24,7 +24,11 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 	using This = FactorConstraints;
 	using Base = gtsam::NoiseModelFactor1<state_t>;
 
-	// Class parameters (pointer to type "ConstraintBase")
+	/** This factor's own private, exclusively-owned clone of the model passed
+	 * in at construction. Owning a private clone -instead of sharing the
+	 * caller's instance- is what makes it safe to evaluate different factors
+	 * concurrently, e.g. from different threads as GTSAM does when built with
+	 * TBB. */
 	AssembledRigidModel::Ptr arm_;
 
    public:
@@ -34,13 +38,20 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 	/** default constructor - only use for serialization */
 	FactorConstraints() = default;
 
-	/** Construcotr */
+	/** Constructor. Note that `arm` is only used as a template to clone from:
+	 * this factor does NOT keep a reference to it, nor mutates it. */
 	FactorConstraints(
 		const AssembledRigidModel::Ptr& arm,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k)
-		: Base(noiseModel, key_q_k), arm_(arm)
+		: Base(noiseModel, key_q_k), arm_(arm->clone())
 	{
 	}
+
+	FactorConstraints(const FactorConstraints& o)
+		: Base(o), arm_(o.arm_->clone())
+	{
+	}
+	FactorConstraints& operator=(const FactorConstraints& o) = delete;
 
 	virtual ~FactorConstraints() override;
 
@@ -61,7 +72,7 @@ class FactorConstraints : public gtsam::NoiseModelFactor1<state_t>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k,
-		gtsam::OptionalMatrixType H1 = OptionalNone) const override;
+		MBSE_OptionalMatrixType H1 = OptionalNone) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 1; }

@@ -134,6 +134,16 @@ class CDynamicSimulatorBase
 	 */
 	virtual double run(const double t_ini, const double t_end);
 
+	/** Returns an independent, already-prepared clone of this solver, working
+	 * on its own private clone of the underlying AssembledRigidModel.
+	 *
+	 * Since solving mutates both the model (q, dq, ddq, Jacobians, ...) and
+	 * this solver's internal scratch buffers/factorizations, each concurrent
+	 * user (e.g. a GTSAM factor, when evaluated from a TBB worker thread)
+	 * must own its own clone to be race-free.
+	 */
+	Ptr clone() const;
+
 	const std::shared_ptr<AssembledRigidModel>& get_model() const
 	{
 		return arm_ptr_;
@@ -170,6 +180,13 @@ class CDynamicSimulatorBase
 	/** Prepare the linear systems and anything else required to really call
 	 * solve_ddotq() */
 	virtual void internal_prepare() = 0;
+
+	/** Creates a new, unprepared instance of the exact same solver subclass
+	 * as `this`, bound to `newArm`, and copying over any subclass-specific
+	 * user-configurable parameters (e.g. ordering methods). Used by clone().
+	 */
+	virtual Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const = 0;
 
 	/** Solve for the current accelerations */
 	virtual void internal_solve_ddotq(
@@ -270,6 +287,11 @@ class CDynamicSimulator_Lagrange_LU_dense : public CDynamicSimulatorBase
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		return std::make_shared<CDynamicSimulator_Lagrange_LU_dense>(newArm);
+	}
 
 	Eigen::MatrixXd mass_;	//!< The MBS constant mass matrix
 };
@@ -285,6 +307,11 @@ class CDynamicSimulator_R_matrix_dense : public CDynamicSimulatorBase
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		return std::make_shared<CDynamicSimulator_R_matrix_dense>(newArm);
+	}
 
 	Eigen::MatrixXd mass_;	//!< The MBS constant mass matrix
 };
@@ -320,6 +347,14 @@ class CDynamicSimulator_Indep_dense : public CDynamicSimulatorIndepBase
    private:
 	void internal_prepare() override;
 	void internal_solve_ddotz(double t, Eigen::VectorXd& ddot_z) override;
+	CDynamicSimulatorBase::Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c = std::make_shared<CDynamicSimulator_Indep_dense>(newArm);
+		c->indep_idxs_ = indep_idxs_;
+		c->can_choose_indep_coords_ = can_choose_indep_coords_;
+		return c;
+	}
 
 	Eigen::MatrixXd mass_;	//!< The MBS constant mass matrix
 	/** The indices in "q" of those coordinates to be used as "independent" (z)
@@ -343,6 +378,14 @@ class CDynamicSimulator_Lagrange_CHOLMOD : public CDynamicSimulatorBase
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c = std::make_shared<CDynamicSimulator_Lagrange_CHOLMOD>(newArm);
+		c->ordering_M = ordering_M;
+		c->ordering_EEt = ordering_EEt;
+		return c;
+	}
 
 	cholmod_common cholmod_common_;
 	cholmod_triplet* mass_tri_;
@@ -370,6 +413,13 @@ class CDynamicSimulator_Lagrange_UMFPACK : public CDynamicSimulatorBase
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c = std::make_shared<CDynamicSimulator_Lagrange_UMFPACK>(newArm);
+		c->ordering = ordering;
+		return c;
+	}
 
 	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>
@@ -399,6 +449,13 @@ class CDynamicSimulator_Lagrange_KLU : public CDynamicSimulatorBase
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c = std::make_shared<CDynamicSimulator_Lagrange_KLU>(newArm);
+		c->ordering = ordering;
+		return c;
+	}
 
 	std::vector<Eigen::Triplet<double>> mass_tri_;
 	std::vector<Eigen::Triplet<double>>
@@ -452,6 +509,15 @@ class CDynamicSimulator_AugmentedLagrangian_KLU
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c =
+			std::make_shared<CDynamicSimulator_AugmentedLagrangian_KLU>(newArm);
+		c->ordering = ordering;
+		c->params_penalty = params_penalty;
+		return c;
+	}
 
 	struct TSparseDotProduct
 	{
@@ -489,6 +555,14 @@ class CDynamicSimulator_AugmentedLagrangian_Dense
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c = std::make_shared<CDynamicSimulator_AugmentedLagrangian_Dense>(
+			newArm);
+		c->params_penalty = params_penalty;
+		return c;
+	}
 
 	Eigen::MatrixXd M_;	 //!< The MBS constant mass matrix
 	Eigen::LDLT<Eigen::MatrixXd> M_ldlt_;
@@ -515,6 +589,13 @@ class CDynamicSimulator_ALi3_Dense : public CDynamicSimulatorBasePenalty
 	void internal_solve_ddotq(
 		double t, Eigen::VectorXd& ddot_q,
 		Eigen::VectorXd* lagrangre = nullptr) override;
+	Ptr cloneInstance(
+		const std::shared_ptr<AssembledRigidModel>& newArm) const override
+	{
+		auto c = std::make_shared<CDynamicSimulator_ALi3_Dense>(newArm);
+		c->params_penalty = params_penalty;
+		return c;
+	}
 
 	/** Implement a especific combination of dynamic formulation + integrator.
 	 *  \return false if it's not implemented, so it should fallback to generic

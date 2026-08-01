@@ -26,7 +26,7 @@ FactorDynamicsIndep::~FactorDynamicsIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorDynamicsIndep::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -111,14 +111,13 @@ bool FactorDynamicsIndep::equals(
 	const gtsam::NonlinearFactor& expected, double tol) const
 {
 	const This* e = dynamic_cast<const This*>(&expected);
-	return e != nullptr && Base::equals(*e, tol) &&
-		   dynamic_solver_->get_model() == e->dynamic_solver_->get_model();
+	return e != nullptr && Base::equals(*e, tol);
 }
 
 gtsam::Vector FactorDynamicsIndep::evaluateError(
 	const state_t& z_k, const state_t& dz_k, const state_t& ddz_k,
-	gtsam::OptionalMatrixType de_dz, gtsam::OptionalMatrixType de_dzp,
-	gtsam::OptionalMatrixType de_dzpp) const
+	MBSE_OptionalMatrixType de_dz, MBSE_OptionalMatrixType de_dzp,
+	MBSE_OptionalMatrixType de_dzpp) const
 {
 	MRPT_START
 

@@ -36,14 +36,21 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 	/** default constructor - only use for serialization */
 	FactorConstraintsVel() = default;
 
-	/** Construcotr */
+	/** Constructor. Note that `arm` is only used as a template to clone from:
+	 * this factor does NOT keep a reference to it, nor mutates it. */
 	FactorConstraintsVel(
 		const AssembledRigidModel::Ptr& arm,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 		gtsam::Key key_dotq_k)
-		: Base(noiseModel, key_q_k, key_dotq_k), arm_(arm)
+		: Base(noiseModel, key_q_k, key_dotq_k), arm_(arm->clone())
 	{
 	}
+
+	FactorConstraintsVel(const FactorConstraintsVel& o)
+		: Base(o), arm_(o.arm_->clone())
+	{
+	}
+	FactorConstraintsVel& operator=(const FactorConstraintsVel& o) = delete;
 
 	virtual ~FactorConstraintsVel() override;
 
@@ -64,8 +71,8 @@ class FactorConstraintsVel : public gtsam::NoiseModelFactor2<state_t, state_t>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dotq_k,
-		gtsam::OptionalMatrixType H1 = OptionalNone,
-		gtsam::OptionalMatrixType H2 = OptionalNone) const override;
+		MBSE_OptionalMatrixType H1 = OptionalNone,
+		MBSE_OptionalMatrixType H2 = OptionalNone) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 2; }

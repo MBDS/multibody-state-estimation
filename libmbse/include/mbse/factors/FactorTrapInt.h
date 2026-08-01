@@ -75,10 +75,10 @@ class FactorTrapInt
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& x_k, const state_t& x_kp1, const state_t& v_k,
-		const state_t& v_kp1, gtsam::OptionalMatrixType H1 = OptionalNone,
-		gtsam::OptionalMatrixType H2 = OptionalNone,
-		gtsam::OptionalMatrixType H3 = OptionalNone,
-		gtsam::OptionalMatrixType H4 = OptionalNone) const override;
+		const state_t& v_kp1, MBSE_OptionalMatrixType H1 = OptionalNone,
+		MBSE_OptionalMatrixType H2 = OptionalNone,
+		MBSE_OptionalMatrixType H3 = OptionalNone,
+		MBSE_OptionalMatrixType H4 = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 4; }

@@ -27,6 +27,9 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 	using This = FactorGyroscope;
 	using Base = gtsam::NoiseModelFactor2<state_t, state_t>;
 
+	/** This factor's own private, exclusively-owned clone of the model passed
+	 * in at construction (see FactorConstraints for the rationale). */
+	AssembledRigidModel::Ptr arm_owned_;
 	AssembledRigidModel* arm_ = nullptr;
 	size_t body_idx_ = 0;
 	double reading_ = 0;
@@ -39,17 +42,30 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 	FactorGyroscope() = default;
 	virtual ~FactorGyroscope() override = default;
 
-	/** Constructor. angvel_reading in rad/sec, positive CCW. */
+	/** Constructor. angvel_reading in rad/sec, positive CCW.
+	 * Note that `arm` is only used as a template to clone from: this factor
+	 * does NOT keep a reference to it, nor mutates it. */
 	FactorGyroscope(
 		AssembledRigidModel& arm, const size_t body_idx,
 		const double angvel_reading, const gtsam::SharedNoiseModel& noiseModel,
 		gtsam::Key key_q_k, gtsam::Key key_dq_k)
 		: Base(noiseModel, key_q_k, key_dq_k),
-		  arm_(&arm),
+		  arm_owned_(arm.clone()),
+		  arm_(arm_owned_.get()),
 		  body_idx_(body_idx),
 		  reading_(angvel_reading)
 	{
 	}
+
+	FactorGyroscope(const FactorGyroscope& o)
+		: Base(o),
+		  arm_owned_(o.arm_owned_->clone()),
+		  arm_(arm_owned_.get()),
+		  body_idx_(o.body_idx_),
+		  reading_(o.reading_)
+	{
+	}
+	FactorGyroscope& operator=(const FactorGyroscope& o) = delete;
 
 	/// @return a deep copy of this factor
 	virtual gtsam::NonlinearFactor::shared_ptr clone() const override;
@@ -71,8 +87,8 @@ class FactorGyroscope : public gtsam::NoiseModelFactor2<state_t, state_t>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dq_k,
-		gtsam::OptionalMatrixType H1 = OptionalNone,
-		gtsam::OptionalMatrixType H2 = OptionalNone) const override;
+		MBSE_OptionalMatrixType H1 = OptionalNone,
+		MBSE_OptionalMatrixType H2 = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 2; }
