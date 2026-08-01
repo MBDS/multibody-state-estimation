@@ -207,7 +207,8 @@ static void runViewer()
 		}
 	}
 
-	const auto lambdaUpdateQValues = [&]() {
+	const auto lambdaUpdateQValues = [&]()
+	{
 		for (int pnIdx = 0; pnIdx < 3; pnIdx++)
 		{
 			Eigen::VectorXd v;
@@ -243,43 +244,47 @@ static void runViewer()
 	if (nTimeSteps > 0)
 	{
 		slider->setRange({0, nTimeSteps - 1});
-		slider->setCallback([&](float pos) {
-			const auto timIdx = mrpt::round(pos);
-			lbTime->setCaption(
-				mrpt::format("Time: %10.05f s", timestamps.at(timIdx)));
+		slider->setCallback(
+			[&](float pos)
+			{
+				const auto timIdx = mrpt::round(pos);
+				lbTime->setCaption(
+					mrpt::format("Time: %10.05f s", timestamps.at(timIdx)));
 
-			q.extractRow(timIdx, aMBS->q_);
-			if (dq.rows() > 0) dq.extractRow(timIdx, aMBS->dotq_);
-			if (ddq.rows() > 0) ddq.extractRow(timIdx, aMBS->ddotq_);
+				q.extractRow(timIdx, aMBS->q_);
+				if (dq.rows() > 0) dq.extractRow(timIdx, aMBS->dotq_);
+				if (ddq.rows() > 0) ddq.extractRow(timIdx, aMBS->ddotq_);
 
-			aMBS->update_numeric_Phi_and_Jacobians();
+				aMBS->update_numeric_Phi_and_Jacobians();
 
-			lambdaUpdateQValues();
-		});
+				lambdaUpdateQValues();
+			});
 
 		slider->setValue(0);
 		slider->callback()(slider->value());
 	}
 
-	btnPosProblem->setCallback([&]() {
-		std::vector<size_t> idxs;
-		for (size_t i = 0; i < cbs[0].size(); i++)
+	btnPosProblem->setCallback(
+		[&]()
 		{
-			if (cbs[0][i]->checked())
+			std::vector<size_t> idxs;
+			for (size_t i = 0; i < cbs[0].size(); i++)
 			{
-				idxs.push_back(i);
-				const double v = std::stod(tbs[0][i]->value());
-				aMBS->q_[i] = v;
+				if (cbs[0][i]->checked())
+				{
+					idxs.push_back(i);
+					const double v = std::stod(tbs[0][i]->value());
+					aMBS->q_[i] = v;
+				}
 			}
-		}
 
-		AssembledRigidModel::ComputeDependentParams cdp;
-		AssembledRigidModel::ComputeDependentResults cdr;
+			AssembledRigidModel::ComputeDependentParams cdp;
+			AssembledRigidModel::ComputeDependentResults cdr;
 
-		aMBS->computeDependentPosVelAcc(idxs, true, false, cdp, cdr);
+			aMBS->computeDependentPosVelAcc(idxs, true, false, cdp, cdr);
 
-		lambdaUpdateQValues();
-	});
+			lambdaUpdateQValues();
+		});
 
 	//
 	win.performLayout();

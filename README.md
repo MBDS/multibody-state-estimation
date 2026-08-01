@@ -1,5 +1,5 @@
 [![CI Linux](https://github.com/MBDS/multibody-state-estimation/actions/workflows/linux-build.yml/badge.svg)](https://github.com/MBDS/multibody-state-estimation/actions/workflows/linux-build.yml)
-[![CI Check clang-format](https://github.com/MBDS/multibody-state-estimation/actions/workflows/check-clang-format.yml/badge.svg)](https://github.com/MBDS/multibody-state-estimation/actions/workflows/check-clang-format.yml)
+[![CI clang-format](https://github.com/MBDS/multibody-state-estimation/actions/workflows/check-clang-format.yml/badge.svg)](https://github.com/MBDS/multibody-state-estimation/actions/workflows/check-clang-format.yml)
 [![Docs](https://readthedocs.org/projects/libmbse/badge/)](https://libmbse.readthedocs.io/)
 [![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/MBDS/multibody-state-estimation)
 
@@ -79,7 +79,7 @@ For CMake to find the library, in `cmake-gui` or `ccmake`, set the variable `mbs
 Make sure to enable clang-format-14 in your IDE, or manually run:
 
 ```bash
-find libmbse/ -iname '*.h' -o -iname '*.cpp' | xargs clang-format-14 -i
+./formatter.sh
 ```
 
 to avoid format-only diffs in Git commits.

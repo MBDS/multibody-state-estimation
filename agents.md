@@ -69,12 +69,10 @@ Check which branch you're on before assuming GTSAM API availability.
 
 ## Code style
 
-- Formatted with clang-format (config in `.clang-format`); the CI format
-  check currently runs `clang-format-11`, but local convention (see
-  `README.md` "Contributing") is `clang-format-14` — run whichever is
-  available and don't fight pre-existing formatting in untouched code.
-  `libmbse/tests/gtest-1.6.0/` is external/vendored and excluded from
-  formatting.
+- Formatted with clang-format (config in `.clang-format`) using
+  `clang-format-14`; run `./formatter.sh` to reformat in place, or
+  `./formatter.sh --check` to verify. `libmbse/tests/gtest-1.6.0/` is
+  external/vendored and excluded from formatting.
 - No one-line `if`/`for` bodies — always brace on its own line.
 - One variable declaration per line.
 - No em/en dashes in code or comments; American spelling.
@@ -86,8 +84,7 @@ Check which branch you're on before assuming GTSAM API availability.
 
 - `.github/workflows/linux-build.yml`: builds + runs `ctest` on a matrix of
   Ubuntu 20.04/22.04 x gcc/clang, with and without the MRPT PPA.
-- `.github/workflows/check-clang-format.yml`: runs the formatting check via
-  `.github/check_style.sh`.
+- `.github/workflows/check-clang-format.yml`: runs `formatter.sh --check`.
 
 ## Keeping this file in sync
 

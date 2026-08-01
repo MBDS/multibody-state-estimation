@@ -324,16 +324,16 @@ void test_smoother()
 
 	if (arg_verbose.isSet())
 	{
-		optParams.iterationHook = [](size_t iter, double oldError,
-									 double newError) {
+		optParams.iterationHook =
+			[](size_t iter, double oldError, double newError)
+		{
 			std::cout << "- LM iteration " << iter << " error: " << oldError
 					  << " -> " << newError << std::endl;
 		};
 	}
 
-	const auto lmbdPrintErr = [](const gtsam::Factor*, double err, size_t) {
-		return err > arg_printFactorErrors.getValue();
-	};
+	const auto lmbdPrintErr = [](const gtsam::Factor*, double err, size_t)
+	{ return err > arg_printFactorErrors.getValue(); };
 	const auto defKeyFrm = gtsam::DefaultKeyFormatter;
 
 	{

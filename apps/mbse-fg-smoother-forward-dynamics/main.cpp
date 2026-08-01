@@ -210,7 +210,8 @@ void test_smoother()
 
 	auto lambda_Values_toQ_DQ_DDQ = [dt, &Qs, &dotQs, &ddotQs, &last_q,
 									 &last_dq,
-									 &last_ddq](const gtsam::Values& values) {
+									 &last_ddq](const gtsam::Values& values)
+	{
 		for (const auto& kv : values)
 		{
 			gtsam::Symbol s(kv.key);
@@ -428,7 +429,8 @@ void test_smoother()
 #endif
 
 	auto lmbdPrintErr = [](const gtsam::Factor* /*factor*/,
-						   double whitenedError, size_t /*index*/) -> bool {
+						   double whitenedError, size_t /*index*/) -> bool
+	{
 		return true;  // whitenedError > 1e-3;
 	};
 
@@ -447,8 +449,9 @@ void test_smoother()
 		gtsam::LevenbergMarquardtParams lp =
 			gtsam::LevenbergMarquardtParams::LegacyDefaults();
 
-		lp.iterationHook = [&wholeFG](
-							   size_t iter, double errBef, double errAfter) {
+		lp.iterationHook =
+			[&wholeFG](size_t iter, double errBef, double errAfter)
+		{
 			const auto N = wholeFG.size();
 			std::cout << "LM iter #" << iter
 					  << " rmse: " << std::sqrt(errBef / N) << " -> "
