@@ -94,7 +94,7 @@ jobs:
           sudo add-apt-repository ppa:borglab/gtsam-develop -y
 
           if [ "${{ matrix.gtsam_tbb }}" = "ON" ]; then
-            GTSAM_PKGS="libgtsam-dev libgtsam-unstable-dev"
+            GTSAM_PKGS="libgtsam-dev libgtsam-unstable-dev libtbb-dev"
           else
             GTSAM_PKGS="libgtsam-no-tbb-dev libgtsam-no-tbb-unstable-dev"
           fi

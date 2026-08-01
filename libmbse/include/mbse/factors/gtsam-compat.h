@@ -37,8 +37,18 @@
 #define OptionalNone boost::none
 #endif
 #else
-// Not all GTSAM >=4.3 versions auto-include this from NonlinearFactor.h:
+// The NoiseModelFactor1..6 aliases and OptionalMatrixType/OptionalNone are
+// defined either directly in NonlinearFactor.h, or (some GTSAM >=4.3
+// versions) in the separate header below, which not every such version
+// ships -- include it only if present.
+#include <gtsam/nonlinear/NonlinearFactor.h>
+#if defined(__has_include)
+#if __has_include(<gtsam/nonlinear/NoiseModelFactorN.h>)
 #include <gtsam/nonlinear/NoiseModelFactorN.h>
+#endif
+#else
+#include <gtsam/nonlinear/NoiseModelFactorN.h>
+#endif
 #define MBSE_OptionalMatrixType gtsam::OptionalMatrixType
 #endif
 
