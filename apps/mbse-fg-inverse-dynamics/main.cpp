@@ -317,7 +317,7 @@ void test_smoother()
 	// optParams.verbosityLM = gtsam::LevenbergMarquardtParams::DAMPED;
 	optParams.lambdaUpperBound = 1e30;
 	optParams.lambdaFactor = 10.0;
-	optParams.diagonalDamping = false;
+	optParams.setDiagonalDamping(false);
 	optParams.absoluteErrorTol = 0;
 	optParams.relativeErrorTol = 1e-4;
 	optParams.maxIterations = arg_lm_iterations.getValue();

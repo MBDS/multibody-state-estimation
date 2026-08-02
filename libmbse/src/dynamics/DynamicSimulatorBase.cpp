@@ -77,6 +77,15 @@ void CDynamicSimulatorBase::prepare()
 	init_ = true;
 }
 
+CDynamicSimulatorBase::Ptr CDynamicSimulatorBase::clone() const
+{
+	auto newArm = arm_ptr_->clone();
+	auto newSolver = this->cloneInstance(newArm);
+	newSolver->params = this->params;
+	newSolver->prepare();
+	return newSolver;
+}
+
 /** Runs a dynamic simulation for a given time span */
 double CDynamicSimulatorBase::run(const double t_ini, const double t_end)
 {

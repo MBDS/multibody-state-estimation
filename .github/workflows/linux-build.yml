@@ -24,6 +24,7 @@ jobs:
           ubuntu-22.04-gcc-ppa-mrpt,
           ubuntu-22.04-clang-ppa-mrpt,
           ubuntu-22.04-gcc-default-mrpt,
+          ubuntu-22.04-gcc-tbb-gtsam,
         ]
 
         build_type: [ Release ]
@@ -32,26 +33,41 @@ jobs:
             os: ubuntu-20.04
             compiler: clang
             install_mrpt_ppa: ON
+            gtsam_tbb: OFF
 
           - name: ubuntu-20.04-gcc-ppa-mrpt
             os: ubuntu-20.04
             compiler: gcc
             install_mrpt_ppa: ON
+            gtsam_tbb: OFF
 
           - name: ubuntu-22.04-gcc-ppa-mrpt
             os: ubuntu-22.04
             compiler: gcc
             install_mrpt_ppa: ON
+            gtsam_tbb: OFF
 
           - name: ubuntu-22.04-clang-ppa-mrpt
             os: ubuntu-22.04
             compiler: clang
             install_mrpt_ppa: ON
+            gtsam_tbb: OFF
 
           - name: ubuntu-22.04-gcc-default-mrpt
             os: ubuntu-22.04
             compiler: gcc
             install_mrpt_ppa: OFF
+            gtsam_tbb: OFF
+
+          # Exercises factors under a TBB-enabled GTSAM (parallel factor
+          # evaluation/linearization), since each factor owns a private
+          # clone of its AssembledRigidModel/solver specifically to make
+          # that safe. See AssembledRigidModel::clone().
+          - name: ubuntu-22.04-gcc-tbb-gtsam
+            os: ubuntu-22.04
+            compiler: gcc
+            install_mrpt_ppa: ON
+            gtsam_tbb: ON
 
     steps:
       - name: Checkout
@@ -77,11 +93,16 @@ jobs:
 
           sudo add-apt-repository ppa:borglab/gtsam-develop -y
 
+          if [ "${{ matrix.gtsam_tbb }}" = "ON" ]; then
+            GTSAM_PKGS="libgtsam-dev libgtsam-unstable-dev libtbb-dev"
+          else
+            GTSAM_PKGS="libgtsam-no-tbb-dev libgtsam-no-tbb-unstable-dev"
+          fi
 
           sudo apt install -yq \
             cmake build-essential \
             libmrpt-dev \
-            libgtsam-no-tbb-dev libgtsam-no-tbb-unstable-dev \
+            $GTSAM_PKGS \
             libboost-timer-dev
 
           if [ "${{ matrix.compiler }}" = "gcc" ]; then

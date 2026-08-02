@@ -223,8 +223,9 @@ std::shared_ptr<AssembledRigidModel> ModelDefinition::assembleRigidMBS() const
 	TSymbolicAssembledModel armi(*this);
 	this->assembleRigidMBS(armi);
 
-	// 2) Actual assembly:
-	auto arm = std::make_shared<AssembledRigidModel>(armi);
+	// 2) Build the (shareable, read-only) topology, then the actual state:
+	auto topology = AssembledRigidModelTopology::Create(armi);
+	auto arm = std::make_shared<AssembledRigidModel>(topology);
 
 	arm->realize_operating_point();
 

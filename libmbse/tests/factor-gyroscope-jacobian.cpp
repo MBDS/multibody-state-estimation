@@ -109,7 +109,8 @@ TEST(Jacobians, gyroscope)
 			gtsam::Matrix H[2];
 			timlog.enter("factorsGyro.theoretical_jacob");
 
-			factorsGyro[body_idx]->evaluateError(q, dotq, &H[0], &H[1]);
+			factorsGyro[body_idx]->evaluateError(
+				q, dotq, MBSE_JACARG(H[0]), MBSE_JACARG(H[1]));
 
 			timlog.leave("factorsGyro.theoretical_jacob");
 

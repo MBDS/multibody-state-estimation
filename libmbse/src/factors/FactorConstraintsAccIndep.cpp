@@ -21,9 +21,18 @@ FactorConstraintsAccIndep::FactorConstraintsAccIndep(
 	const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 	gtsam::Key key_dotq_k, gtsam::Key key_ddotq_k, gtsam::Key key_ddotz_k)
 	: Base(noiseModel, key_q_k, key_dotq_k, key_ddotq_k, key_ddotz_k),
-	  arm_(arm),
+	  arm_(arm->clone()),
 	  indCoordsIndices_(indCoordsIndices),
 	  matrix_Iidx_(selector_matrix(indCoordsIndices, arm->q_.size()))
+{
+}
+
+FactorConstraintsAccIndep::FactorConstraintsAccIndep(
+	const FactorConstraintsAccIndep& o)
+	: Base(o),
+	  arm_(o.arm_->clone()),
+	  indCoordsIndices_(o.indCoordsIndices_),
+	  matrix_Iidx_(o.matrix_Iidx_)
 {
 }
 
@@ -31,7 +40,7 @@ FactorConstraintsAccIndep::~FactorConstraintsAccIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsAccIndep::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -53,9 +62,9 @@ bool FactorConstraintsAccIndep::equals(
 
 gtsam::Vector FactorConstraintsAccIndep::evaluateError(
 	const state_t& q_k, const state_t& dotq_k, const state_t& ddotq_k,
-	const state_t& ddotz_k, gtsam::OptionalMatrixType de_dq,
-	gtsam::OptionalMatrixType de_dqp, gtsam::OptionalMatrixType de_dqpp,
-	gtsam::OptionalMatrixType de_dzpp) const
+	const state_t& ddotz_k, MBSE_OptionalMatrixType de_dq,
+	MBSE_OptionalMatrixType de_dqp, MBSE_OptionalMatrixType de_dqpp,
+	MBSE_OptionalMatrixType de_dzpp) const
 {
 	MRPT_START
 

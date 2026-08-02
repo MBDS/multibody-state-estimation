@@ -12,6 +12,7 @@
 
 #include <gtsam/base/Vector.h>
 #include <gtsam/base/VectorSpace.h>
+#include <mbse/factors/gtsam-compat.h>
 
 namespace mbse
 {

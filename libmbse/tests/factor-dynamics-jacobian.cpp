@@ -105,7 +105,9 @@ TEST(Jacobians, FactorDynamics)
 			gtsam::Matrix H[3];
 			timlog.enter("factorsDyn.theoretical_jacob");
 
-			factorDyn->evaluateError(q, dotq, ddotq, &H[0], &H[1], &H[2]);
+			factorDyn->evaluateError(
+				q, dotq, ddotq, MBSE_JACARG(H[0]), MBSE_JACARG(H[1]),
+				MBSE_JACARG(H[2]));
 
 			timlog.leave("factorsDyn.theoretical_jacob");
 

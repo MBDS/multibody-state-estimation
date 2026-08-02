@@ -17,7 +17,7 @@ FactorConstraints::~FactorConstraints() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraints::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -37,7 +37,7 @@ bool FactorConstraints::equals(
 }
 
 gtsam::Vector FactorConstraints::evaluateError(
-	const state_t& q_k, gtsam::OptionalMatrixType H1) const
+	const state_t& q_k, MBSE_OptionalMatrixType H1) const
 {
 	MRPT_START
 

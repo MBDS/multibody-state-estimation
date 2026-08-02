@@ -38,6 +38,9 @@ class FactorDynamicsIndep
 	using This = FactorDynamicsIndep;
 	using Base = gtsam::NoiseModelFactor3<state_t, state_t, state_t>;
 
+	/** This factor's own private, exclusively-owned clone of the solver
+	 * passed in at construction (see FactorDynamics for the rationale). */
+	CDynamicSimulatorIndepBase::Ptr dynamic_solver_owned_;
 	CDynamicSimulatorIndepBase* dynamic_solver_ = nullptr;
 	gtsam::Key key_q_k_;
 	const gtsam::Values* valuesForQk_ = nullptr;
@@ -49,14 +52,19 @@ class FactorDynamicsIndep
 	/** default constructor - only use for serialization */
 	FactorDynamicsIndep() = default;
 
-	/** Constructor */
+	/** Constructor. Note that `dynamic_solver` is only used as a template to
+	 * clone from: this factor does NOT keep a reference to it, nor mutates it.
+	 */
 	FactorDynamicsIndep(
 		CDynamicSimulatorIndepBase* dynamic_solver,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_z_k,
 		gtsam::Key key_dz_k, gtsam::Key key_ddz_k, gtsam::Key key_q_k,
 		const gtsam::Values& valuesForQk)
 		: Base(noiseModel, key_z_k, key_dz_k, key_ddz_k),
-		  dynamic_solver_(dynamic_solver),
+		  dynamic_solver_owned_(
+			  std::static_pointer_cast<CDynamicSimulatorIndepBase>(
+				  dynamic_solver->clone())),
+		  dynamic_solver_(dynamic_solver_owned_.get()),
 		  key_q_k_(key_q_k),
 		  valuesForQk_(&valuesForQk)
 	{
@@ -67,6 +75,18 @@ class FactorDynamicsIndep
 			"choose DOF z variables for use within this factor.");
 		MRPT_END
 	}
+
+	FactorDynamicsIndep(const FactorDynamicsIndep& o)
+		: Base(o),
+		  dynamic_solver_owned_(
+			  std::static_pointer_cast<CDynamicSimulatorIndepBase>(
+				  o.dynamic_solver_owned_->clone())),
+		  dynamic_solver_(dynamic_solver_owned_.get()),
+		  key_q_k_(o.key_q_k_),
+		  valuesForQk_(o.valuesForQk_)
+	{
+	}
+	FactorDynamicsIndep& operator=(const FactorDynamicsIndep& o) = delete;
 
 	virtual ~FactorDynamicsIndep() override;
 
@@ -90,9 +110,9 @@ class FactorDynamicsIndep
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& z_k, const state_t& dz_k, const state_t& ddz_k,
-		gtsam::OptionalMatrixType de_dz = OptionalNone,
-		gtsam::OptionalMatrixType de_dzp = OptionalNone,
-		gtsam::OptionalMatrixType de_dzpp = OptionalNone) const override;
+		MBSE_OptionalMatrixType de_dz = OptionalNone,
+		MBSE_OptionalMatrixType de_dzp = OptionalNone,
+		MBSE_OptionalMatrixType de_dzpp = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 3; }

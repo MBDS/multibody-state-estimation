@@ -34,6 +34,12 @@ class FactorDynamics
 	using This = FactorDynamics;
 	using Base = gtsam::NoiseModelFactor3<state_t, state_t, state_t>;
 
+	/** This factor's own private, exclusively-owned clone of the solver
+	 * (and, transitively, the AssembledRigidModel) passed in at construction.
+	 * Owning a private clone -instead of sharing the caller's instance-
+	 * is what makes it safe to evaluate different factors concurrently, e.g.
+	 * from different threads as GTSAM does when built with TBB. */
+	CDynamicSimulatorBase::Ptr dynamic_solver_owned_;
 	CDynamicSimulatorBase* dynamic_solver_ = nullptr;
 
    public:
@@ -43,15 +49,26 @@ class FactorDynamics
 	/** default constructor - only use for serialization */
 	FactorDynamics() = default;
 
-	/** Constructor */
+	/** Constructor. Note that `dynamic_solver` is only used as a template to
+	 * clone from: this factor does NOT keep a reference to it, nor mutates it.
+	 */
 	FactorDynamics(
 		CDynamicSimulatorBase* dynamic_solver,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 		gtsam::Key key_dq_k, gtsam::Key key_ddq_k)
 		: Base(noiseModel, key_q_k, key_dq_k, key_ddq_k),
-		  dynamic_solver_(dynamic_solver)
+		  dynamic_solver_owned_(dynamic_solver->clone()),
+		  dynamic_solver_(dynamic_solver_owned_.get())
 	{
 	}
+
+	FactorDynamics(const FactorDynamics& o)
+		: Base(o),
+		  dynamic_solver_owned_(o.dynamic_solver_owned_->clone()),
+		  dynamic_solver_(dynamic_solver_owned_.get())
+	{
+	}
+	FactorDynamics& operator=(const FactorDynamics& o) = delete;
 
 	virtual ~FactorDynamics() override;
 
@@ -75,9 +92,9 @@ class FactorDynamics
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dq_k, const state_t& ddq_k,
-		gtsam::OptionalMatrixType H1 = OptionalNone,
-		gtsam::OptionalMatrixType H2 = OptionalNone,
-		gtsam::OptionalMatrixType H3 = OptionalNone) const override;
+		MBSE_OptionalMatrixType H1 = OptionalNone,
+		MBSE_OptionalMatrixType H2 = OptionalNone,
+		MBSE_OptionalMatrixType H3 = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 3; }

@@ -40,6 +40,9 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	using This = FactorInverseDynamics;
 	using Base = gtsam::NoiseModelFactor1<state_t>;
 
+	/** This factor's own private, exclusively-owned clone of the solver
+	 * passed in at construction (see FactorDynamics for the rationale). */
+	CDynamicSimulatorBase::Ptr dynamic_solver_owned_;
 	CDynamicSimulatorBase* dynamic_solver_ = nullptr;
 
 	gtsam::Key key_q_k_, key_dq_k_, key_ddq_k_;
@@ -56,7 +59,9 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	/** default constructor - only use for serialization */
 	FactorInverseDynamics() = default;
 
-	/** Constructor */
+	/** Constructor. Note that `dynamic_solver` is only used as a template to
+	 * clone from: this factor does NOT keep a reference to it, nor mutates it.
+	 */
 	FactorInverseDynamics(
 		CDynamicSimulatorBase* dynamic_solver,
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
@@ -64,7 +69,8 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 		const gtsam::Values& valuesFor_q_dq,
 		const std::vector<size_t>& actuatedDegreesOfFreedomInQ)
 		: Base(noiseModel, key_Q_k),
-		  dynamic_solver_(dynamic_solver),
+		  dynamic_solver_owned_(dynamic_solver->clone()),
+		  dynamic_solver_(dynamic_solver_owned_.get()),
 		  key_q_k_(key_q_k),
 		  key_dq_k_(key_dq_k),
 		  key_ddq_k_(key_ddq_k),
@@ -72,6 +78,19 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 		  actuatedDegreesOfFreedomInQ_(actuatedDegreesOfFreedomInQ)
 	{
 	}
+
+	FactorInverseDynamics(const FactorInverseDynamics& o)
+		: Base(o),
+		  dynamic_solver_owned_(o.dynamic_solver_owned_->clone()),
+		  dynamic_solver_(dynamic_solver_owned_.get()),
+		  key_q_k_(o.key_q_k_),
+		  key_dq_k_(o.key_dq_k_),
+		  key_ddq_k_(o.key_ddq_k_),
+		  valuesFor_q_dq_(o.valuesFor_q_dq_),
+		  actuatedDegreesOfFreedomInQ_(o.actuatedDegreesOfFreedomInQ_)
+	{
+	}
+	FactorInverseDynamics& operator=(const FactorInverseDynamics& o) = delete;
 
 	virtual ~FactorInverseDynamics() override;
 
@@ -95,7 +114,7 @@ class FactorInverseDynamics : public gtsam::NoiseModelFactor1<state_t /* Q_k */>
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& Q_k,
-		gtsam::OptionalMatrixType d_e_Q = OptionalNone) const override;
+		MBSE_OptionalMatrixType d_e_Q = OptionalNone) const override;
 
 	/** number of variables attached to this factor */
 	std::size_t size() const { return 2; }

@@ -77,6 +77,12 @@ double AssembledRigidModel::finiteDisplacement(
 {
 	timelog().enter("finiteDisplacement");
 
+	// Some constraints cache operating-point-dependent state (e.g. which of
+	// several equivalent equation forms to use), which must be refreshed for
+	// the current q before iterating, or the Newton iteration below may
+	// converge to a spurious root.
+	this->realize_operating_point();
+
 	this->update_numeric_Phi_and_Jacobians();
 
 	size_t iter = 0;

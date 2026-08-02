@@ -29,24 +29,23 @@ template <class DYN_SIMUL>
 struct TMBState_Particle
 {
 	TMBState_Particle(const TSymbolicAssembledModel& sym_model)
-		: sym_assembly_model(sym_model),
-		  num_model_ptr(new AssembledRigidModel(sym_assembly_model)),
+		: topology_(AssembledRigidModelTopology::Create(sym_model)),
+		  num_model_ptr(new AssembledRigidModel(topology_)),
 		  num_model(*num_model_ptr.get()),
 		  dyn_simul(new DYN_SIMUL(num_model_ptr))
 	{
 		dyn_simul->prepare();
 	}
 
-	TSymbolicAssembledModel
-		sym_assembly_model;	 //!< Symbolic assembly instructions
+	AssembledRigidModelTopology::Ptr topology_;	 //!< Shared, read-only topology
 	std::shared_ptr<AssembledRigidModel> num_model_ptr;
 	AssembledRigidModel& num_model;
 	CDynamicSimulatorIndepBase::Ptr dyn_simul;
 
 	/** copy ctor */
 	TMBState_Particle(const TMBState_Particle& o)
-		: sym_assembly_model(o.sym_assembly_model),
-		  num_model_ptr(new AssembledRigidModel(sym_assembly_model)),
+		: topology_(o.topology_),
+		  num_model_ptr(new AssembledRigidModel(topology_)),
 		  num_model(*num_model_ptr.get()),
 		  dyn_simul(new DYN_SIMUL(num_model_ptr))
 	{

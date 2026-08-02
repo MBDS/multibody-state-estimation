@@ -26,7 +26,16 @@ Related theory is in the papers linked in `README.md`.
     `docs/mechanism-definition-yaml.md`).
   - `AssembledRigidModel.*` — the assembled/preprocessed model used to run
     kinematic/dynamic simulations (mass matrix, generalized forces, initial
-    position problem).
+    position problem). Split into `AssembledRigidModelTopology` (immutable,
+    shareable: DOFs, point<->DOF mapping, initial q) and `AssembledRigidModel`
+    itself (the mutable working state: q/dq/ddq, constraint Jacobians, cloned
+    constraint instances). `AssembledRigidModel::clone()` returns an
+    independent copy of the state, cheaply sharing the same topology.
+    `CDynamicSimulatorBase::clone()` does the same for a solver + its model.
+    Every GTSAM factor clones its own model/solver at construction time (see
+    e.g. `FactorDynamics`), so concurrent `evaluateError()` calls on
+    different factors from different threads (as GTSAM does when built with
+    TBB) never touch shared mutable state.
   - `constraints/` — one class per joint/constraint type (constant
     distance, fixed/mobile slider, relative angle, relative position, etc.),
     all deriving from `ConstraintBase`.
@@ -58,14 +67,20 @@ ctest --verbose     # or: make test_legacy
 ```
 
 Dependencies: CMake, a C++ compiler, SuiteSparse, MRPT (>=2.0.0), GTSAM
-(>=4.2), GTSAM_UNSTABLE.
+(>=4.2), GTSAM_UNSTABLE. Builds against both TBB and non-TBB GTSAM.
 
-## GTSAM version branches
+## GTSAM version compatibility
 
-- `master` branch targets GTSAM <=4.2.
-- Branch `newer-gtsam` targets GTSAM >=4.3 (or GTSAM's `develop` branch).
-
-Check which branch you're on before assuming GTSAM API availability.
+`libmbse/include/mbse/factors/gtsam-compat.h` detects the active GTSAM
+version (`GTSAM_VERSION_AT_LEAST(major,minor,patch)`) and defines
+`MBSE_OptionalMatrixType`, used in every factor's `evaluateError()` in place
+of `gtsam::OptionalMatrixType`: it expands to `boost::optional<Matrix&>` on
+GTSAM <4.3 and to `gtsam::OptionalMatrixType` (`Matrix*`) on GTSAM >=4.3.
+Both share the same `if(H)`/`*H` usage, so factor bodies never branch on
+this themselves. This is the same technique used in
+`mola_gtsam_factors/gtsam_detect_version.h`. As a result `master` builds
+against both old and new GTSAM; the `newer-gtsam` branch predates this and
+is no longer needed for that purpose.
 
 ## Code style
 
@@ -83,7 +98,9 @@ Check which branch you're on before assuming GTSAM API availability.
 ## CI
 
 - `.github/workflows/linux-build.yml`: builds + runs `ctest` on a matrix of
-  Ubuntu 20.04/22.04 x gcc/clang, with and without the MRPT PPA.
+  Ubuntu 20.04/22.04 x gcc/clang, with and without the MRPT PPA, plus one
+  `ubuntu-22.04-gcc-tbb-gtsam` job using TBB-enabled GTSAM (`libgtsam-dev`
+  instead of `libgtsam-no-tbb-dev`) to exercise concurrent factor evaluation.
 - `.github/workflows/check-clang-format.yml`: runs `formatter.sh --check`.
 
 ## Keeping this file in sync

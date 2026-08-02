@@ -21,9 +21,18 @@ FactorConstraintsVelIndep::FactorConstraintsVelIndep(
 	const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 	gtsam::Key key_dotq_k, gtsam::Key key_dotz_k)
 	: Base(noiseModel, key_q_k, key_dotq_k, key_dotz_k),
-	  arm_(arm),
+	  arm_(arm->clone()),
 	  indCoordsIndices_(indCoordsIndices),
 	  matrix_Iidx_(selector_matrix(indCoordsIndices, arm->q_.size()))
+{
+}
+
+FactorConstraintsVelIndep::FactorConstraintsVelIndep(
+	const FactorConstraintsVelIndep& o)
+	: Base(o),
+	  arm_(o.arm_->clone()),
+	  indCoordsIndices_(o.indCoordsIndices_),
+	  matrix_Iidx_(o.matrix_Iidx_)
 {
 }
 
@@ -31,7 +40,7 @@ FactorConstraintsVelIndep::~FactorConstraintsVelIndep() = default;
 
 gtsam::NonlinearFactor::shared_ptr FactorConstraintsVelIndep::clone() const
 {
-	return std::static_pointer_cast<gtsam::NonlinearFactor>(
+	return MBSE_static_pointer_cast<gtsam::NonlinearFactor>(
 		gtsam::NonlinearFactor::shared_ptr(new This(*this)));
 }
 
@@ -53,8 +62,8 @@ bool FactorConstraintsVelIndep::equals(
 
 gtsam::Vector FactorConstraintsVelIndep::evaluateError(
 	const state_t& q_k, const state_t& dotq_k, const state_t& dotz_k,
-	gtsam::OptionalMatrixType de_dq, gtsam::OptionalMatrixType de_dqp,
-	gtsam::OptionalMatrixType de_dzp) const
+	MBSE_OptionalMatrixType de_dq, MBSE_OptionalMatrixType de_dqp,
+	MBSE_OptionalMatrixType de_dzp) const
 {
 	MRPT_START
 

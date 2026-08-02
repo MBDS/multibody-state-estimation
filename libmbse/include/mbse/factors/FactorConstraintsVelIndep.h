@@ -48,6 +48,10 @@ class FactorConstraintsVelIndep
 		const gtsam::SharedNoiseModel& noiseModel, gtsam::Key key_q_k,
 		gtsam::Key key_dotq_k, gtsam::Key key_dotz_k);
 
+	FactorConstraintsVelIndep(const FactorConstraintsVelIndep& o);
+	FactorConstraintsVelIndep& operator=(const FactorConstraintsVelIndep& o) =
+		delete;
+
 	virtual ~FactorConstraintsVelIndep() override;
 
 	// @return a deep copy of this factor
@@ -67,9 +71,9 @@ class FactorConstraintsVelIndep
 	/** vector of errors */
 	gtsam::Vector evaluateError(
 		const state_t& q_k, const state_t& dotq_k, const state_t& dotz_k,
-		gtsam::OptionalMatrixType de_dq = OptionalNone,
-		gtsam::OptionalMatrixType de_dqp = OptionalNone,
-		gtsam::OptionalMatrixType de_dzp = OptionalNone) const override;
+		MBSE_OptionalMatrixType de_dq = OptionalNone,
+		MBSE_OptionalMatrixType de_dqp = OptionalNone,
+		MBSE_OptionalMatrixType de_dzp = OptionalNone) const override;
 
 	/** numberof variable attached to this factor */
 	std::size_t size() const { return 3; }
